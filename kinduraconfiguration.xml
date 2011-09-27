@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<KinduraConfiguration>
+    <DuraCloud>
+        <DuraCloudHost>localhost</DuraCloudHost>
+        <DuraCloudPort>8080</DuraCloudPort>
+        <DuraCloudContext>durastore</DuraCloudContext>
+        <DuraCloudUsername>root</DuraCloudUsername>
+        <DuraCloudPassword>rpw</DuraCloudPassword>
+        <TempUploadDirectory>C:/Program Files/Apache Software Foundation/Tomcat 6.0/webapps/kindura2/uploadtemp/</TempUploadDirectory>
+    	<TempDownloadDirectory>C:/Program Files/Apache Software Foundation/Tomcat 6.0/webapps/kindura2/downloadtemp/</TempDownloadDirectory>
+    	<DisplayDownloadDirectory>downloadtemp/</DisplayDownloadDirectory>
+    </DuraCloud>
+    <Fedora>
+    	<FedoraHost>http://localhost:8080/fedora/</FedoraHost>
+    	<FedoraUsername>fedoraAdmin</FedoraUsername>
+    	<FedoraPassword>fedoraAdmin</FedoraPassword>	
+    </Fedora>
+	<MySQL>
+		<MySQLURL>jdbc:mysql://localhost:3306/</MySQLURL>
+		<MySQLUsername>root</MySQLUsername>
+		<MySQLPassword>rpw</MySQLPassword>
+		<MySQLDatabase>kindura_users</MySQLDatabase>
+	</MySQL>
+</KinduraConfiguration>
