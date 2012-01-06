@@ -13,45 +13,66 @@ import org.duracloud.error.ContentStoreException;
 public class DownloadRequestHandler extends HttpServlet {
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession session = request.getSession(true);
-		
+		if (isSessionValid(session) == false) {
+			response.sendRedirect("sessiontimeout.jsp");
+		}
+		else {
+		    String username = session.getAttribute("username").toString();
+	        session.setAttribute("username", username);
+	        
+	        String[] nameSpaceAndPid = request.getParameter("namespaceandpid").split(":");
+			String fileExtension = request.getParameter(nameSpaceAndPid[0]+nameSpaceAndPid[1]);
+			System.out.println("start to download "+nameSpaceAndPid[0]+" "+nameSpaceAndPid[1]+" "+fileExtension);
+	        
+			if (fileExtension.endsWith("null")) {
+				response.sendRedirect("downloaderror.jsp");
+			} else {
+				downloadFile(response, nameSpaceAndPid, fileExtension);
+			}
+	    }
+	}
+	
+	/*
+	 * Check if session is valid. If yes, return true. Otherwise, return false.
+	 */
+	private boolean isSessionValid(HttpSession session) {
 		//Check if the session is valid.
 		if (session.getAttribute("username") != null) {
-		    // Valid login
-			String username = session.getAttribute("username").toString();
-	        session.setAttribute("username", username);
+		    return true;
 		} else {
-	        // Invalid login
-	        response.sendRedirect("sessiontimeout.jsp");
+	        return false;
+		}
+	}
+	
+	/*
+	 * Download the specified file.
+	 */
+	private void downloadFile(HttpServletResponse response, String[] nameSpaceAndPid, String fileExtension) throws ServletException, IOException {
+		ConfigurationFileParser cfp = new ConfigurationFileParser();
+		//final String downloadTempDirectory = "C:/Program Files/Apache Software Foundation/Tomcat 6.0/webapps/kindura2/downloadtemp/";
+		final String tempDownloadDirectory = cfp.getKinduraParameters().get("TempDownloadDirectory");
+		//final String displayDownloadDirectory = "downloadtemp/";
+		final String displayDownloadDirectory = cfp.getKinduraParameters().get("DisplayDownloadDirectory");
+		
+		String revisedFileNameForDownload = reviseFileNameForDownload(nameSpaceAndPid[1]);
+		//Download the specified file from Cloud to local server and store it in a local temporary folder.
+		try {
+			//duraStoreClient = new DuraStoreClient("localhost", "8080", "durastore", "root", "rpw");
+			DuraStoreClient duraStoreClient = new DuraStoreClient(cfp.getKinduraParameters().get("DuraCloudHost"), cfp.getKinduraParameters().get("DuraCloudPort"), 
+					cfp.getKinduraParameters().get("DuraCloudContext"), cfp.getKinduraParameters().get("DuraCloudUsername"), cfp.getKinduraParameters().get("DuraCloudPassword"));
+			duraStoreClient.downloadFile(nameSpaceAndPid[0], nameSpaceAndPid[1], revisedFileNameForDownload, tempDownloadDirectory, fileExtension, Integer.valueOf(cfp.getKinduraParameters().get("NumberOfBytes")));
+		} catch (ContentStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
-		String[] nameSpaceAndPid = request.getParameter("namespaceandpid").split(":");
-		String fileformat = request.getParameter(nameSpaceAndPid[0]+nameSpaceAndPid[1]);
 		
-		System.out.println("start to download "+nameSpaceAndPid[0]+" "+nameSpaceAndPid[1]+" "+fileformat);
-		
-		if (fileformat.equals("null")) {
-			response.sendRedirect("downloaderror.jsp");
-		} else {
-			ConfigurationFileParser cfp = new ConfigurationFileParser();
-			//final String downloadTempDirectory = "C:/Program Files/Apache Software Foundation/Tomcat 6.0/webapps/kindura2/downloadtemp/";
-			final String tempDownloadDirectory = cfp.kinduraParameters.get("TempDownloadDirectory");
-			//final String displayDownloadDirectory = "downloadtemp/";
-			final String displayDownloadDirectory = cfp.kinduraParameters.get("DisplayDownloadDirectory");
-			
-			//Download the specified file from Cloud to local server and store it in a local temporary folder.
-			DuraStoreClient duraStoreClient;
-			try {
-				//duraStoreClient = new DuraStoreClient("localhost", "8080", "durastore", "root", "rpw");
-				duraStoreClient = new DuraStoreClient(cfp.kinduraParameters.get("DuraCloudHost"), cfp.kinduraParameters.get("DuraCloudPort"), 
-						cfp.kinduraParameters.get("DuraCloudContext"), cfp.kinduraParameters.get("DuraCloudUsername"), cfp.kinduraParameters.get("DuraCloudPassword"));
-				duraStoreClient.downloadFile(nameSpaceAndPid[0], nameSpaceAndPid[1], tempDownloadDirectory, fileformat, 1024);
-			} catch (ContentStoreException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			//Redirect the link to the file stored in the local temporary folder.
-			response.sendRedirect(displayDownloadDirectory+nameSpaceAndPid[1]+"."+fileformat);
-		}	
+		//Redirect the link to the file stored in the local temporary folder.
+		response.sendRedirect(displayDownloadDirectory+revisedFileNameForDownload+"."+fileExtension);
 	}
+	
+	public String reviseFileNameForDownload(String originalFileName) {
+    	String revisedFileName = originalFileName.substring(originalFileName.lastIndexOf("/")+1);
+    	return revisedFileName;
+    }
 }

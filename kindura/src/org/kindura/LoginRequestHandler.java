@@ -10,31 +10,39 @@ import javax.servlet.http.*;
  */
 public class LoginRequestHandler extends HttpServlet {
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		DatabaseConnector databaseConnector = new DatabaseConnector();	
-		ConfigurationFileParser cfp = new ConfigurationFileParser();
-		//Connect to the database.
-		//databaseConnector.connectDatabase("root", "globaltime", "kindura_users");
-		databaseConnector.connectDatabase(cfp.kinduraParameters.get("MySQLUsername"), cfp.kinduraParameters.get("MySQLPassword"), cfp.kinduraParameters.get("MySQLDatabase"));
+		String[] usernameAndRole = validateLogin(request.getParameter("username"),request.getParameter("password"));
 		
-		//Query username and password.
-		String username = request.getParameter("username");
-		String password = request.getParameter("password");
-		String returnedusername = databaseConnector.queryUser(username, password);
 		
 		//If the user is authenticated, send the homepage of Kindura Cloud Repository to the user.
-		if (returnedusername != null) {
+		if (usernameAndRole[0] != null) {
 			HttpSession session = request.getSession(true);
-			session.setAttribute("username", returnedusername);
-			System.out.println("User '"+returnedusername+"' is authenticated");
+			session.setAttribute("username", usernameAndRole[0]);
+			session.setAttribute("role", usernameAndRole[1]);
+			System.out.println("User '"+usernameAndRole[0]+"' is authenticated");
 			response.sendRedirect("home.jsp");
 		} 
 		//If the user is NOT authenticated, send the login error page to the user.
 		else {
-			System.out.println("User '"+returnedusername+"' is NOT authenticated");
+			System.out.println("User '"+usernameAndRole[0]+"' is NOT authenticated");
 			response.sendRedirect("loginerror.jsp");
 		}
+	}
+	
+	/*
+	 * validate the username and password.
+	 */
+	public String[] validateLogin(String username, String password) {
+		DatabaseConnector databaseConnector = new DatabaseConnector();	
+		ConfigurationFileParser cfp = new ConfigurationFileParser();
+		//Connect to the database.
+		databaseConnector.connectDatabase(cfp.getKinduraParameters().get("MySQLUsername"), cfp.getKinduraParameters().get("MySQLPassword"), cfp.getKinduraParameters().get("MySQLDatabase"));
+		
+		//Query username and password.
+		String[] usernameAndRole = databaseConnector.queryUser(username, password);
 		
 		//Terminate the connection the database.
 		databaseConnector.disconnectDatabase();
+		
+		return usernameAndRole;
 	}
 }
