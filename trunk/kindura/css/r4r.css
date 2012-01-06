@@ -24,6 +24,27 @@ a:hover {
 	color: "#C36";
 }
 
+a.LinkToPage {
+	color:#993144;
+	text-decoration: underline;
+	//text-decoration:none;
+	//color: #0000FF;
+	font-size: 15px;
+	font-family: arial;
+}
+
+a.LinkToPage:hover { 
+	color:#FF0000; 
+	//text-decoration: underline;
+	text-decoration:none;
+	font-size: 15px;	
+}
+
+b.CurrentPage {
+	font-size: 15px;
+	color: black;
+}
+
 #header h1 {
 	font-size: 3em;
 	margin: 0px;
@@ -181,5 +202,24 @@ table#list a {
     text-decoration: none;    
 }
 
+.datahandling {
+	margin-left: 20px;
+	text-align: left;
+}
 
+hr.SeparatedLine {
+  color: #B59781;
+  height: 0;
+  border: dashed;
+  border-width:1px 0 0 0;
+}
 
+td.menucolumn {
+	background-color: #F0F0F0;
+	width: 70px;
+	text-align: left;
+}
+
+.textandtextarea * {
+	vertical-align: top;
+}

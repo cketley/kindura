@@ -4,6 +4,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ page import="java.sql.*, java.util.*, java.net.*, java.io.*" %>
+<%@ page import="com.yourmediashelf.fedora.client.*, com.yourmediashelf.fedora.client.request.*, com.yourmediashelf.fedora.client.response.*, com.yourmediashelf.fedora.generated.access.*" %>
+
+<%@ page errorPage="login.jsp" %>
+
+<jsp:useBean id="fedoraServiceManager" class="org.kindura.FedoraServiceManager" scope="session"/>
+	
 <%
 	//Get the username and set the relevant attribute.
 	String username = null;
@@ -11,6 +18,7 @@
 	    // Valid login
 		username = session.getAttribute("username").toString();
         session.setAttribute("username", username);
+		session.setAttribute("role", session.getAttribute("role").toString());
 	} else {
         // Invalid login
         response.sendRedirect("sessiontimeout.jsp");
@@ -29,106 +37,128 @@
 				<h1>Kindura Cloud Repository</h1>
 			</div>
 			<tr valign="top">
-				<td style="background-color:#F0F0F0;width:70px;text-align:center;">
-					</br>
-					<a href="home.jsp">Home</a></br>
-					<b>Upload</b></br>
-					<a href="search.jsp">Search</a></br>
-					<a href="help.jsp">Help</a></br></br></br>
-					<a href="logout.jsp">Log Out</a>
+				<td class="menucolumn">
+					<br/>
+					<br/>
+					&nbsp &nbsp<a href="home.jsp" class="LinkToPage">Home</a><br/>
+					&nbsp &nbsp<a href="addproject.jsp" class="LinkToPage">Add project</a><br/>
+					&nbsp &nbsp<b>Upload</b><br/>
+					&nbsp &nbsp<a href="search.jsp" class="LinkToPage">Search</a><br/>
+					&nbsp &nbsp<a href="viewproject.jsp" class="LinkToPage">View</a><br/>
+					&nbsp &nbsp<a href="help.jsp" class="LinkToPage">Help</a></br/></br/></br/>
+					&nbsp &nbsp<a href="logout.jsp" class="LinkToPage">Log Out</a>
 				</td>
 				
 				<td style="background-color:#FFFFFF;height:550px;width:700px;text-align:center;">
 					<form name="metadata" method="post">
 						<br/>
-						Collection name <input type="text" name="collectionname" title="Name of the Data Collection"/>
-						<img border="0" src="images/requiredfield.gif" title="Required field" width="9" height="9"/>
-						&nbsp &nbsp &nbsp
-						
-						Research funder
-						<select name="researchfunder">
-							<option>AHRC</option>
-							<option>EPSRC</option>
-							<option>ESRC</option>
-							<option>MRC</option>
-							<option>NERC</option>
-							<option>Unfunded</option>
-							<option>Other funding</option>
-						</select>
-						&nbsp &nbsp &nbsp
-						
-						Ownership
-						<select name="owner">
-							<option>Licensed(Public)</option>
-							<option>Licensed(Restricted)</option>
-							<option>Unlicensed</option>
-						</select>
-						<img border="0" src="images/questionmark.jpg" title="" width="15" height="15"/>
-						
+						<h1 style="color:#F77A52;font-size:18px">Enter collection metadata:</h1>
+						<table align="center" style="text-align:left;" border="0" cellspacing="10">
+						<tr>
+						<td>
+						<b>Title</b>
+						<input type="text" name="collectionname" title="Name of the Data Collection" style="width:200px"/>
+						<img border="0" src="images/requiredfield.gif" title="The name of the collection(required filed)" width="9" height="9"/>
+						&nbsp &nbsp &nbsp &nbsp &nbsp
 						<br/><br/><br/><br/>
-						
-						Project
-						<select name="project">
-							<!--<option selected="selected"></option>-->
-							<option>Licensed(Public)</option>
-							<option>Licensed(Restricted)</option>
-							<option>Unlicensed</option>
+						</td>
+						<td>
+						<b>Project</b>
+						<select name="projectname" style="width:190px">
+							<%
+								//List<String> projectNames = fedoraServiceManager.getUserDefinedPIDs(username);
+								List<String> projectNames = fedoraServiceManager.getProjectNames();
+								Iterator<String> iterator = projectNames.iterator();
+								while (iterator.hasNext()) {
+									out.println("<option>"+iterator.next()+"</option>");
+								}
+							%>
 						</select>
-						<img border="0" src="images/questionmark.jpg" title="" width="15" height="15"/>
-						&nbsp &nbsp &nbsp
+						<img border="0" src="images/questionmark.jpg" title="Name of the project" width="15" height="15"/>
+						&nbsp &nbsp &nbsp &nbsp &nbsp
+						<br/><br/><br/><br/>
+						</td>
+						<td>
+						<b>Estimated access frequency</b>
+						<select name="accessfrequency" style="width:180px">
+							<option>10+ accesses per day</option>
+							<option>1-10 accesses per day</option>
+							<option>1-10 accesses per week</option>
+							<option>1-10 accesses per month</option>
+							<option>Infrequent</option>
+						</select>
+						<img border="0" src="images/questionmark.jpg" title="Estimated access frequency" width="15" height="15"/>
+						&nbsp &nbsp &nbsp &nbsp &nbsp
+						<br/><br/><br/><br/>
+						</td>
+						</tr>
+						<tr>
+						<td>
+						<b>Description</b>
+						<textarea name="collectiondescription" style="width:148px;heigth:50px"></textarea>
+						<img border="0" src="images/questionmark.jpg" title="Description of the Data Collection" width="15" height="15"/>
+						<br/><br/><br/><br/>
+						</td>
 						
-						Protective marking
-						<select name="proectivemarking">
+						<td>
+						<b>Protective marking</b>
+						<select name="protectivemarking">
 							<option selected="selected">Confidential</option>
 							<option>Internal</option>
 							<option>Public</option>
 						</select>
 						<img border="0" src="images/questionmark.jpg" title="Protective marking" width="15" height="15"/>
-						&nbsp &nbsp &nbsp
-						
-						Access requirement
-						<select name="accessrequirement"> 
-							<option selected="selected">100+ accesses per day</option>
-							<option>10 - 100 accesses per day</option>
-							<option>10 - 100 accesses per month</option>
-							<option>Infrequent</option>
-						</select>
-						<img border="0" src="images/questionmark.jpg" title="Protective marking" width="15" height="15"/>
-						
 						<br/><br/><br/><br/>
+						</td>
 						
-						Description <textarea name="description" rows="3" cols="20" title="Description of the data collection"></textarea>
-						<img border="0" src="images/questionmark.jpg" title="Description of the Data Collection" width="15" height="15"/>
-						&nbsp &nbsp &nbsp
-						
-						Collection type
-						<select name="collectiontype">
-							<option selected="selected">Pre-publication results</option>
-							<option>Published results</option>
-							<option>Source dataset</option>
-							<option>Working dataset</option>
+						<td>
+						<b>Version</b>
+						<select name="version" style="width:325px">
+							<option>Source data</option>
+							<option>Intermediate version</option>
+							<option>Milestone version</option>
+							<option>Reformatted content</option>
+							<option>Final version</option>
 						</select>
-						<img border="0" src="images/questionmark.jpg" title="Protective marking" width="15" height="15"/>
-						&nbsp &nbsp &nbsp
+						<img border="0" src="images/questionmark.jpg" title="Version of the data collection" width="15" height="15"/>
 						<br/><br/><br/><br/>
+						</td>
+						</tr>
+						<tr>
+							<td><b>Image handling</b>
+							<img border="0" src="images/questionmark.jpg" title="Convert .doc file to .pdf file" width="15" height="15"/>
+							<br/>
+							<input type="checkbox" name="bmptojpg" value="true" />bmp to jpeg
+							<br/>
+							<input type="checkbox" name="tifftojpg" value="true" />tiff to jpeg
+							<br/>
+							</td>
+							<td><b>Contains personal data?</b>
+							<img border="0" src="images/questionmark.jpg" title="Does the data collection contains personal data?" width="15" height="15"/>
+							<br/>
+							<input type="radio" name="personaldata" value="false" checked="yes"/>No
+							<br/>
+							<input type="radio" name="personaldata" value="true" />Yes
+							<br/>
+							</td>
+						</tr>
+						</table>
 						
-						Format conversion
-						<input type="checkbox" name="formatconversion" value="formatconversion"/>Documents Words to PDF<br/>
-						&nbsp &nbsp &nbsp &nbsp &nbsp
-						<input type="checkbox" name="tifftojpeg" value="tifftojpeg"/>TIFF to JPEG<br/>
-						&nbsp &nbsp &nbsp &nbsp &nbsp
-						<input type="checkbox" name="tifftopng" value="tifftopng"/>TIFF to PNG<br/>
 						<br/>
 						<input type="hidden" name="username" value="<%=username%>" />
 						<!--<input type="hidden" name="username" value="javascript:getUserName(this.form);" />-->
 					</form>
 					<br/>
 					<b>
-						<font size=4 face="verdana" color=FF0000>
+						<h1 style="font-family:arial;color:#F77A52;font-size:18px;text-align:center;">
+							Select files to add to collection:		
+						</h1>
+						<!--<font size=4 face="verdana" color=#F77A52>
 							Select files to add to collection
-						</font>
+						</font>-->
 					</b></br></br>
 					<APPLET
+						CODEBASE = "plugins"
 						CODE="wjhk.jupload2.JUploadApplet"
 						NAME="JUpload"
 						ARCHIVE="wjhk.jupload.jar"
@@ -141,6 +171,7 @@
 						<param name="showStatusBar" value="false" />
 						<param name="lookAndFeel" value="system" />
 						<param name="formdata" value="metadata" />
+						<param name="debugLevel" value="101" />
 						<!--<param name="afterUploadURL" value="parseRequest.jsp" />
 						<param name="URLParam" value="URL Parameter Value"/>-->
 						<!--<param name="formdata" value="true" />-->
@@ -152,7 +183,7 @@
 				</td>
 			</tr>
 		</table>
-		<p style="font-family:arial;color:#800517;font-size:15px;text-align:center;">
+		<p style="font-family:arial;color:#800517;font-size:12px;text-align:center;">
 			Kindura Project 2011		
 		</p>
 	</body>

@@ -4,12 +4,15 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.io.*, java.util.*, java.net.*" %>
 
+<%@ page errorPage="login.jsp" %>
+
 <%
 	//Get the username and set the relevant attribute.
 	if (session.getAttribute("username") != null) {
 	    // Valid login
 		String username = session.getAttribute("username").toString();
         session.setAttribute("username", username);
+		session.setAttribute("role", session.getAttribute("role").toString());
 	} else {
         // Invalid login
         response.sendRedirect("sessiontimeout.jsp");
@@ -28,26 +31,27 @@
 		</div>
 		<table width="100%" border="0">
 			<tr valign="top">
-				<td style="background-color:#F0F0F0;width:70px;text-align:center;">
-					</br>
-					<b>Home</b></br>
-					<a href="upload.jsp">Upload</a></br>
-					<a href="search.jsp">Search</a></br>
-					<a href="help.jsp">Help</a></br></br></br>
-					<a href="logout.jsp">Log Out</a>
+				<td class="menucolumn">
+					<br/>
+					<br/>
+					&nbsp &nbsp<a href="home.jsp" class="LinkToPage">Home</a><br/>
+					&nbsp &nbsp<a href="addproject.jsp" class="LinkToPage">Add project</a><br/>
+					&nbsp &nbsp<a href="addcollection.jsp" class="LinkToPage">Add collection</a><br/>
+					&nbsp &nbsp<a href="search.jsp" class="LinkToPage">Search</a><br/>
+					&nbsp &nbsp<a href="viewproject.jsp" class="LinkToPage">View</a><br/>
+					&nbsp &nbsp<a href="help.jsp" class="LinkToPage">Help</a></br/></br/></br/>
+					&nbsp &nbsp<a href="logout.jsp" class="LinkToPage">Log Out</a>
 				</td>
 				<td style="background-color:#FFFFFF;height:550px;width:700px;text-align:center;">
 					</br></br>
 					<font size=4 face="verdana" color=FF0000>
 						<b>Oops... File not found.</b> 
 						<br><br>
-						<a href="javascript:history.back(-1)">Go back</a>
+						<a href="javascript:history.back(-1)" class="LinkToPage"><< Go back</a>
 					</font>
 				</td>
 			</tr>	
 		</table>
-		<p style="font-family:arial;color:#800517;font-size:15px;text-align:center;">
-			Kindura Project 2011		
-		</p>
+		<%@ include file="bottompage.jsp" %>
 	</body>
 </html>

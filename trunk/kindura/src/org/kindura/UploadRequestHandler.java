@@ -16,6 +16,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.request.Ingest;
+import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
 
 /**
@@ -27,15 +28,24 @@ public class UploadRequestHandler extends HttpServlet {
 		
 		//Set the temporary folder to store the uploaded file(s).
 		//String tempDirectory = "C:/Program Files/Apache Software Foundation/Tomcat 6.0/webapps/kindura2/uploadtemp/";
-		ConfigurationFileParser cfp = new ConfigurationFileParser();
-		String tempUploadDirectory = cfp.kinduraParameters.get("TempUploadDirectory");
+		ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
+		String tempUploadDirectory = configurationFileParser.getKinduraParameters().get("TempUploadDirectory");
 		
 		//This String is used to store the value of parameter 'username' sent by upload.jsp.
 		String userName = null;
 		
 		//This String is used to store the value of parameter 'pathinfo0' sent by upload.jsp.
-		String fileOriginalPath = null;
+		String projectName = null;
 		String collectionName = null;
+		String creator = null;
+		String collectionDescription = null;
+		String storageType = null;
+		String actionRequired = null;
+		String fileOriginalPath = null;
+		String filePathForDuracloud = null;
+		String filePathForFedora = null;
+		String fileUrl = null;
+		
 		File uploadFile = null;
 
 		//Initialization for chunk management.
@@ -139,7 +149,7 @@ public class UploadRequestHandler extends HttpServlet {
 				//File outputFile;
 				System.out.println("[upload.jsp]  Let's read the sent data   (" + items.size() + " items)");
 				
-				Map<String, String> metaData = new HashMap<String, String>();
+				Map<String, String> inputMetadata = new HashMap<String, String>();
 					
 				while (iter.hasNext()) {
 					fileItem = (FileItem) iter.next();
@@ -158,23 +168,29 @@ public class UploadRequestHandler extends HttpServlet {
 							if (userName == null) {
 								response.sendRedirect("sessiontimeout.jsp");
 							}
-						} else if (fileItem.getFieldName().equals("pathinfo0")) {
-							fileOriginalPath = fileItem.getString();
+						} else if (fileItem.getFieldName().equals("projectname")) {
+							projectName = fileItem.getString();
 						} else if (fileItem.getFieldName().equals("collectionname")) {
 							collectionName = fileItem.getString();
 							if (collectionName.equals("")) {
 								throw new NullPointerException("Collection name is null");
 							}
-						}
+						} else if (fileItem.getFieldName().equals("collectiondescription")) {
+							collectionDescription = fileItem.getString();
+						} else if (fileItem.getFieldName().equals("pathinfo0")) {
+							fileOriginalPath = fileItem.getString();
+							filePathForDuracloud = reviseFilePathForDuracloud(fileOriginalPath);
+							filePathForFedora = reviseFilePathForFedora(fileOriginalPath);
+						}    
 						
 						//Store metadata from the web page "upload.jsp" for the rule engine.
-						metaData.put(fileItem.getFieldName(), fileItem.getString());
+						inputMetadata.put(fileItem.getFieldName(), fileItem.getString());
 					} 
 					//Handle the uploaded file.
 					else {
 						//Print out the metadata stored in the Map.
 						System.out.println("metadata stored in the Map for the rule engine:");
-						for (Map.Entry<String, String> entry : metaData.entrySet()) {
+						for (Map.Entry<String, String> entry : inputMetadata.entrySet()) {
 							System.out.println("[Metadata] Key="+entry.getKey()+" Value="+entry.getValue());
 						}
 						
@@ -189,6 +205,15 @@ public class UploadRequestHandler extends HttpServlet {
 						String mimeType = fileItem.getContentType();
 						String fileNameExtension = fileName.substring(fileName.indexOf(".")+1);
 						long fileSize = fileItem.getSize();				
+						//Set the namespace of the content as the username.
+						String nameSpace = userName;
+						//Get the base file name of the file.
+						int dot = fileName.indexOf(".");
+						String baseFilename = fileName.substring(0, dot);
+						//Generate the namespace. To create a new Fedora object for each file, use baseFilename. To create a new Fedora object for each data collection, use collectionName. 
+						//String nameSpaceAndPid = nameSpace + ":" + baseFilename;
+						//String nameSpaceAndPid = nameSpace + ":" + collectionName;
+						String nameSpaceAndPid = userName+":"+projectName;
 						
 						System.out.println("[upload.jsp] File Format: " + fileNameExtension);
 						System.out.println("[upload.jsp] Field Name: " + fieldName);
@@ -204,27 +229,36 @@ public class UploadRequestHandler extends HttpServlet {
 						// write the file
 						fileItem.write(uploadFile);	        
 						
+						RuleEngineTrigger ruleEngineTrigger = new RuleEngineTrigger();
+						ruleEngineTrigger.triggerRuleEngine(inputMetadata, nameSpaceAndPid);
+						
 						///////////////////////////////////////////////////////////////////////////////////////////////////////
 						//DuraCloud operations.
 						//
-						
+
 						// Setup a connection with DuraCloud.
 						//DuraStoreClient duraStoreClient = new DuraStoreClient("localhost", "8080", "durastore", "root", "rpw");
-						DuraStoreClient duraStoreClient = new DuraStoreClient(cfp.kinduraParameters.get("DuraCloudHost"), cfp.kinduraParameters.get("DuraCloudPort"), cfp.kinduraParameters.get("DuraCloudContext"), cfp.kinduraParameters.get("DuraCloudUsername"), cfp.kinduraParameters.get("DuraCloudPassword"));
+						DuraStoreClient duraStoreClient = new DuraStoreClient(configurationFileParser.getKinduraParameters().get("DuraCloudHost"), configurationFileParser.getKinduraParameters().get("DuraCloudPort"), configurationFileParser.getKinduraParameters().get("DuraCloudContext"), configurationFileParser.getKinduraParameters().get("DuraCloudUsername"), configurationFileParser.getKinduraParameters().get("DuraCloudPassword"));
 						
-						//Set the namespace of the content as the username.
-						String nameSpace = userName;
-						System.out.println("[upload.jsp] nameSpace: "+nameSpace);
-						
+
 						//Create a new namespace if the namespace does not exist.
 						if (duraStoreClient.isNameSpaceExisted(nameSpace) == false) {
 							Map<String, String> spaceMetadata = new HashMap<String, String>();
-							duraStoreClient.createNamespace(nameSpace, spaceMetadata);
+							
+							//spaceMetadata.put("x-amz-storage-class", "STANDARD");
+							duraStoreClient.createNamespace(nameSpace, spaceMetadata, "Amazon S3");
 						}
 						
-						//Upload the file to the Cloud.
-						duraStoreClient.uploadFile(nameSpace, fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						/*System.out.println("[upload.jsp] nameSpace+/+fileOriginalPath"+nameSpace+"/"+fileOriginalPath);
+						if (duraStoreClient.isNameSpaceExisted(nameSpace+"/"+fileOriginalPath) == false) {
+							Map<String, String> spaceMetadata = new HashMap<String, String>();
+							
+							//spaceMetadata.put("x-amz-storage-class", "STANDARD");
+							duraStoreClient.createNamespace(nameSpace+"/"+fileOriginalPath, spaceMetadata, "Amazon S3");
+						}*/
 						
+						//Upload the file to the Cloud.
+						duraStoreClient.uploadFile(nameSpace, projectName+"/"+collectionName+"/"+filePathForDuracloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
 						//
 						// End of DuraCloud operations.
 						///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -236,21 +270,15 @@ public class UploadRequestHandler extends HttpServlet {
 						//Setup connection with Fedora repository.
 						FedoraServiceManager fedoraServiceManager = new FedoraServiceManager();
 						//FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection("http://localhost:8080/fedora/", "fedoraAdmin", "fedoraAdmin");
-						FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection(cfp.kinduraParameters.get("FedoraHost"), cfp.kinduraParameters.get("FedoraUsername"), cfp.kinduraParameters.get("FedoraPassword"));
+						//FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection(configurationFileParser.getKinduraParameters().get("FedoraHost"), configurationFileParser.getKinduraParameters().get("FedoraUsername"), configurationFileParser.getKinduraParameters().get("FedoraPassword"));
+						FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
 						
-						//Get the base file name of the file.
-						int dot = fileName.indexOf(".");
-						String baseFilename = fileName.substring(0, dot);
+						
+						
 						
 						
 						//Create Fedora object and store it in Fedora repository.
-						String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+nameSpace+"&contentId="+fileName+"&storeID=0&attachment=true";
-						
-						//Generate the namespace. To create a new Fedora object for each file, use baseFilename. To create a new Fedora object for each data collection, use collectionName. 
-						String nameSpaceAndPid = nameSpace + ":" + baseFilename;
-						//String nameSpaceAndPid = nameSpace + ":" + collectionName;
-						
-						String title = "url";
+						fileUrl = "http://localhost:8080/duradmin/download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+filePathForDuracloud+"/"+fileName+"&storeID=0&attachment=true";
 						
 						//Generate a random cost value between 0 and 100.
 						BigDecimal cost = new BigDecimal(Math.random());
@@ -258,25 +286,75 @@ public class UploadRequestHandler extends HttpServlet {
 						cost = cost.multiply(factor);
 						cost = cost.setScale(2, BigDecimal.ROUND_HALF_UP);
 						
-						System.out.println("[upload.jsp] url: " + url);
-						System.out.println("[upload.jsp] title: " + title);
-						System.out.println("[upload.jsp] mime type: " + mimeType);
-						System.out.println("[upload.jsp] search_term: "+nameSpaceAndPid);
+						creator = userName;
+						
+						//Generate a random storage type based on the cost.
+						if (Double.valueOf(cost.toString()) > 66.6) {
+							storageType = "Fast";
+						} else if (Double.valueOf(cost.toString()) > 33.3) {
+							storageType = "Medium";
+						} else {
+							storageType = "Slow";
+						}
+						
+						//Generate a random action.
+						double actionValue = Math.random();
+						if (actionValue > 0.5) {
+							actionRequired = "Migrate";
+						} else {
+							actionRequired = "None";
+						}
+						
+						
+						
+						//System.out.println("[upload.jsp] url: " + url);
+						//System.out.println("[upload.jsp] mime type: " + mimeType);
+						//System.out.println("[upload.jsp] search_term: "+nameSpaceAndPid);
+						//fedoraServiceManager.getADataStream(fedoraClient, nameSpaceAndPid, "url");
+						
 						
 						//Create a new fedora object if it does not exist in Fedora repository.
-						if (fedoraServiceManager.getObjectPIDs(fedoraClient, nameSpaceAndPid, "pid") == null) {
+						if (fedoraServiceManager.getObjectPIDs(nameSpaceAndPid, "pid") == null) {
 							System.out.println("Object pid does NOT exists");
 							IngestResponse ingest = new Ingest(nameSpaceAndPid).execute(fedoraClient);
+							FedoraClient.addDatastream(nameSpaceAndPid, baseFilename+".cost").controlGroup("R").dsLabel(cost.toString()).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+							
+							
 						}
 						else {
 							System.out.println("Object pid exists");
 						}
 						
+						IngestResponse ingest = new Ingest(nameSpace+":"+collectionName).execute(fedoraClient);
+						FedoraClient.addRelationship(nameSpace+":"+collectionName).predicate("isACollectionOf").object(nameSpaceAndPid).isLiteral(true).execute(fedoraClient);
+						//FedoraResponse fedoraresponse = fedoraClient.execute(addRelationship(nameSpace+":"+collectionName).subject("subject").predicate("isACollectionOf").object(nameSpaceAndPid));
+						
 						//Add new datastream(s) to the Fedora object. If the datastream(s) exists, the content in the datastream will be modified according to the new information.
-						FedoraClient.addDatastream(nameSpaceAndPid, "url").controlGroup("R").dsLabel(url).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, "fileformat").controlGroup("R").dsLabel(fileNameExtension).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+						/*FedoraClient.addDatastream(nameSpaceAndPid, "url").controlGroup("R").dsLabel(url).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, "filenameextension").controlGroup("R").dsLabel(fileNameExtension).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 						FedoraClient.addDatastream(nameSpaceAndPid, "cost").controlGroup("R").dsLabel(cost.toString()).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 						FedoraClient.addDatastream(nameSpaceAndPid, "filepath").controlGroup("R").dsLabel(fileOriginalPath).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+						*/
+						
+						/*FedoraClient.addDatastream(nameSpaceAndPid, "creator").controlGroup("R").dsLabel(creator).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, "projectName").controlGroup("R").dsLabel(projectName).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, "collectionDescription").controlGroup("R").dsLabel(collectionDescription).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, "storageType").controlGroup("R").dsLabel(storageType).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, "collectionCost").controlGroup("R").dsLabel(cost.toString()).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, "actionRequired").controlGroup("R").dsLabel(actionRequired).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						*/
+						
+						/*FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+baseFilename+".url").controlGroup("R").dsLabel(fileUrl).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+baseFilename+".fileNameExtension").controlGroup("R").dsLabel(fileNameExtension).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+baseFilename+".filePath").controlGroup("R").dsLabel(fileOriginalPath).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+baseFilename+".fileSize").controlGroup("R").dsLabel(String.valueOf(fileSize)).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						*/
+						
+						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+filePathForFedora+"."+baseFilename+".url").controlGroup("R").dsLabel(fileUrl).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+filePathForFedora+"."+baseFilename+".fileNameExtension").controlGroup("R").dsLabel(fileNameExtension).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+filePathForFedora+"."+baseFilename+".filePath").controlGroup("R").dsLabel(fileOriginalPath).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+filePathForFedora+"."+baseFilename+".fileSize").controlGroup("R").dsLabel(String.valueOf(fileSize)).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+						
 						
 						//			
 						// End of Fedora operations.
@@ -336,5 +414,37 @@ public class UploadRequestHandler extends HttpServlet {
 			System.out.println("");
 			//response.sendRedirect("sessiontimeout.jsp");
 		}
+	}
+	
+	private String reviseFilePathForDuracloud(String fileOriginalPath) {
+		String revisedFilePath = fileOriginalPath;
+		if (revisedFilePath.endsWith("\\")) {
+			revisedFilePath = revisedFilePath.substring(0, revisedFilePath.length()-1);
+		}
+		revisedFilePath = revisedFilePath.replace(":", "");
+		System.out.println("[UploadRequestHandler] revised file path 1: "+revisedFilePath);
+		revisedFilePath = revisedFilePath.replace("\\", "/");
+		System.out.println("[UploadRequestHandler] revised file path 2: "+revisedFilePath);
+		revisedFilePath = revisedFilePath.replace(" ", "");
+		System.out.println("[UploadRequestHandler] revised file path 3: "+revisedFilePath);
+		revisedFilePath = revisedFilePath.toLowerCase();
+		System.out.println("[UploadRequestHandler] revised file path 4: "+revisedFilePath);
+		return revisedFilePath;
+	}
+	
+	private String reviseFilePathForFedora(String fileOriginalPath) {
+		String revisedFilePath = fileOriginalPath;
+		if (revisedFilePath.endsWith("\\")) {
+			revisedFilePath = revisedFilePath.substring(0, revisedFilePath.length()-1);
+		}
+		revisedFilePath = revisedFilePath.replace(":", "");
+		System.out.println("[UploadRequestHandler] revised file path 1: "+revisedFilePath);
+		revisedFilePath = revisedFilePath.replace("\\", ".");
+		System.out.println("[UploadRequestHandler] revised file path 2: "+revisedFilePath);
+		revisedFilePath = revisedFilePath.replace(" ", "");
+		System.out.println("[UploadRequestHandler] revised file path 3: "+revisedFilePath);
+		revisedFilePath = revisedFilePath.toLowerCase();
+		System.out.println("[UploadRequestHandler] revised file path 4: "+revisedFilePath);
+		return revisedFilePath;
 	}
 }

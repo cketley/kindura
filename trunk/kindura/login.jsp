@@ -23,8 +23,6 @@
 		
 		<br/><br/>
 		
-		<p style="font-family:arial;color:#800517;font-size:15px;text-align:center;">
-			Kindura Project 2011		
-		</p>
+		<%@ include file="bottompage.jsp" %>
 	</body>
 </html>

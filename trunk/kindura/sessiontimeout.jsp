@@ -14,21 +14,19 @@
 			<h1>Kindura Cloud Repository</h1>
 		</div>
 		
-		<form action="LoginRequestHandler.jsp" method="post" style="text-align:center;"> 
+		<form action="LoginRequestHandler" method="post" style="text-align:center;"> 
 			<br/>
 			<font size=4 face="arial" color=FF0000>
+				<br/>
 				<b>Session Time Out. Please login again.</b>
-				<br/><br/>
+				<br/><br/><br/>
 			</font>
 			User name <input type="text" name="username" />&nbsp &nbsp &nbsp &nbsp &nbsp
-			Password <input type="password" name="password" /></br></br>
+			Password <input type="password" name="password" /></br></br><br/>
 			<input type="submit" value="Login">
 		</form>
 		
-		<br/><br/>
-		
-		<p style="font-family:arial;color:#800517;font-size:15px;text-align:center;">
-			Kindura Project 2011		
-		</p>
+		<br/><br/><br/>
+		<%@ include file="bottompage.jsp" %>
 	</body>
 </html>
