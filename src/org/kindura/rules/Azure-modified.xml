@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CloudProvider ID="AZURE" Name="Windows Azure" xmlns="http://www.cs.virginia.edu/~ar5je/StorageCapabilitiesSchema.xsd">
+  <StorageServices>
+    <StorageService>
+      <StorageAbstraction ID="AZURE_BLOB_P" Name="Windows Azure Blob Service, Paged Blobs" Description="The Blob service provides storage for entities, such as binary files and text files. The REST API for the Blob service exposes two resources: containers and blobs. A container is a set of blobs; every blob must belong to a container. The Blob service defines two types of blobs:
+Block blobs, which are optimized for streaming. This type of blob is the only blob type available with versions prior to 2009-09-19.
+Page blobs, which are optimized for random read/write operations and which provide the ability to write to a range of bytes in a blob. Page blobs are available only with version 2009-09-19."
+                          Availability="99.9" ServiceLevelAgreement="http://www.microsoft.com/downloads/en/details.aspx?displaylang=en&amp;FamilyID=d32702dd-a85c-464d-b54d-422a23939871">
+        <TransferProtocols>REST</TransferProtocols>
+        <Security>
+          <NetworkSecurity>SSL</NetworkSecurity>
+          <Authentication>Azure Account</Authentication>
+          <Authentication>Open</Authentication>
+          <Authentication>Access Signature</Authentication>
+        </Security>
+        <Replication Supported="true" MaxNumberOfReplicas="3" DefaultNumberOfReplicas="3" />
+        <Interface>
+          <CustomInterface>
+            <List>List Containers</List>
+          </CustomInterface>
+        </Interface>
+        <Logging Supported="false"/>
+        <Versioning Supported="false"/>
+        <Container ID="AZURE_CONTAINER" Name="Windows Azure Storage Container" Description="The REST API for the Blob service exposes two resources: containers and blobs. A container is a set of blobs; every blob must belong to a container."
+                   Recursive="false" NamingRegularExpression="^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?&lt;!-)$" RegionChoice="true" RegionIDChoices="US;US_S_C;US_N_C;EU;EU_N;EU_W;ASIA;ASIA_E;ASIA_SE" RegionDefaultID="US" CreationDateSupport="false" ModificationDateSupport="true">
+          <Notifications Supported="false"/>
+          <Interface>
+            <CustomInterface>
+              <Create>Create Container</Create>
+              <Delete>Delete Container</Delete>
+              <List>List Blobs</List>
+            </CustomInterface>
+          </Interface>
+          <AcccessControl>
+            <AccessControlList ID="AZURE_ACL" Name="Windows Azure Access Control Lists" Description="Every request made against a storage service must be authenticated, unless the request is for a blob or container resource that has been made available for public or signed access."
+                               PolicyLanguage="AzureACL">
+              <AccessControlListInterface>
+                <CustomInterface>
+                  <Upload>Set Container ACL</Upload>
+                  <Download>Get Container ACL</Download>
+                </CustomInterface>
+              </AccessControlListInterface>
+              <Grant>
+                <Grantee>SHAREDKEY</Grantee>
+                <Grantee>PUBLIC</Grantee>
+                <Permission>BLOB_READ</Permission>
+                <Permission>READ</Permission>
+                <Permission>FULL_CONTROL</Permission>
+              </Grant>
+            </AccessControlList>
+          </AcccessControl>
+          <Metadata>
+            <MetadataInterface>
+              <CustomInterface>
+                <Upload>SetContainerMetadata</Upload>
+                <Download>GetContainerProperties;GetContainerMetadata</Download>
+              </CustomInterface>
+            </MetadataInterface>
+            <MetadataSet abstraction="ValuePair" type="UserMetadata"/>
+            <MetadataSet abstraction="ValuePair" type="SystemMetadata"/>
+          </Metadata>
+          <Objects>
+            <Object ID="AZURE_BLOB_PAGE" Name="Windows Azure Page Blob" Description="The Blob service stores text and binary data. The Blob service offers the following three resources: the storage account, containers, and blobs. Within your storage account, containers provide a way to organize sets of blobs.
+You can store text and binary data in either of two types of blobs:
+Block blobs, which are optimized for streaming.
+Page blobs, which are optimized for random read/write operations and which provide the ability to write to a range of bytes in a blob."
+                    NamingRegularExpression="^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?&lt;!-)$" ModificationDate="true" CreationDate="false" MaxSizeKB="1073741824" ConcurrentAccessSupport="true">
+              <Interface>
+                <CustomInterface>
+                  <Delete>Delete Blob</Delete>
+                  <Download>Get Blob</Download>
+                  <Upload>Put Blob</Upload>
+                  <CreateSnapshot>Snapshot Blob</CreateSnapshot>
+                  <ListParts>Get Page Regions</ListParts>
+                  <UploadPart>Put Page</UploadPart>
+                  <Lease Duration="60" API="Lease Blob"/>
+                  <Copy>Copy Blob</Copy>
+                </CustomInterface>
+              </Interface>
+              <Metadata>
+                <MetadataInterface>
+                  <CustomInterface>
+                    <Download>GetBlobMetadata;GetBlobProperties</Download>
+                    <Upload>SetBlobMetadata;SetBlobProperties</Upload>
+                  </CustomInterface>
+                </MetadataInterface>
+                <MetadataSet type="SystemMetadata" abstraction="ValuePair"/>
+                <MetadataSet type="UserMetadata" abstraction="ValuePair"/>
+              </Metadata>
+              <Data DaysToExpiration="0" Formats="binary;text" ReadOnly="false">
+                <RandomAccess/>
+              </Data>
+            </Object>
+          </Objects>
+        </Container>
+      </StorageAbstraction>
+      <Regions>
+        <Region ID="AZURE_US" Name="Anywhere US" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.15"/>
+            <DataTransferCost CostPerGBIn="0.100"/>
+            <DataTransferCost CostPerGBOut="0.150"/>
+            <RequestCost   NumberOfRequests="1000" RequestName="ANY" RequestType="Any" Cost="0.01" />
+          </Cost>
+          <Performance>
+            <Measurement Units="ms" Variable="Latency" Operation="Read">
+              <Scalar Value="56.11"/>
+            </Measurement>
+            <Measurement Units="ms" Variable="Latency" Operation="Write">
+              <Scalar Value="415"/>
+            </Measurement>
+            <Measurement Units="MB/sec" Variable="Throughput" Operation="Read">
+              <Sample VariableName="Clients">
+                <DataPoint X="1" Value="24.25"/>
+                <DataPoint X="11" Value="151"/>
+                <DataPoint X="21" Value="555"/>
+                <DataPoint X="31" Value="524"/>
+                <DataPoint X="41" Value="782"/>
+                <DataPoint X="51" Value="804"/>
+                <DataPoint X="61" Value="799"/>
+                <FixedVariable Units="MB" Value="4" VariableName="UnitSize"/>
+                <FixedVariable Units="MB" Value="100" VariableName="DataSize"/>
+              </Sample>
+              <Sample VariableName="Threads">
+                <DataPoint X="1" Value="24.25"/>
+                <DataPoint X="10" Value="100"/>
+                <DataPoint X="20" Value="101"/>
+                <FixedVariable Units="MB" Value="4" VariableName="UnitSize"/>
+                <FixedVariable Units="MB" Value="100" VariableName="DataSize"/>
+              </Sample>
+            </Measurement>
+            <Measurement Units="MB/sec" Variable="Throughput" Operation="Write">
+              <Sample VariableName="Clients">
+                <DataPoint X="1" Value="10"/>
+                <DataPoint X="11" Value="76"/>
+                <DataPoint X="21" Value="99"/>
+                <DataPoint X="31" Value="84"/>
+                <DataPoint X="41" Value="108"/>
+                <DataPoint X="51" Value="110"/>
+                <DataPoint X="61" Value="113"/>
+                <FixedVariable Units="MB" Value="4" VariableName="UnitSize"/>
+                <FixedVariable Units="MB" Value="100" VariableName="DataSize"/>
+              </Sample>
+              <Sample VariableName="Threads">
+                <DataPoint X="1" Value="9"/>
+                <DataPoint X="10" Value="54"/>
+                <DataPoint X="20" Value="60"/>
+                <FixedVariable Units="MB" Value="4" VariableName="UnitSize"/>
+                <FixedVariable Units="MB" Value="100" VariableName="DataSize"/>
+              </Sample>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="US" Name="US South Central" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.15"/>
+            <DataTransferCost CostPerGBIn="0.100"/>
+            <DataTransferCost CostPerGBOut="0.150"/>
+            <RequestCost   NumberOfRequests="1000" RequestName="ANY" RequestType="Any" Cost="0.01" />
+          </Cost>
+          <Performance>
+            <Measurement Units="ms" Variable="Latency" Operation="Read">
+              <Scalar Value="56.11"/>
+            </Measurement>
+            <Measurement Units="ms" Variable="Latency" Operation="Write">
+              <Scalar Value="415"/>
+            </Measurement>
+            <Measurement Units="MB/sec" Variable="Throughput" Operation="Read">
+              <Sample VariableName="Clients">
+                <DataPoint X="1" Value="24.25"/>
+                <DataPoint X="11" Value="151"/>
+                <DataPoint X="21" Value="555"/>
+                <DataPoint X="31" Value="524"/>
+                <DataPoint X="41" Value="782"/>
+                <DataPoint X="51" Value="804"/>
+                <DataPoint X="61" Value="799"/>
+                <FixedVariable Units="MB" Value="4" VariableName="UnitSize"/>
+                <FixedVariable Units="MB" Value="100" VariableName="DataSize"/>
+              </Sample>
+              <Sample VariableName="Threads">
+                <DataPoint X="1" Value="24.25"/>
+                <DataPoint X="10" Value="100"/>
+                <DataPoint X="20" Value="101"/>
+                <FixedVariable Units="MB" Value="4" VariableName="UnitSize"/>
+                <FixedVariable Units="MB" Value="100" VariableName="DataSize"/>
+              </Sample>
+            </Measurement>
+            <Measurement Units="MB/sec" Variable="Throughput" Operation="Write">
+              <Sample VariableName="Clients">
+                <DataPoint X="1" Value="10"/>
+                <DataPoint X="11" Value="76"/>
+                <DataPoint X="21" Value="99"/>
+                <DataPoint X="31" Value="84"/>
+                <DataPoint X="41" Value="108"/>
+                <DataPoint X="51" Value="110"/>
+                <DataPoint X="61" Value="113"/>
+                <FixedVariable Units="MB" Value="4" VariableName="UnitSize"/>
+                <FixedVariable Units="MB" Value="100" VariableName="DataSize"/>
+              </Sample>
+              <Sample VariableName="Threads">
+                <DataPoint X="1" Value="9"/>
+                <DataPoint X="10" Value="54"/>
+                <DataPoint X="20" Value="60"/>
+                <FixedVariable Units="MB" Value="4" VariableName="UnitSize"/>
+                <FixedVariable Units="MB" Value="100" VariableName="DataSize"/>
+              </Sample>
+            </Measurement>
+          </Performance>
+        </Region>
+      </Regions>
+    </StorageService>
+  </StorageServices>
+</CloudProvider>
