@@ -10,7 +10,7 @@ import java.sql.Statement;
  */
 public class DatabaseConnector {
 	
-	private Connection connection = null;
+	private Connection dbconnection = null;
     
 	/*
 	 * Connect to the database.
@@ -21,9 +21,10 @@ public class DatabaseConnector {
     	try
         {
             //String url = "jdbc:mysql://localhost:3306/"+database;
-            String url = cfp.kinduraParameters.get("MySQLURL")+database;
+            //String url = cfp.kinduraParameters.get("MySQLURL")+database;
+    		String url = cfp.getKinduraParameters().get("MySQLURL")+database;
             Class.forName ("com.mysql.jdbc.Driver").newInstance ();
-            connection = DriverManager.getConnection (url, username, password);
+            dbconnection = DriverManager.getConnection (url, username, password);
             System.out.println ("Database connection established");
         }
         catch (Exception e)
@@ -35,14 +36,16 @@ public class DatabaseConnector {
 	/*
 	 * Authenticate user with user name and password.
 	 */
-	public String queryUser(String username, String password) {
-    	try {
-            Statement stmt = connection.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT username, password FROM users");
-            System.out.println("SELECT username, password FROM users");
+	public String[] queryUser(String username, String password) {
+		String[] results = new String[2];
+		try {
+            Statement stmt = dbconnection.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT username, password, role FROM users");
+            System.out.println("SELECT username, password, role FROM users");
             while (rs.next()) {
             	if (rs.getString("username").equals(username) && rs.getString("password").equals(password)) {
-            		return username;
+            		results[0] = rs.getString("username");
+            		results[1] = rs.getString("role");
             	}
             }
         }
@@ -50,17 +53,17 @@ public class DatabaseConnector {
         {
             System.err.println ("Query database server error");
         }
-        return null;
+        return results;
     }
     
 	/*
 	 * Terminate the connection to the database.
 	 */
 	public void disconnectDatabase() {
-    	if (connection != null)
+    	if (dbconnection != null)
         {
             try {
-            	connection.close();
+            	dbconnection.close();
             	System.out.println("Database connection terminated");
             }
             catch (Exception e) {

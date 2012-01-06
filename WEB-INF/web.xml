@@ -59,5 +59,37 @@
 	<servlet-mapping>
         <servlet-name>DownloadRequestHandler</servlet-name>
         <url-pattern>/DownloadRequestHandler</url-pattern>
-    </servlet-mapping>	
+    </servlet-mapping>
+	<servlet>
+        <servlet-name>SearchFileRequestHandler</servlet-name>
+        <servlet-class>org.kindura.SearchFileRequestHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+        <servlet-name>SearchFileRequestHandler</servlet-name>
+        <url-pattern>/SearchFileRequestHandler</url-pattern>
+    </servlet-mapping>
+	<servlet>
+        <servlet-name>AddProjectRequestHandler</servlet-name>
+        <servlet-class>org.kindura.AddProjectRequestHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+        <servlet-name>AddProjectRequestHandler</servlet-name>
+        <url-pattern>/AddProjectRequestHandler</url-pattern>
+    </servlet-mapping>
+	<servlet>
+        <servlet-name>ViewProjectRequestHandler</servlet-name>
+        <servlet-class>org.kindura.ViewProjectRequestHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+        <servlet-name>ViewProjectRequestHandler</servlet-name>
+        <url-pattern>/ViewProjectRequestHandler</url-pattern>
+    </servlet-mapping>
+	<servlet>
+        <servlet-name>CollectionExistedException</servlet-name>
+        <servlet-class>org.kindura.CollectionExistedException</servlet-class>
+	</servlet>	
+	<servlet-mapping>
+        <servlet-name>CollectionExistedException</servlet-name>
+        <url-pattern>/CollectionExistedException</url-pattern>
+    </servlet-mapping>
 </web-app>

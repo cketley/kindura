@@ -9,6 +9,7 @@
 	if (session.getAttribute("username") != null) {
 	    // Valid login
 		session.removeAttribute("username");
+		session.removeAttribute("role");
 		session.invalidate();
 	} else {
         // Invalid login
@@ -22,7 +23,7 @@
 		<title>Kindura Cloud Repository</title>
 		<link href="<%= request.getContextPath() %>/css/r4r.css" type="text/css" rel="stylesheet" media="screen"/>
 	</head>
-	<body>
+	<!--<body>
 		<table width="100%" border="0">
 		<tr valign="top">
 			<div id="header">
@@ -32,14 +33,27 @@
 			</td>
 				
 			<td style="background-color:#FFFFFF;height:550px;width:700px;text-align:center;">
-				</br></br>
+				</br></br></br>
 				<b>You are now logged out of Kindura Cloud Repository.</b>
-				</br></br>
+				</br></br></br>
 				<a href="login.jsp">Log In</a>
 			</td>
 		</table>
-		<p style="font-family:arial;color:#800517;font-size:15px;text-align:center;">
-			Kindura Project 2011		
+		<%@ include file="bottompage.jsp" %>
+	</body>-->
+	<body>
+		<div id="header">
+			<h1>Kindura Cloud Repository</h1>
+		</div>
+		
+		<br/><br/><br/>
+		
+		<p style="text-align:center;"><b>You are now logged out of Kindura Cloud Repository.</b>
+			</br></br></br>
+			<a href="login.jsp" style="text-align:center;">Log In</a>
 		</p>
+		<br/><br/><br/>
+		<%@ include file="bottompage.jsp" %>
 	</body>
 </html>
+

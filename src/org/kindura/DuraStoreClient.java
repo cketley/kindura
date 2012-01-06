@@ -45,37 +45,57 @@ import javax.xml.parsers.ParserConfigurationException;
  * @author Jun Zhang
  */
 public class DuraStoreClient {
-    ContentStore store;
-    ContentStoreManager storeManager;
-    Credential credential;
+    ContentStore contentStore;
+    ContentStoreManager contentStoreManager;
+    Credential duracloudCredential;
         
     private Document dom;
     
     public DuraStoreClient(String duracloud_host, String duracloud_port, String duracloud_context, String duracloud_username, String duracloud_password) throws ContentStoreException {
-    	storeManager =
+    	contentStoreManager =
             new ContentStoreManagerImpl(duracloud_host, duracloud_port, duracloud_context);
-        Credential credential = new Credential(duracloud_username, duracloud_password);
-        storeManager.login(credential);
-        store = storeManager.getPrimaryContentStore();
+        duracloudCredential = new Credential(duracloud_username, duracloud_password);
+        contentStoreManager.login(duracloudCredential);
+        contentStore = contentStoreManager.getPrimaryContentStore();
     }
     
-    public void createNamespace(String nameSpace, Map<String, String> spaceMetadata) {
+    public boolean isNameSpaceExisted(String namespace) throws ContentStoreException {
+    	List<String> storeIDs = contentStore.getSpaces();
+    	Iterator iterator = storeIDs.iterator();
+    	boolean spaceFound = false;
+    	while(iterator.hasNext() && (spaceFound == false)) {
+
+    	    String name = (String)iterator.next(); 
+    	    if (name.equals(namespace)) {
+    	    	spaceFound = true;
+    	    	System.out.println("space "+namespace+" exist");
+    	    	return true;
+    	    }
+    	}
+    	System.out.println("space "+namespace+" does not exist");
+    	return false;
+    }
+    
+    public void createNamespace(String nameSpace, Map<String, String> spaceMetadata, String cloudProvider) {
     	//Map<String, String> spaceMetadata = new HashMap<String, String>();
 		try {
-			store.createSpace(nameSpace, spaceMetadata);
+			//contentStore = contentStoreManager.getPrimaryContentStore();
+			contentStore.createSpace(nameSpace, spaceMetadata);
 		} catch (ContentStoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
     
-    public void uploadFile(String nameSpace, String pid, File uploadFile, long fileSize, String fileType) {
+    public void uploadFile(String nameSpace, String fileName, File uploadFile, long fileSize, String fileType) {
     	FileInputStream in;
 		try {
 			in = new FileInputStream(uploadFile.toString());
 			Map<String, String> contentMetadata = new HashMap<String, String>();
-			contentMetadata.put(nameSpace, pid);
-			store.addContent(nameSpace, pid, in, fileSize, fileType, null, contentMetadata);
+			contentMetadata.put(nameSpace, fileName);
+			//contentMetadata.put("x-amz-storage-class", "STANDARD");
+			contentStore.addContent(nameSpace, fileName, in, fileSize, fileType, null, contentMetadata);
+			
 		}
 		catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -85,17 +105,20 @@ public class DuraStoreClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		storeManager.logout();
+		contentStoreManager.logout();
     }
     
-    public void downloadFile(String nameSpace, String pid, String destinationPath, String fileformat, int numberOfBytes) {
+    
+    
+    public void downloadFile(String nameSpace, String fileName, String revisedFileNameForDownload, String destinationPath, String fileExtension, int numberOfBytes) {
     	Content content = new Content();
     	try {
-			content = store.getContent(nameSpace, pid+"."+fileformat); 
-	    	System.out.println("content.getId(): "+content.getId());
+			content = contentStore.getContent(nameSpace, fileName+"."+fileExtension); 
+	    	System.out.println("[DuraStoreClient] content.getId(): "+content.getId());
 	    	InputStream inputStream = content.getStream();
-	    	System.out.println("content.getMetadata: "+content.getMetadata());
-	    	File destinationFile = new File(destinationPath+pid+"."+fileformat);
+	    	System.out.println("[DuraStoreClient] content.getMetadata: "+content.getMetadata());
+	    	File destinationFile = new File(destinationPath+revisedFileNameForDownload+"."+fileExtension);
+	    	System.out.println("[DuraStoreClient] destinationFile: "+destinationPath+revisedFileNameForDownload+"."+fileExtension);
 	    	FileOutputStream outputStream = new FileOutputStream(destinationFile);
 	    	byte[] readData = new byte[numberOfBytes];
 			int i = inputStream.read(readData);
@@ -114,22 +137,5 @@ public class DuraStoreClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    }
-    
-    public boolean isNameSpaceExisted(String namespace) throws ContentStoreException {
-    	List<String> storeIDs = store.getSpaces();
-    	Iterator iterator = storeIDs.iterator();
-    	boolean spaceFound = false;
-    	while(iterator.hasNext() && (spaceFound == false)) {
-
-    	    String name = (String)iterator.next(); 
-    	    if (name.equals(namespace)) {
-    	    	spaceFound = true;
-    	    	System.out.println("space "+namespace+" exist");
-    	    	return true;
-    	    }
-    	}
-    	System.out.println("space "+namespace+" does not exist");
-    	return false;
     }
 }

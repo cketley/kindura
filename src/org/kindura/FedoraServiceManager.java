@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
@@ -24,32 +25,51 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * @author Jun Zhang
  */
 public class FedoraServiceManager {
-    
+	FedoraCredentials fedoracredential = null;
+	FedoraClient fedoraClient = null;
 	/*
 	 * Get a connection to the Fedora repository.
 	 */
-	public FedoraClient getFedoraConnection(String hosturl, String username, String password) {
+	/*public FedoraClient getFedoraConnection() {
     	//Setup connection with Fedora repository.
 		FedoraCredentials fedoracredential;
-		FedoraClient fedora = null;
+		FedoraClient fedoraClient = null;
 		try {
 			fedoracredential = new FedoraCredentials(hosturl, username, password);
-			fedora = new FedoraClient(fedoracredential);
+			fedoraClient = new FedoraClient(fedoracredential);
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return fedora;
-    }
+		return fedoraClient;
+    }*/
+	
+	public FedoraClient getFedoraConnection() {
+		return fedoraClient;
+	}
+	
+	public FedoraServiceManager() {
+		ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
+		
+		try {
+			fedoracredential = new FedoraCredentials(configurationFileParser.getKinduraParameters().get("FedoraHost"), configurationFileParser.getKinduraParameters().get("FedoraUsername"), configurationFileParser.getKinduraParameters().get("FedoraPassword"));
+			fedoraClient = new FedoraClient(fedoracredential);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
     
 	/*
 	 * Ingest a new object to the Fedora repository.
 	 */
-	public boolean ingestObject(FedoraClient fedora, String namespaceandpid, String title, String datastreamid, String directorypath, String url, String mimetype) {
+	public boolean ingestObject(String pid, String title, String datastreamid, String directorypath, String url, String mimetype) {
 		IngestResponse response;
 		try {
-			response = new Ingest(namespaceandpid).label(title).execute(fedora); //Create a new Fedora object.
-			fedora.addDatastream(namespaceandpid, datastreamid).controlGroup("R").dsLabel(url).dsLocation(url).mimeType(mimetype).execute(fedora);
+			response = new Ingest(pid).label(title).execute(fedoraClient); //Create a new Fedora object.
+			FedoraClient.addDatastream(pid, datastreamid).controlGroup("R").dsLabel(url).dsLocation(url).mimeType(mimetype).execute(fedoraClient);
+			//response = new Ingest(datastreamid).label(title).execute(fedoraClient);
+			//fedoraClient.addRelationship(datastreamid).predicate("isACollectionOf").object(pid).isLiteral(false).execute(fedoraClient);
 		} catch (FedoraClientException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -60,13 +80,14 @@ public class FedoraServiceManager {
 	/*
 	 * Get the pids of objects which matches search criteria.
 	 */
-	public List<String> getObjectPIDs(FedoraClient fedora, String search_term, String search_by) {
+	public List<String> getObjectPIDs(String search_term, String search_by) {
 		FindObjectsResponse response = null;
 		List<String> pids = null;
 		List<String> filteredpids = new ArrayList<String>();
-		List<String> attribute = null;
+		//List<String> attribute = null;
+		String attribute = null;
 		try {
-			response = findObjects().pid().terms("*"+search_term+"*").execute(fedora);
+			response = findObjects().pid().terms("*"+search_term+"*").execute(fedoraClient);
 			pids = response.getPids();
 			if (search_by.equals("all")) {
 				return pids;
@@ -74,13 +95,13 @@ public class FedoraServiceManager {
 			else {
 				if (pids.size() > 0) {
 					for (int i=0;i<pids.size();i++) {
-				    	System.out.println("pid " + pids.get(i));
-				    	attribute = getObjectAttribute(fedora, pids.get(i), search_by);
+				    	//System.out.println("pid " + pids.get(i));
+				    	attribute = getAObjectAttribute(pids.get(i), search_by);
 			    		//System.out.println("attribute "+attribute);
 			    		//System.out.println("search_term "+search_term);
 				    	if (attribute.toString().contains(search_term)) {
 							filteredpids.add(pids.get(i));
-							System.out.println("filtered pid " + pids.get(i));
+							//System.out.println("filtered pid " + pids.get(i));
 						} 
 					}
 					return filteredpids;
@@ -94,63 +115,105 @@ public class FedoraServiceManager {
 	}
 	
 	/*
-	 * Get a certain attribute of an object which mataches search criteria.
+	 * Get the pids of objects which created by users.
 	 */
-	public List<String> getObjectAttribute(FedoraClient fedora, String pid, String search_by) {
+	public List<String> getUserDefinedPIDs(String userName) {
+		//ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
+		//FedoraClient fedoraClient = getFedoraConnection(configurationFileParser.getKinduraParameters().get("FedoraHost"), configurationFileParser.getKinduraParameters().get("FedoraUsername"), configurationFileParser.getKinduraParameters().get("FedoraPassword"));
+		FindObjectsResponse response = null;
+		List<String> pids = null;
+		List<String> filteredpids = new ArrayList<String>();
+		//List<String> attribute = null;
+		String attribute = null;
+		try {
+			//System.out.println("[FedoraServiceManager] userName: "+userName);
+			response = findObjects().pid().terms("*"+userName+":*").execute(fedoraClient);
+			pids = response.getPids();
+			if (pids.size() > 0) {
+				for (int i=0;i<pids.size();i++) {
+			    	//System.out.println("pid " + pids.get(i));
+			    	attribute = getADataStream(pids.get(i), "projectname");
+			    	//System.out.println("attribute "+attribute);
+			   		//System.out.println("search_term "+search_term);
+			    	if (attribute != null) {
+						filteredpids.add(pids.get(i).substring(pids.get(i).indexOf(":")+1));
+						//System.out.println("filtered pid " + pids.get(i));
+					} 
+				}
+				return filteredpids;
+			}
+		} catch (FedoraClientException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/*
+	 * Get a specific attribute of an object which matches the search criteria.
+	 */
+	//public List<String> etObjectAttribute(FedoraClient fedoraClient, String pid, String search_by) {
+	public String getAObjectAttribute(String pid, String search_by) {
 		FindObjectsResponse response = null;
 		List<String> attribute = null;
 		try {
 			if (search_by.equals("pid")) {
-				response = findObjects().pid().terms(pid).execute(fedora);
+				response = findObjects().pid().terms(pid).execute(fedoraClient);
 			}
 			else if (search_by.equals("label")) {
-				response = findObjects().pid().label().terms(pid).execute(fedora);
+				response = findObjects().pid().label().terms(pid).execute(fedoraClient);
 			}
 			else if (search_by.equals("description")) {
-				response = findObjects().pid().description().terms(pid).execute(fedora);
+				response = findObjects().pid().description().terms(pid).execute(fedoraClient);
 			}
 			else if (search_by.equals("creator")) {
-				response = findObjects().pid().creator().terms(pid).execute(fedora);
+				response = findObjects().pid().creator().terms(pid).execute(fedoraClient);
 			}
 			else if (search_by.equals("title")) {
-				response = findObjects().pid().title().terms(pid).execute(fedora);
+				response = findObjects().pid().title().terms(pid).execute(fedoraClient);
 			}
 			else if (search_by.equals("cDate")) {
-				response = findObjects().pid().cDate().terms(pid).execute(fedora);
+				response = findObjects().pid().cDate().terms(pid).execute(fedoraClient);
 			}
 			else if (search_by.equals("state")) {
-				response = findObjects().pid().state().terms(pid).execute(fedora);
+				response = findObjects().pid().state().terms(pid).execute(fedoraClient);
 			}
 			else if (search_by.equals("ownerId")) {
-				response = findObjects().pid().ownerId().terms(pid).execute(fedora);
+				response = findObjects().pid().ownerId().terms(pid).execute(fedoraClient);
 			}
 			else if (search_by.equals("date")) {
-				response = findObjects().pid().date().terms(pid).execute(fedora);
+				response = findObjects().pid().date().terms(pid).execute(fedoraClient);
 			}
 			else if (search_by.equals("identifier")) {
-				response = findObjects().pid().identifier().terms(pid).execute(fedora);
+				response = findObjects().pid().identifier().terms(pid).execute(fedoraClient);
 			}
 			attribute = response.getObjectField(pid, search_by);
-			System.out.println("attribute size "+attribute.size());
+			//System.out.println("attribute size "+attribute.size());
 			for (int i=0;i<attribute.size();i++) {
-				System.out.println(pid+"."+search_by+": "+attribute.get(i));
+				//System.out.println(pid+"."+search_by+": "+attribute.get(i));
 			} 
 		}
 			catch (FedoraClientException e) {
 			// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		return attribute;
+		//return attribute;
+		if (attribute.size() > 0) {
+			return attribute.get(0);
+		}
+		else {
+			return null;
+		}
 	}
 	
 	/*
 	 * Get all data streams of an object.
 	 */
-	public ArrayList<DatastreamType> getDataStreams(FedoraClient fedora, String namespaceandpid) {
+	public ArrayList<DatastreamType> getDataStreams(String pid) {
 		ListDatastreamsResponse response;
 		ArrayList<DatastreamType> dsList = null;
 		try {
-			response = new ListDatastreams(namespaceandpid).execute(fedora);
+			response = new ListDatastreams(pid).execute(fedoraClient);
 			dsList = new ArrayList(response.getDatastreams());
 		} catch (FedoraClientException e) {
 			// TODO Auto-generated catch block
@@ -160,14 +223,37 @@ public class FedoraServiceManager {
 	}
 	
 	/*
+	 * Get a certain data stream of an object.
+	 */
+	public String getADataStream(String pid, String dataStreamName) {
+		ListDatastreamsResponse response;
+		ArrayList <DatastreamType> dsList;
+		String contentaction = null;
+		try {
+			response = new ListDatastreams(pid).execute(fedoraClient);
+			dsList = new ArrayList(response.getDatastreams());
+			for (int i=0;i<dsList.size();i++) {
+		    	if (dsList.get(i).getDsid().equals(dataStreamName)) {
+		    		contentaction = dsList.get(i).getLabel();
+		    		return contentaction;
+		    	}
+			}
+		} catch (FedoraClientException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return contentaction;
+	}
+	
+	/*
 	 * Get the content's URL in DuraCloud.
 	 */
-	public String getContentURL(FedoraClient fedora, String namespaceandid) {
+	public String getContentURL(String nameSpaceAndPid) {
 		ListDatastreamsResponse response;
 		ArrayList <DatastreamType> dsList;
 		String contenturl = null;
 		try {
-			response = new ListDatastreams(namespaceandid).execute(fedora);
+			response = new ListDatastreams(nameSpaceAndPid).execute(fedoraClient);
 			dsList = new ArrayList(response.getDatastreams());
 			for (int i=0;i<dsList.size();i++) {
 		    	if (dsList.get(i).getDsid().equals("url")) {
@@ -180,95 +266,7 @@ public class FedoraServiceManager {
 		}
 		return contenturl;
 	}
-	
-	/*
-	 * Get the MIME type attribute of an object.
-	 */
-	public String getMIMEType(FedoraClient fedora, String namespaceandid) {
-		ListDatastreamsResponse response;
-		ArrayList <DatastreamType> dsList;
-		String contenttype = null;
-		try {
-			response = new ListDatastreams(namespaceandid).execute(fedora);
-			dsList = new ArrayList(response.getDatastreams());
-			for (int i=0;i<dsList.size();i++) {
-		    	if (dsList.get(i).getDsid().equals("url")) {
-		    		contenttype = dsList.get(i).getMimeType();
-		    	}
-			}
-		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return contenttype;
-	}
-	
-	/*
-	 * Get the file extension attribute of an object.
-	 */
-	public String getFileExtension(FedoraClient fedora, String namespaceandid) {
-		ListDatastreamsResponse response;
-		ArrayList <DatastreamType> dsList;
-		String fileformat = null;
-		try {
-			response = new ListDatastreams(namespaceandid).execute(fedora);
-			dsList = new ArrayList(response.getDatastreams());
-			for (int i=0;i<dsList.size();i++) {
-		    	if (dsList.get(i).getDsid().equals("fileformat")) {
-		    		fileformat = dsList.get(i).getLabel();
-		    	}
-			}
-		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return fileformat;
-	}
-	
-	/*
-	 * Get the cost attribute of an object.
-	 */
-	public String getContentCost(FedoraClient fedora, String namespaceandid) {
-		ListDatastreamsResponse response;
-		ArrayList <DatastreamType> dsList;
-		String contentcost = null;
-		try {
-			response = new ListDatastreams(namespaceandid).execute(fedora);
-			dsList = new ArrayList(response.getDatastreams());
-			for (int i=0;i<dsList.size();i++) {
-		    	if (dsList.get(i).getDsid().equals("cost")) {
-		    		contentcost = dsList.get(i).getLabel();
-		    	}
-			}
-		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return contentcost;
-	}
-
-	/*
-	 * Get the action attribute of an object.
-	 */
-	public String getContentAction(FedoraClient fedora, String namespaceandid) {
-		ListDatastreamsResponse response;
-		ArrayList <DatastreamType> dsList;
-		String contentaction = null;
-		try {
-			response = new ListDatastreams(namespaceandid).execute(fedora);
-			dsList = new ArrayList(response.getDatastreams());
-			for (int i=0;i<dsList.size();i++) {
-		    	if (dsList.get(i).getDsid().equals("action")) {
-		    		contentaction = dsList.get(i).getLabel();
-		    	}
-			}
-		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return contentaction;
-	}
-	
+		
 	/*public String composeURL(String space, String filename) {
 		String url = null;
 		//url = "http://localhost:8080/durastore/"+space+"/"+filename+"?storeID=0";
@@ -289,7 +287,7 @@ public class FedoraServiceManager {
 	        String inputLine;
 
 	        while ((inputLine = in.readLine()) != null) 
-	            System.out.println(inputLine);
+	            //System.out.println(inputLine);
 	        in.close();
 	        //store.getContent(space,filename);
 	    } catch (MalformedURLException e) {

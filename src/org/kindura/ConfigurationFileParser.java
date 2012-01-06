@@ -21,9 +21,9 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class ConfigurationFileParser extends DefaultHandler{
 
-	private String tempVal;
+	private String tempValue;
 	
-	Map<String, String> kinduraParameters;
+	private Map<String, String> kinduraParameters;
 	
 	public ConfigurationFileParser(){
 		kinduraParameters = new HashMap<String, String>();
@@ -40,7 +40,7 @@ public class ConfigurationFileParser extends DefaultHandler{
 			SAXParser sp = spf.newSAXParser();
 			
 			//parse the file and also register this class for call backs
-			sp.parse("webapps/kindura2/kinduraconfiguration.xml", this);
+			sp.parse("webapps/kindura4/kinduraconfiguration.xml", this);
 			
 		}catch(SAXException se) {
 			se.printStackTrace();
@@ -57,10 +57,14 @@ public class ConfigurationFileParser extends DefaultHandler{
 	}
 	
 	public void characters(char[] ch, int start, int length) throws SAXException {
-		tempVal = new String(ch,start,length);
+		tempValue = new String(ch,start,length);
 	}
 	
 	public void endElement(String uri, String localName, String qualifiedName) throws SAXException {
-		kinduraParameters.put(qualifiedName, tempVal);
-	}	
+		kinduraParameters.put(qualifiedName, tempValue);
+	}
+	
+	public Map<String, String> getKinduraParameters() {
+		return kinduraParameters;
+	}
 }

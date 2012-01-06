@@ -4,12 +4,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ page errorPage="login.jsp" %>
+	
 <%
 	//Get the username and set the relevant attribute.
+	String username = null;
 	if (session.getAttribute("username") != null) {
 	    // Valid login
-		String username = session.getAttribute("username").toString();
+		username = session.getAttribute("username").toString();
         session.setAttribute("username", username);
+		session.setAttribute("role", session.getAttribute("role").toString());
 	} else {
         // Invalid login
         response.sendRedirect("sessiontimeout.jsp");
@@ -29,17 +33,21 @@
 		
 		<table width="100%" border="0">
 			<tr valign="top">
-				<td style="background-color:#F0F0F0;width:70px;text-align:center;">
-						</br><a href="home.jsp">Home</a></br>
-						<a href="upload.jsp">Upload</a></br>
-						<b>Search</b></br>
-						<a href="help.jsp">Help</a></br></br></br>
-						<a href="logout.jsp">Log Out</a>
+				<td class="menucolumn">
+					<br/>
+					<br/>
+					&nbsp &nbsp<a href="home.jsp" class="LinkToPage">Home</a><br/>
+					&nbsp &nbsp<a href="addproject.jsp" class="LinkToPage">Add project</a><br/>
+					&nbsp &nbsp<a href="addcollection.jsp" class="LinkToPage">Add collection</a><br/>
+					&nbsp &nbsp<b>Search</b><br/>
+					&nbsp &nbsp<a href="viewproject.jsp" class="LinkToPage">View</a><br/>
+					&nbsp &nbsp<a href="help.jsp" class="LinkToPage">Help</a></br/></br/></br/>
+					&nbsp &nbsp<a href="logout.jsp" class="LinkToPage">Log Out</a>
 				</td>
 				<td style="height:550px;width:700px;text-align:center;">
 					<div id="search">
 						<form action="SearchRequestHandler" method="get">
-							<label>Search Term</label>
+							<label><b>Search Collection</b></label>
 							<input type="text" id="search_term" name="search_term" value="<%= request.getParameter("search_term") == null ? "" : request.getParameter("search_term") %>"/>
 							<select name="search_by" id="search_by">
 								<option value="all">All Fields</option>
@@ -49,14 +57,14 @@
 								<option value="cdate">created date</option>
 								<option value="state">state</option>
 							</select>
-							<input type="submit" value="Search" id="search_button"/>			  
+							<input type="hidden" name="username" value="<%=username%>" />
+							<input type="submit" id="search_button" value="Search" />		  
 						</form>
 					</div>
-					<div id = "result">
+					<!--<div id = "result">
 						<form method="get" target="_blank" id="export_form">
 							<table id="list">	
 								<tr>
-									<!--<th><input type="checkbox" id="check_all" title="Check all items on this page" /></th>-->
 									<th>PID</th>
 									<th>Label</th>
 									<th>Creator</th>
@@ -68,15 +76,14 @@
 								</tr>
 							</table>
 						</form>
-					</div>
-					<div id="export">
+					</div>-->
+					<!--<div id="export">
 						<br><input type="hidden" id="submit_export" value="Download" disabled="disabled" /></br>
-					</div>		
+					</div>-->		
 				</td>
 			</tr>
 		</table>
-		<p style="font-family:arial;color:#800517;font-size:15px;text-align:center;">
-			Kindura Project 2011		
-		</p>
+		<%@ include file="bottompage.jsp" %>
+		</br>
 	</body>
 </html>
