@@ -9,28 +9,41 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.request.Ingest;
-import com.yourmediashelf.fedora.client.response.IngestResponse;
-
 public class AddProjectRequestHandler extends HttpServlet {
 	FedoraServiceManager fedoraServiceManager;
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String userName = request.getParameter("username");
 		String projectName = request.getParameter("projectname");
-		String role = request.getParameter("role");
+		String primaryFunder = request.getParameter("primaryfunder");
+		String otherFunder = request.getParameter("otherfundingsource");
 		String projectDescription = request.getParameter("projectdescription");
+		String owner = request.getParameter("ownership");
+		String projectContact = request.getParameter("projectcontact");
+		String department = request.getParameter("department");
+		String typeOfData = request.getParameter("typeofdata");
+		String startDate = request.getParameter("startdate");
+		String endDate = request.getParameter("enddate");
+		String role = request.getParameter("role");
+		
 		String storageType = null;
+		String root = "root";
+		String rootPID = "fedora:root";
+		
+		BigDecimal projectCost = new BigDecimal(Math.random());
+		BigDecimal factor = new BigDecimal(100);
+		projectCost = projectCost.multiply(factor);
+		projectCost = projectCost.setScale(2, BigDecimal.ROUND_HALF_UP);
+		
 		//Generate a random storage type based on the cost.
-		double cost = Math.random();
-		if (cost > 0.66) {
+		double storage = Math.random();
+		if (storage > 0.66) {
 			storageType = "Fast";
-		} else if (cost > 0.33) {
+		} else if (storage > 0.33) {
 			storageType = "Medium";
 		} else {
 			storageType = "Slow";
 		}
+		
 		String actionRequired = null;
 		double migration = Math.random();
 		if (migration > 0.5) {
@@ -38,6 +51,19 @@ public class AddProjectRequestHandler extends HttpServlet {
 		} else {
 			actionRequired = "None";
 		}
+		
+		String cloudProvider = null;
+		double provider = Math.random();
+		if (provider > 0.75) {
+			cloudProvider = "Amazon S3";
+		} else if (provider > 0.5) {
+			cloudProvider = "Amazon Reduced Redundency";
+		} else if (provider > 0.25) {
+			cloudProvider = "Rackspace";
+		} else {
+			cloudProvider = "Windows Azure";
+		} 
+		
 		System.out.println("[AddProjectRequesthandler] User Name: "+userName);
 		System.out.println("[AddProjectRequesthandler] Project Name: "+projectName);
 		HttpSession session = request.getSession(true);
@@ -49,70 +75,27 @@ public class AddProjectRequestHandler extends HttpServlet {
 		fedoraServiceManager = new FedoraServiceManager();
 		//FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection("http://localhost:8080/fedora/", "fedoraAdmin", "fedoraAdmin");
 		
-		String pid = userName+":"+projectName;
+		String pid = root+":"+projectName;
 		
-		if (isFedoraObjectExisted(pid) == true) {
+		if (fedoraServiceManager.isFedoraObjectExisted(rootPID) == false) {
+			fedoraServiceManager.createRootObject(root);
+			System.out.println("[AddProjectRequesthandler] Root object created");
+		} else {
+			System.out.println("[AddProjectRequesthandler] Root object exists");
+		}
+		
+		if (fedoraServiceManager.isFedoraObjectExisted(pid) == true) {
 			response.sendRedirect("projectexisted.jsp");
 		}
 		else {
-			createFedoraObject(userName, projectName, projectDescription, storageType, actionRequired);
-			response.sendRedirect("projectadded.jsp");
-		}
-		
-	}
-	public boolean isFedoraObjectExisted(String pid) {
-		if (fedoraServiceManager.getObjectPIDs(pid, "pid") == null) {
-			System.out.println("[AddProjectRequesthandler] Object pid does NOT exists");
-			return false;
-		}
-		else {
-			System.out.println("[AddProjectRequesthandler] Object pid exists");
-			return true;
-		}
-	}
-	
-	public void createFedoraObject(String userName, String projectName, String projectDescription, String storageType, String actionRequired) {
-		
-		//Generate a random cost value between 0 and 100.
-		BigDecimal cost = new BigDecimal(Math.random());
-		BigDecimal factor = new BigDecimal(100);
-		cost = cost.multiply(factor);
-		cost = cost.setScale(2, BigDecimal.ROUND_HALF_UP);
-		
-		String pid = userName+":"+projectName;
-		String mimeType = "text/xml";
-		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+userName;
-		
-		//Create a new fedora object if it does not exist in Fedora repository.
-		
-		try {
-			FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
-			IngestResponse ingest = new Ingest(pid).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "projectname").controlGroup("R").dsLabel(projectName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "projectcost").controlGroup("R").dsLabel(cost.toString()).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			
-			FedoraClient.addDatastream(pid, "creator").controlGroup("R").dsLabel(userName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "projectName").controlGroup("R").dsLabel(projectName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "collectionDescription").controlGroup("R").dsLabel(projectDescription).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "storageType").controlGroup("R").dsLabel(storageType).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			//FedoraClient.addDatastream(pid, "collectionCost").controlGroup("R").dsLabel(actionRequired).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "actionRequired").controlGroup("R").dsLabel(actionRequired).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			
-			System.out.println("[AddProjectRequesthandler] Project "+projectName+" for user "+userName+" created");
-			
-			double cloudProviderChooser = Math.random();
-			if (cloudProviderChooser < 0.25) {
-				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("iRODs").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			} else if (cloudProviderChooser < 50) {
-				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("Amazon S3").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			} else if (cloudProviderChooser < 75) {
-				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("RackSpace").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			} else if (cloudProviderChooser < 75) {
-				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("Microsoft Azure").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			//fedoraServiceManager.createFedoraObject(userName, projectName, projectDescription, storageType, actionRequired);
+			if (primaryFunder != null) {
+				fedoraServiceManager.createProjectObject(userName, root, projectName, primaryFunder, projectDescription, owner, projectContact, department, typeOfData, startDate, endDate, projectCost.toString(), actionRequired, storageType, cloudProvider);
+				response.sendRedirect("projectadded.jsp");
+			} else {
+				fedoraServiceManager.createProjectObject(userName, root, projectName, otherFunder, projectDescription, owner, projectContact, department, typeOfData, startDate, endDate, projectCost.toString(), actionRequired, storageType, cloudProvider);
+				response.sendRedirect("projectadded.jsp");
 			}
-		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
 	}
