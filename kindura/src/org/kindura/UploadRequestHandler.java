@@ -2,6 +2,7 @@ package org.kindura;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,20 +11,32 @@ import java.util.Map;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.duracloud.client.ContentStore;
+import org.duracloud.error.ContentStoreException;
+
 import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.client.request.GetNextPID;
 import com.yourmediashelf.fedora.client.request.Ingest;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
+import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
 /**
  * This class is used to handle file upload request.
  * @author Jun Zhang
  */
 public class UploadRequestHandler extends HttpServlet {
+	//Setup connection with Fedora repository.
+	FedoraServiceManager fedoraServiceManager = new FedoraServiceManager();
+	FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
+	
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		//Set the temporary folder to store the uploaded file(s).
@@ -37,17 +50,21 @@ public class UploadRequestHandler extends HttpServlet {
 		//This String is used to store the value of parameter 'pathinfo0' sent by upload.jsp.
 		String projectName = null;
 		String collectionName = null;
-		String creator = null;
 		String collectionDescription = null;
-		String storageType = null;
-		String actionRequired = null;
+		//String actionRequired = null;
 		String fileOriginalPath = null;
-		String filePathForDuracloud = null;
-		String filePathForFedora = null;
-		String fileUrl = null;
-		
+		String filePathOfDuraCloud = null;
+		String filePathOfFedora = null;
+		//String fileUrl = null;
+		String estimatedAccessFrequency = null;
+		String protectiveMarking = null;
+		String version = null;
+		String timeStamp = null;
+		boolean bmpToJPG = false;
+		boolean tiffToJPG = false;
+		boolean personaldata = false;
 		File uploadFile = null;
-
+		
 		//Initialization for chunk management.
 		boolean bLastChunk = false;
 		int numChunk = 0;
@@ -109,11 +126,6 @@ public class UploadRequestHandler extends HttpServlet {
 			int ourMaxMemorySize  = 10000000;
 			int ourMaxRequestSize = 2000000000;
 	
-			///////////////////////////////////////////////////////////////////////////////////////////////////////
-			//Some code below is directly taken from the jakarta fileupload common classes
-			//All informations, and download, available here : http://jakarta.apache.org/commons/fileupload/
-			///////////////////////////////////////////////////////////////////////////////////////////////////////
-	
 			// Create a factory for disk-based file items
 			DiskFileItemFactory factory = new DiskFileItemFactory();
 	
@@ -172,22 +184,78 @@ public class UploadRequestHandler extends HttpServlet {
 							projectName = fileItem.getString();
 						} else if (fileItem.getFieldName().equals("collectionname")) {
 							collectionName = fileItem.getString();
-							if (collectionName.equals("")) {
-								throw new NullPointerException("Collection name is null");
-							}
+						} else if (fileItem.getFieldName().equals("accessfrequency")) {
+							estimatedAccessFrequency = fileItem.getString();
 						} else if (fileItem.getFieldName().equals("collectiondescription")) {
 							collectionDescription = fileItem.getString();
+						} else if (fileItem.getFieldName().equals("protectivemarking")) {
+							protectiveMarking = fileItem.getString();
+						} else if (fileItem.getFieldName().equals("version")) {
+							version = fileItem.getString();
 						} else if (fileItem.getFieldName().equals("pathinfo0")) {
 							fileOriginalPath = fileItem.getString();
-							filePathForDuracloud = reviseFilePathForDuracloud(fileOriginalPath);
-							filePathForFedora = reviseFilePathForFedora(fileOriginalPath);
-						}    
+						} else if (fileItem.getFieldName().equals("bmptojpg")) {
+							bmpToJPG = Boolean.valueOf(fileItem.getString());
+							System.out.println("[UploadRequestHandler] bmptojpg: "+bmpToJPG);
+						} else if (fileItem.getFieldName().equals("tifftojpg")) {
+							tiffToJPG = Boolean.valueOf(fileItem.getString());
+							System.out.println("[UploadRequestHandler] tifftojpg: "+tiffToJPG);
+						} else if (fileItem.getFieldName().equals("personaldata")) {
+							personaldata = Boolean.valueOf(fileItem.getString());
+							System.out.println("[UploadRequestHandler] personaldata: "+personaldata);
+						} else if (fileItem.getFieldName().equals("timestamp")) {
+							timeStamp = fileItem.getString();
+							System.out.println("[UploadRequestHandler] timestamp: "+timeStamp);
+						}
 						
 						//Store metadata from the web page "upload.jsp" for the rule engine.
 						inputMetadata.put(fileItem.getFieldName(), fileItem.getString());
 					} 
 					//Handle the uploaded file.
 					else {
+						// Setup a connection with DuraCloud.
+						DuraStoreClient duraStoreClient = new DuraStoreClient(configurationFileParser.getKinduraParameters().get("DuraCloudHost"), configurationFileParser.getKinduraParameters().get("DuraCloudPort"), configurationFileParser.getKinduraParameters().get("DuraCloudContext"), configurationFileParser.getKinduraParameters().get("DuraCloudUsername"), configurationFileParser.getKinduraParameters().get("DuraCloudPassword"));
+						
+						String collectionPID = projectName+":"+collectionName;
+						if (collectionName.equals("")) {
+							throw new NullPointerException("Please input the 'Collection Title'.");
+						} else if (projectName.equals("")) {
+							throw new NullPointerException("Please select the 'Associated Project'.");
+						} else if (collectionDescription.equals("")) {
+							throw new NullPointerException("Please input the 'Description'.");
+						} else if (version.equals("")) {
+							throw new NullPointerException("Please select the 'Version'.");
+						} else if (estimatedAccessFrequency.equals("")) {
+							throw new NullPointerException("Please select the 'Estimated Access Frequency'.");
+						} else if (protectiveMarking.equals("")) {
+							throw new NullPointerException("Please select the 'Protective Marking'.");
+						}
+						else {
+							List<String> spaceIterator = duraStoreClient.defaultContentStore.getSpaces();
+							if (spaceIterator.contains(collectionName)) {
+								System.out.println("[UploadRequestHandler] collection name "+collectionName+" exists in Dura Cloud.");
+								List<String> fedoraCollectionObject = fedoraServiceManager.getObjectPIDs("*"+":"+collectionName, "pid");
+								for (String fedoraCollectionIterator : fedoraCollectionObject) {
+									if (!fedoraServiceManager.getADataStream(fedoraCollectionIterator, "timeStamp").equals(timeStamp))	{
+										System.out.println("[UploadRequestHandler] time stamp does NOT match");
+										throw new CollectionExistedException("Collection name "+collectionName+" is already existed. Please use another name.");
+									} else {
+										System.out.println("[UploadRequestHandler] time stamp matches");
+									}
+								}
+								/*if (fedoraServiceManager.isFedoraObjectExisted(collectionPID) == true) {
+									System.out.println("[UploadRequestHandler] new timeStamp: "+timeStamp);
+									System.out.println("[UploadRequestHandler] existing timestamp: "+fedoraServiceManager.getADataStream(collectionPID, "timeStamp"));
+									if (!fedoraServiceManager.getADataStream(collectionPID, "timeStamp").equals(timeStamp)) {
+										System.out.println("[UploadRequestHandler] time stamp does NOT match");
+										throw new CollectionExistedException("Collection name "+collectionName+" is already existed. Please use another name.");
+									} else {
+										System.out.println("[UploadRequestHandler] time stamp matches");
+									}
+								}*/
+							}
+						}
+						
 						//Print out the metadata stored in the Map.
 						System.out.println("metadata stored in the Map for the rule engine:");
 						for (Map.Entry<String, String> entry : inputMetadata.entrySet()) {
@@ -198,28 +266,35 @@ public class UploadRequestHandler extends HttpServlet {
 						//Again, for all informations of what is exactly a FileItem, please
 						//have a look to http://jakarta.apache.org/commons/fileupload/
 						//
+						String parentFolderName = null;
+						String parentFolderPID = null;
 						String fieldName = fileItem.getFieldName();
 						String fileName = fileItem.getName();
 						//Delete all spaces in the file name.
 						fileName = fileName.replace(" ", "");
 						String mimeType = fileItem.getContentType();
 						String fileNameExtension = fileName.substring(fileName.indexOf(".")+1);
-						long fileSize = fileItem.getSize();				
-						//Set the namespace of the content as the username.
-						String nameSpace = userName;
+						String fileSize = String.valueOf(fileItem.getSize());				
+						//Set the namespace of the content.
+						//////String nameSpace = userName;
+						String nameSpace = collectionName;
 						//Get the base file name of the file.
 						int dot = fileName.indexOf(".");
-						String baseFilename = fileName.substring(0, dot);
+						String baseFileName = fileName.substring(0, dot);
 						//Generate the namespace. To create a new Fedora object for each file, use baseFilename. To create a new Fedora object for each data collection, use collectionName. 
 						//String nameSpaceAndPid = nameSpace + ":" + baseFilename;
 						//String nameSpaceAndPid = nameSpace + ":" + collectionName;
-						String nameSpaceAndPid = userName+":"+projectName;
+						//String nameSpaceAndPid = userName+":"+projectName;
+						//String nameSpaceAndPid = projectName+":"+collectionName;
+						
+						String filePID = collectionName+":"+filePathOfFedora+"."+baseFileName;
 						
 						System.out.println("[upload.jsp] File Format: " + fileNameExtension);
 						System.out.println("[upload.jsp] Field Name: " + fieldName);
 						System.out.println("[upload.jsp] File Name: " + fileName);
 						System.out.println("[upload.jsp] MIME Type: " + mimeType);
 						System.out.println("[upload.jsp] Size (Bytes): " + fileSize);
+						
 						
 						//If we are in chunk mode, we add ".partN" at the end of the file, where N is the chunk number.
 						//String uploadedFilename = fileItem.getName() + ( numChunk>0 ? ".part"+numChunk : "") ;
@@ -230,35 +305,39 @@ public class UploadRequestHandler extends HttpServlet {
 						fileItem.write(uploadFile);	        
 						
 						RuleEngineTrigger ruleEngineTrigger = new RuleEngineTrigger();
-						ruleEngineTrigger.triggerRuleEngine(inputMetadata, nameSpaceAndPid);
+						ruleEngineTrigger.triggerRuleEngine(inputMetadata, collectionPID);
+						
 						
 						///////////////////////////////////////////////////////////////////////////////////////////////////////
 						//DuraCloud operations.
 						//
 
-						// Setup a connection with DuraCloud.
-						//DuraStoreClient duraStoreClient = new DuraStoreClient("localhost", "8080", "durastore", "root", "rpw");
-						DuraStoreClient duraStoreClient = new DuraStoreClient(configurationFileParser.getKinduraParameters().get("DuraCloudHost"), configurationFileParser.getKinduraParameters().get("DuraCloudPort"), configurationFileParser.getKinduraParameters().get("DuraCloudContext"), configurationFileParser.getKinduraParameters().get("DuraCloudUsername"), configurationFileParser.getKinduraParameters().get("DuraCloudPassword"));
 						
-
+						filePathOfDuraCloud = duraStoreClient.reviseFilePathForDuracloud(fileOriginalPath);
 						//Create a new namespace if the namespace does not exist.
 						if (duraStoreClient.isNameSpaceExisted(nameSpace) == false) {
 							Map<String, String> spaceMetadata = new HashMap<String, String>();
-							
-							//spaceMetadata.put("x-amz-storage-class", "STANDARD");
 							duraStoreClient.createNamespace(nameSpace, spaceMetadata, "Amazon S3");
 						}
 						
-						/*System.out.println("[upload.jsp] nameSpace+/+fileOriginalPath"+nameSpace+"/"+fileOriginalPath);
-						if (duraStoreClient.isNameSpaceExisted(nameSpace+"/"+fileOriginalPath) == false) {
-							Map<String, String> spaceMetadata = new HashMap<String, String>();
-							
-							//spaceMetadata.put("x-amz-storage-class", "STANDARD");
-							duraStoreClient.createNamespace(nameSpace+"/"+fileOriginalPath, spaceMetadata, "Amazon S3");
-						}*/
-						
 						//Upload the file to the Cloud.
-						duraStoreClient.uploadFile(nameSpace, projectName+"/"+collectionName+"/"+filePathForDuracloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						duraStoreClient.uploadFile(duraStoreClient.defaultContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						
+						System.out.println("filePathOfDuraCloud/fileName "+filePathOfDuraCloud+"/"+fileName);
+						
+						if ((bmpToJPG == true) || (tiffToJPG == true)) {
+							System.out.println("[UploadRequestHandler] bmp to jpg is "+bmpToJPG+" tiffToJPG is "+tiffToJPG+". Image transformer is started.");
+							DuraServiceClient duraServiceClient = new DuraServiceClient();
+							duraServiceClient.runImageTransformerOverSpace(collectionName, collectionName, filePathOfDuraCloud+"/"+fileName, bmpToJPG, tiffToJPG);
+							if (isFileConverted(duraStoreClient.defaultContentStore, collectionName, filePathOfDuraCloud+"/"+fileName) == true) {
+								System.out.println("[UploadRequestHandler] file "+filePathOfDuraCloud+"/"+fileName+" has been converted. Change file extension in Fedora repository.");
+								fileNameExtension = "jpg";
+								duraStoreClient.defaultContentStore.deleteContent(collectionName, filePathOfDuraCloud+"/"+fileName);
+								System.out.println("[UploadRequestHandler] file "+filePathOfDuraCloud+"/"+fileName+" has been deleted.");
+							} else {
+								System.out.println("[UploadRequestHandler] file "+filePathOfDuraCloud+"/"+fileName+" has NOT been converted.");
+							}
+						}
 						//
 						// End of DuraCloud operations.
 						///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -266,99 +345,24 @@ public class UploadRequestHandler extends HttpServlet {
 						///////////////////////////////////////////////////////////////////////////////////////////////////////
 						//Fedora operations.
 						//
-										
-						//Setup connection with Fedora repository.
-						FedoraServiceManager fedoraServiceManager = new FedoraServiceManager();
-						//FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection("http://localhost:8080/fedora/", "fedoraAdmin", "fedoraAdmin");
-						//FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection(configurationFileParser.getKinduraParameters().get("FedoraHost"), configurationFileParser.getKinduraParameters().get("FedoraUsername"), configurationFileParser.getKinduraParameters().get("FedoraPassword"));
-						FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
 						
+						fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedAccessFrequency, collectionDescription, protectiveMarking, version, timeStamp);
 						
+						HashMap<String, String> parentFolderNameAndPID = fedoraServiceManager.handleFolderObject(projectName, collectionName, collectionPID, fileName, fileOriginalPath);
 						
-						
-						
-						//Create Fedora object and store it in Fedora repository.
-						fileUrl = "http://localhost:8080/duradmin/download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+filePathForDuracloud+"/"+fileName+"&storeID=0&attachment=true";
-						
-						//Generate a random cost value between 0 and 100.
-						BigDecimal cost = new BigDecimal(Math.random());
-						BigDecimal factor = new BigDecimal(100);
-						cost = cost.multiply(factor);
-						cost = cost.setScale(2, BigDecimal.ROUND_HALF_UP);
-						
-						creator = userName;
-						
-						//Generate a random storage type based on the cost.
-						if (Double.valueOf(cost.toString()) > 66.6) {
-							storageType = "Fast";
-						} else if (Double.valueOf(cost.toString()) > 33.3) {
-							storageType = "Medium";
-						} else {
-							storageType = "Slow";
+						for (Map.Entry<String, String> entry : parentFolderNameAndPID.entrySet()) {
+							parentFolderName = entry.getKey();
+							parentFolderPID = entry.getValue();
 						}
 						
-						//Generate a random action.
-						double actionValue = Math.random();
-						if (actionValue > 0.5) {
-							actionRequired = "Migrate";
-						} else {
-							actionRequired = "None";
-						}
-						
-						
-						
-						//System.out.println("[upload.jsp] url: " + url);
-						//System.out.println("[upload.jsp] mime type: " + mimeType);
-						//System.out.println("[upload.jsp] search_term: "+nameSpaceAndPid);
-						//fedoraServiceManager.getADataStream(fedoraClient, nameSpaceAndPid, "url");
-						
-						
-						//Create a new fedora object if it does not exist in Fedora repository.
-						if (fedoraServiceManager.getObjectPIDs(nameSpaceAndPid, "pid") == null) {
-							System.out.println("Object pid does NOT exists");
-							IngestResponse ingest = new Ingest(nameSpaceAndPid).execute(fedoraClient);
-							FedoraClient.addDatastream(nameSpaceAndPid, baseFilename+".cost").controlGroup("R").dsLabel(cost.toString()).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-							
-							
-						}
-						else {
-							System.out.println("Object pid exists");
-						}
-						
-						IngestResponse ingest = new Ingest(nameSpace+":"+collectionName).execute(fedoraClient);
-						FedoraClient.addRelationship(nameSpace+":"+collectionName).predicate("isACollectionOf").object(nameSpaceAndPid).isLiteral(true).execute(fedoraClient);
-						//FedoraResponse fedoraresponse = fedoraClient.execute(addRelationship(nameSpace+":"+collectionName).subject("subject").predicate("isACollectionOf").object(nameSpaceAndPid));
-						
-						//Add new datastream(s) to the Fedora object. If the datastream(s) exists, the content in the datastream will be modified according to the new information.
-						/*FedoraClient.addDatastream(nameSpaceAndPid, "url").controlGroup("R").dsLabel(url).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, "filenameextension").controlGroup("R").dsLabel(fileNameExtension).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, "cost").controlGroup("R").dsLabel(cost.toString()).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, "filepath").controlGroup("R").dsLabel(fileOriginalPath).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-						*/
-						
-						/*FedoraClient.addDatastream(nameSpaceAndPid, "creator").controlGroup("R").dsLabel(creator).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, "projectName").controlGroup("R").dsLabel(projectName).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, "collectionDescription").controlGroup("R").dsLabel(collectionDescription).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, "storageType").controlGroup("R").dsLabel(storageType).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, "collectionCost").controlGroup("R").dsLabel(cost.toString()).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, "actionRequired").controlGroup("R").dsLabel(actionRequired).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						*/
-						
-						/*FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+baseFilename+".url").controlGroup("R").dsLabel(fileUrl).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+baseFilename+".fileNameExtension").controlGroup("R").dsLabel(fileNameExtension).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+baseFilename+".filePath").controlGroup("R").dsLabel(fileOriginalPath).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+baseFilename+".fileSize").controlGroup("R").dsLabel(String.valueOf(fileSize)).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						*/
-						
-						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+filePathForFedora+"."+baseFilename+".url").controlGroup("R").dsLabel(fileUrl).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+filePathForFedora+"."+baseFilename+".fileNameExtension").controlGroup("R").dsLabel(fileNameExtension).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+filePathForFedora+"."+baseFilename+".filePath").controlGroup("R").dsLabel(fileOriginalPath).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						FedoraClient.addDatastream(nameSpaceAndPid, collectionName+"."+filePathForFedora+"."+baseFilename+".fileSize").controlGroup("R").dsLabel(String.valueOf(fileSize)).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
-						
+						fedoraServiceManager.handleFileObject(nameSpace, projectName, collectionName, parentFolderName, parentFolderPID, baseFileName, baseFileName, filePID, fileOriginalPath, fileNameExtension, fileSize);
 						
 						//			
 						// End of Fedora operations.
 						//////////////////////////////////////////////////////////////////////////////////////
+						
+						
+						
 						
 							
 						//////////////////////////////////////////////////////////////////////////////////////
@@ -416,35 +420,61 @@ public class UploadRequestHandler extends HttpServlet {
 		}
 	}
 	
-	private String reviseFilePathForDuracloud(String fileOriginalPath) {
-		String revisedFilePath = fileOriginalPath;
-		if (revisedFilePath.endsWith("\\")) {
-			revisedFilePath = revisedFilePath.substring(0, revisedFilePath.length()-1);
+	/*public boolean isFileConverted(ContentStore contentStore, String collectionName, boolean bmpToJPG, boolean tiffToJPG) {
+    	try {
+			FedoraServiceManager fedoraServiceManager = new FedoraServiceManager();
+    		Iterator<String> iterator = contentStore.getSpaceContents(collectionName);
+    		List<String> originalFiles = new ArrayList<String>();
+			List<String> convertedFiles = new ArrayList<String>();
+			while (iterator.hasNext()) {
+				String originalFileName = iterator.next();
+				String convertedFileName = null;
+				if ((bmpToJPG == true) && (originalFileName.substring(originalFileName.lastIndexOf(".")+1).equals("bmp"))) {
+					convertedFileName = originalFileName.substring(0, originalFileName.indexOf("."))+".jpg";
+					if (convertedFiles.contains(convertedFileName)) {
+						return true;
+					} else {
+						originalFiles.add(originalFileName);
+					}
+				}
+				if ((tiffToJPG == true) && (originalFileName.substring(originalFileName.lastIndexOf(".")+1).equals("tiff"))) {
+					convertedFileName = originalFileName.substring(0, originalFileName.indexOf("."))+".jpg";
+					if (convertedFiles.contains(convertedFileName)) {
+						return true;
+					} else {
+						originalFiles.add(originalFileName);
+					}
+				}
+				if (originalFileName.substring(originalFileName.lastIndexOf(".")+1).equals("jpg")) {
+					convertedFileName = originalFileName;
+					originalFileName = originalFileName.substring(0, originalFileName.indexOf("."))+".jpg";
+					if (convertedFiles.contains(convertedFileName)) {
+						return true;
+					} else {
+						convertedFiles.add(originalFileName);
+					}
+				}
+			}
+		} catch (ContentStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		revisedFilePath = revisedFilePath.replace(":", "");
-		System.out.println("[UploadRequestHandler] revised file path 1: "+revisedFilePath);
-		revisedFilePath = revisedFilePath.replace("\\", "/");
-		System.out.println("[UploadRequestHandler] revised file path 2: "+revisedFilePath);
-		revisedFilePath = revisedFilePath.replace(" ", "");
-		System.out.println("[UploadRequestHandler] revised file path 3: "+revisedFilePath);
-		revisedFilePath = revisedFilePath.toLowerCase();
-		System.out.println("[UploadRequestHandler] revised file path 4: "+revisedFilePath);
-		return revisedFilePath;
-	}
-	
-	private String reviseFilePathForFedora(String fileOriginalPath) {
-		String revisedFilePath = fileOriginalPath;
-		if (revisedFilePath.endsWith("\\")) {
-			revisedFilePath = revisedFilePath.substring(0, revisedFilePath.length()-1);
+		return false;
+    }*/
+	public boolean isFileConverted(ContentStore contentStore, String collectionName, String originalFileName) {
+		String convertedFileName = originalFileName.substring(0, originalFileName.lastIndexOf("."))+".jpg";
+		System.out.println("[UploadRequestHandler] converted file name: "+convertedFileName);
+		try {
+			Iterator<String> iterator = contentStore.getSpaceContents(collectionName);
+			while (iterator.hasNext()) { 
+				if (iterator.next().equals(convertedFileName)) {
+					return true;
+				}
+			}
+		} catch (ContentStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		revisedFilePath = revisedFilePath.replace(":", "");
-		System.out.println("[UploadRequestHandler] revised file path 1: "+revisedFilePath);
-		revisedFilePath = revisedFilePath.replace("\\", ".");
-		System.out.println("[UploadRequestHandler] revised file path 2: "+revisedFilePath);
-		revisedFilePath = revisedFilePath.replace(" ", "");
-		System.out.println("[UploadRequestHandler] revised file path 3: "+revisedFilePath);
-		revisedFilePath = revisedFilePath.toLowerCase();
-		System.out.println("[UploadRequestHandler] revised file path 4: "+revisedFilePath);
-		return revisedFilePath;
+		return false;
 	}
 }

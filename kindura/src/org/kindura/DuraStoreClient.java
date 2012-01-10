@@ -31,11 +31,14 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -45,49 +48,107 @@ import javax.xml.parsers.ParserConfigurationException;
  * @author Jun Zhang
  */
 public class DuraStoreClient {
-    ContentStore contentStore;
     ContentStoreManager contentStoreManager;
+    ContentStore defaultContentStore;
     Credential duracloudCredential;
         
     private Document dom;
     
     public DuraStoreClient(String duracloud_host, String duracloud_port, String duracloud_context, String duracloud_username, String duracloud_password) throws ContentStoreException {
-    	contentStoreManager =
-            new ContentStoreManagerImpl(duracloud_host, duracloud_port, duracloud_context);
+    	contentStoreManager = new ContentStoreManagerImpl(duracloud_host, duracloud_port, duracloud_context);
+    	//contentStoreManager = new ContentStoreManagerImpl("kindura.duracloud.org", "443", "durastore");
         duracloudCredential = new Credential(duracloud_username, duracloud_password);
+    	//duracloudCredential = new Credential("junz", "p1ssw2rd");
         contentStoreManager.login(duracloudCredential);
-        contentStore = contentStoreManager.getPrimaryContentStore();
+        defaultContentStore = contentStoreManager.getPrimaryContentStore();
     }
     
-    public boolean isNameSpaceExisted(String namespace) throws ContentStoreException {
-    	List<String> storeIDs = contentStore.getSpaces();
-    	Iterator iterator = storeIDs.iterator();
-    	boolean spaceFound = false;
-    	while(iterator.hasNext() && (spaceFound == false)) {
+    public boolean isCloudProviderExisted(String cloudProvider) {
+		//ContentStore contentStore = contentStoreManager.getContentStore("32");
+		String cloudProviderID = getCloudProviderID("localhost", cloudProvider);
+		if (cloudProviderID != null) {
+			System.out.println("[DuraStoreClient] cloudProviderID: "+cloudProviderID);
+			return true;
+		} else {
+			System.out.println("[DuraStoreClient] cloudProvider does NOT exist");
+			return false;
+		}
+    }
+    
+    public boolean isNameSpaceExisted(String nameSpace) {
+    	List<String> storeIDs;
+		try {
+			storeIDs = defaultContentStore.getSpaces();
+			Iterator iterator = storeIDs.iterator();
+	    	boolean spaceFound = false;
+	    	while(iterator.hasNext() && (spaceFound == false)) {
 
-    	    String name = (String)iterator.next(); 
-    	    if (name.equals(namespace)) {
-    	    	spaceFound = true;
-    	    	System.out.println("space "+namespace+" exist");
-    	    	return true;
-    	    }
+	    	    String name = (String)iterator.next(); 
+	    	    if (name.equals(nameSpace)) {
+	    	    	spaceFound = true;
+	    	    	System.out.println("space "+nameSpace+" exist");
+	    	    	return true;
+	    	    }
+	    	}
+	    	System.out.println("space "+nameSpace+" does not exist");
+	    	return false;
+		} catch (ContentStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 	
+		return false;
+    }
+    
+    public String getCloudProviderID(String duracloud_host, String cloudProviderName) {
+    	int cloudProviderID;
+    	if (duracloud_host.equals("localhost") || duracloud_host.equals("127.0.0.1")) {
+    		if (cloudProviderName.equals("Amazon S3")) {
+        		cloudProviderID = 0;
+        		return String.valueOf(cloudProviderID);
+        	}
+    	} else if (duracloud_host.equals("kindura.dura")) {
+    		if (cloudProviderName.equals("Amazon S3")) {
+        		cloudProviderID = 32;
+        		return String.valueOf(cloudProviderID);
+        	} else if (cloudProviderName.equals("RackSpace")) {
+        		cloudProviderID = 33;
+        		return String.valueOf(cloudProviderID);
+        	}
     	}
-    	System.out.println("space "+namespace+" does not exist");
-    	return false;
+    	return null;
+    }
+    
+    public ContentStore getCloudContentStore(String cloud_host, String cloud_port, String cloud_context, String cloudProviderID, String cloud_username, String cloud_password) {
+    	try {
+        	ContentStoreManager contentStoreManager = new ContentStoreManagerImpl(cloud_host, cloud_port, cloud_context);
+            ContentStore contentStore;
+            Credential duracloudCredential;
+            contentStoreManager = new ContentStoreManagerImpl(cloud_host, cloud_port, cloud_context);
+        	//contentStoreManager = new ContentStoreManagerImpl("kindura.duracloud.org", "443", "durastore");
+            duracloudCredential = new Credential(cloud_username, cloud_password);
+        	//duracloudCredential = new Credential("junz", "p1ssw2rd");
+            contentStoreManager.login(duracloudCredential);
+			contentStore = contentStoreManager.getContentStore(cloudProviderID);
+			return contentStore;
+		} catch (ContentStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
     }
     
     public void createNamespace(String nameSpace, Map<String, String> spaceMetadata, String cloudProvider) {
     	//Map<String, String> spaceMetadata = new HashMap<String, String>();
 		try {
 			//contentStore = contentStoreManager.getPrimaryContentStore();
-			contentStore.createSpace(nameSpace, spaceMetadata);
+			defaultContentStore.createSpace(nameSpace, spaceMetadata);
 		} catch (ContentStoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
     
-    public void uploadFile(String nameSpace, String fileName, File uploadFile, long fileSize, String fileType) {
+    public void uploadFile(ContentStore contentStore, String nameSpace, String fileName, File uploadFile, long fileSize, String fileType) {
     	FileInputStream in;
 		try {
 			in = new FileInputStream(uploadFile.toString());
@@ -108,15 +169,17 @@ public class DuraStoreClient {
 		contentStoreManager.logout();
     }
     
-    
-    
-    public void downloadFile(String nameSpace, String fileName, String revisedFileNameForDownload, String destinationPath, String fileExtension, int numberOfBytes) {
+    public void downloadFile(ContentStore contentStore, String nameSpace, String fileName, String revisedFileNameForDownload, String destinationPath, String fileExtension, int numberOfBytes) {
     	Content content = new Content();
     	try {
-			content = contentStore.getContent(nameSpace, fileName+"."+fileExtension); 
+			if (fileExtension != "") {
+				content = contentStore.getContent(nameSpace, fileName+"."+fileExtension);
+			} else {
+				content= contentStore.getContent(nameSpace, fileName);
+			}
 	    	System.out.println("[DuraStoreClient] content.getId(): "+content.getId());
 	    	InputStream inputStream = content.getStream();
-	    	System.out.println("[DuraStoreClient] content.getMetadata: "+content.getMetadata());
+	    	//System.out.println("[DuraStoreClient] content.getMetadata: "+content.getMetadata());
 	    	File destinationFile = new File(destinationPath+revisedFileNameForDownload+"."+fileExtension);
 	    	System.out.println("[DuraStoreClient] destinationFile: "+destinationPath+revisedFileNameForDownload+"."+fileExtension);
 	    	FileOutputStream outputStream = new FileOutputStream(destinationFile);
@@ -137,5 +200,82 @@ public class DuraStoreClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    }
+    
+    public String reviseFilePathForDuracloud(String fileOriginalPath) {
+		String revisedFilePath = fileOriginalPath;
+		if (revisedFilePath.endsWith("\\")) {
+			revisedFilePath = revisedFilePath.substring(0, revisedFilePath.length()-1);
+		}
+		revisedFilePath = revisedFilePath.replace(":", "");
+		System.out.println("[UploadRequestHandler] revised file path 1: "+revisedFilePath);
+		revisedFilePath = revisedFilePath.replace("\\", "/");
+		System.out.println("[UploadRequestHandler] revised file path 2: "+revisedFilePath);
+		revisedFilePath = revisedFilePath.replace(" ", "");
+		System.out.println("[UploadRequestHandler] revised file path 3: "+revisedFilePath);
+		revisedFilePath = revisedFilePath.toLowerCase();
+		System.out.println("[UploadRequestHandler] revised file path 4: "+revisedFilePath);
+		return revisedFilePath;
+	}
+    
+    public Iterator<String> getFileNames(ContentStore contentStore, String nameSpace) {
+    	try {
+			Iterator spaceContents = contentStore.getSpaceContents(nameSpace);
+			
+			/*while (spaceContents.hasNext()) {
+				String fileName = (String)spaceContents.next();
+				System.out.println("[DuraStoreClient] "+nameSpace+" file:"+fileName);
+			}*/
+			return spaceContents;
+		} catch (ContentStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+    }
+    
+    public void migrateDataCollection(String originalCloudProvider, String originalNameSpace, String newCloudProvider, String newNameSpace) {
+    	if (isCloudProviderExisted(originalCloudProvider) == true) {
+    		System.out.println("[DuraStoreClient] original cloud provider: "+originalCloudProvider+" exists.");
+    		if (isCloudProviderExisted(newCloudProvider) == true) {
+        		System.out.println("[DuraStoreClient] new cloud provider: "+newCloudProvider+" exists.");
+        		System.out.println("Data collection "+originalNameSpace+" from "+originalCloudProvider+" will be migrated to the space "+newNameSpace+" of "+newCloudProvider);
+        		JFrame frame = new JFrame();
+        		JOptionPane.showMessageDialog(frame, "Data collection from the space '"+originalNameSpace+"' of '"+originalCloudProvider+"' will be migrated to the space '"+newNameSpace+"' of '"+newCloudProvider+"'.");
+        		String fullFileName = null;
+        		String baseFileName = null;
+        		String fileExtension = null;
+        		Iterator spaceContents = getFileNames(defaultContentStore, originalNameSpace);
+				ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
+				String tempDownloadDirectory = configurationFileParser.getKinduraParameters().get("TempDownloadDirectory");
+				System.out.println("[DuraStoreClient] Download directory: "+tempDownloadDirectory);
+				//String displayDownloadDirectory = configurationFileParser.getKinduraParameters().get("DisplayDownloadDirectory");
+				
+				while (spaceContents.hasNext()) {
+					fullFileName = (String)spaceContents.next();
+					if (fullFileName.contains(".")) {
+						baseFileName = fullFileName.substring(0, fullFileName.indexOf("."));
+						fileExtension = fullFileName.substring(fullFileName.indexOf(".")+1);
+					} else {
+						baseFileName = fullFileName;
+						fileExtension = "";
+					}
+					//duraStoreClient.downloadFile("root", nameSpaceAndPid[1], revisedFileNameForDownload, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+					System.out.println("[duraStoreClient] Start to download file: "+fullFileName);
+					    
+					downloadFile(defaultContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+					
+					File uploadFile = new File(tempDownloadDirectory + (new File(fullFileName)).getName());
+					uploadFile(defaultContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+				}
+				
+				
+				
+    		} else {
+        		System.out.println("[DuraStoreClient] new cloud provider: "+newCloudProvider+" does NOT exist");
+        	}
+    	} else {
+    		System.out.println("[DuraStoreClient] original cloud provider: "+originalCloudProvider+" does NOT exist");
+    	}
     }
 }

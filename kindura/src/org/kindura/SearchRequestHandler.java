@@ -37,9 +37,11 @@ public class SearchRequestHandler extends HttpServlet {
 		List<String> pids = null;
 		//List<String> pids = fedoraServiceManager.getObjectPIDs(search_term, search_by);
 		if (search_term == "") {
-			pids = fedoraServiceManager.getObjectPIDs(userName, "pid");
+			//pids = fedoraServiceManager.getObjectPIDs(userName, search_by);
+			pids = fedoraServiceManager.getObjectNames("", search_by);
 		} else {
-			pids = fedoraServiceManager.getObjectPIDs(search_term, search_by);
+			//pids = fedoraServiceManager.getObjectPIDs(search_term, search_by);
+			pids = fedoraServiceManager.getObjectNames(search_term, search_by);
 		}
 		
 		setObjectAttributeValues(request, pids);
@@ -64,12 +66,22 @@ public class SearchRequestHandler extends HttpServlet {
 	 */
 	private void setObjectAttributeValues(HttpServletRequest request, List<String> pids) {
 		String projectName = null;
+		String projectFunder = null;
+		String ownerShip = null;
 		String collectionName = null;
+		String displayName = null;
 		String creator = null;
-		String collectionDescription = null;
+		String description = null;
 		String storageType = null;
-		String projectCost = null;
+		String collectionCost = null;
 		String actionRequired = null;
+		String fedoraObjectType = null;
+		String department = null;
+		String typeOfData = null;
+		String startDate = null;
+		String endDate = null;
+		String projectContact = null;
+		
 		
 		String pid = null;
 		
@@ -82,113 +94,158 @@ public class SearchRequestHandler extends HttpServlet {
 			
 			//List<String> attribute = null;
 			String attribute = null;
-		
-			if (pids.size() > 0) {
+			if (pids.size() == 0) {
 				request.setAttribute("pidCount", pids.size());
+			} else if (pids.size() > 0) {
+				int pidCount = 0;
 				for (int i=0;i<pids.size();i++) {
-					url = fedoraServiceManager.getContentURL(pids.get(i));
-					fileExtension = fedoraServiceManager.getADataStream(pids.get(i), "filenameextension");
-					splitedNameSpaceAndPid = pids.get(i).split(":");
-					
-					//request.setAttribute("object"+i+"pid", fedoraServiceManager.getAObjectAttribute(fedoraClient, pids.get(i), "pid"));
-					request.setAttribute("object"+i+"pid", splitedNameSpaceAndPid[1]);
-									
-					attribute = fedoraServiceManager.getAObjectAttribute(pids.get(i), "label");
-					if (attribute != null) {
-						request.setAttribute("object"+i+"label", attribute);
-					}
-					else {
-						request.setAttribute("object"+i+"label", "");
-					}
-					
-					attribute = fedoraServiceManager.getAObjectAttribute(pids.get(i), "creator");
-					if (attribute != null) {
-						request.setAttribute("object"+i+"creator", attribute);
-					}
-					else {
-						request.setAttribute("object"+i+"creator", "");
-					}
-					
-					attribute = fedoraServiceManager.getAObjectAttribute(pids.get(i), "cDate");
-					if (attribute != null) {
-						request.setAttribute("object"+i+"cDate", attribute);
-					}
-					else {
-						request.setAttribute("object"+i+"cDate", "");
-					}
-					
-					attribute = fedoraServiceManager.getAObjectAttribute(pids.get(i), "state");
-					if (attribute != null) {
-						request.setAttribute("object"+i+"state", attribute);
-					}
-					else {
-						request.setAttribute("object"+i+"state", "");
-					}
-					
-					creator = fedoraServiceManager.getADataStream(pids.get(i), "creator");
-					if (creator != null) {
-						//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
-						request.setAttribute("object"+i+"creator", creator);
-					}
-					else {
-						request.setAttribute("object"+i+"creator", "");
-					} 
-					
-					projectName = fedoraServiceManager.getADataStream(pids.get(i), "projectName");
-					if (projectName != null) {
-						//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
-						request.setAttribute("object"+i+"projectName", projectName);
-					}
-					else {
-						request.setAttribute("object"+i+"projectName", "");
-					}
-					
-					collectionDescription = fedoraServiceManager.getADataStream(pids.get(i), "collectionDescription");
-					if (projectName != null) {
-						//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
-						request.setAttribute("object"+i+"collectionDescription", collectionDescription);
-					}
-					else {
-						request.setAttribute("object"+i+"collectionDescription", "");
-					}
-					
-					storageType = fedoraServiceManager.getADataStream(pids.get(i), "storageType");
-					if (projectName != null) {
-						//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
-						request.setAttribute("object"+i+"storageType", storageType);
-					}
-					else {
-						request.setAttribute("object"+i+"storageType", "");
-					}
-					
-					
-					
-					projectCost = fedoraServiceManager.getADataStream(pids.get(i), "projectcost");
-					if (projectCost != null) {
-						//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
-						request.setAttribute("object"+i+"projectCost", projectCost);
-					}
-					else {
-						request.setAttribute("object"+i+"projectCost", "");
-					}
-					
-					actionRequired = fedoraServiceManager.getADataStream(pids.get(i), "actionRequired");
-					if (actionRequired != null) {
-						//request.setAttribute("object"+i+"action", fedoraServiceManager.getContentAction(fedoraClient, pids.get(i)));
-						request.setAttribute("object"+i+"actionRequired", actionRequired);
-					}
-					else {
-						request.setAttribute("object"+i+"actionRequired", "");
-					}
-					
-					request.setAttribute("url"+i, url);
-					//request.setAttribute("mimeType"+i, mimeType);
-					request.setAttribute("nameSpace"+i, splitedNameSpaceAndPid[0]);
-					request.setAttribute("pid"+i, splitedNameSpaceAndPid[1]);
-					request.setAttribute("fileExtension"+i, fileExtension);
-					request.setAttribute("parentFolderNameForDuracloud"+i,"");
-					request.setAttribute("parentFolderNameForFedora"+i,"");
+					fedoraObjectType = fedoraServiceManager.getADataStream(pids.get(i), "fedoraObjectType");
+					//if ((fedoraObjectType != null) && (!fedoraObjectType.equals("file"))) {
+					if ((fedoraObjectType != null) && (fedoraObjectType.equals("collection"))) {
+						url = fedoraServiceManager.getContentURL(pids.get(i));
+						fileExtension = fedoraServiceManager.getADataStream(pids.get(i), "fileExtension");
+						splitedNameSpaceAndPid = pids.get(i).split(":");
+						
+						//request.setAttribute("object"+i+"pid", fedoraServiceManager.getAObjectAttribute(fedoraClient, pids.get(i), "pid"));
+						request.setAttribute("object"+pidCount+"pid", splitedNameSpaceAndPid[1]);
+										
+						attribute = fedoraServiceManager.getAObjectAttribute(pids.get(i), "label");
+						if (attribute != null) {
+							request.setAttribute("object"+pidCount+"label", attribute);
+						} else {
+							request.setAttribute("object"+pidCount+"label", "");
+						}
+						
+						/*attribute = fedoraServiceManager.getAObjectAttribute(pids.get(i), "creator");
+						System.out.println("[SearchRequestHandler] creator: "+creator);
+						if (attribute != null) {
+							request.setAttribute("object"+pidCount+"creator", attribute);
+						} else {
+							request.setAttribute("object"+pidCount+"creator", "");
+						}*/
+						
+						attribute = fedoraServiceManager.getAObjectAttribute(pids.get(i), "cDate");
+						if (attribute != null) {
+							request.setAttribute("object"+pidCount+"cDate", attribute.substring(0, attribute.indexOf("T")));
+						} else {
+							request.setAttribute("object"+pidCount+"cDate", "");
+						}
+						
+						attribute = fedoraServiceManager.getAObjectAttribute(pids.get(i), "state");
+						if (attribute != null) {
+							request.setAttribute("object"+pidCount+"state", attribute);
+						} else {
+							request.setAttribute("object"+pidCount+"state", "");
+						}
+						
+						creator = fedoraServiceManager.getADataStream(pids.get(i), "creator");
+						if (creator != null) {
+							//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
+							request.setAttribute("object"+pidCount+"creator", creator);
+						} else {
+							request.setAttribute("object"+pidCount+"creator", "");
+						} 
+						
+						projectName = fedoraServiceManager.getADataStream(pids.get(i), "projectName");
+						if (projectName != null) {
+							//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
+							request.setAttribute("object"+pidCount+"projectName", projectName);
+						} else {
+							request.setAttribute("object"+pidCount+"projectName", "");
+						}
+						
+						//fedoraObjectType = fedoraServiceManager.getADataStream(pids.get(i), "fedoraObjectType");
+						if (fedoraObjectType != null) {
+							if (fedoraObjectType.equals("project")) {
+								description = fedoraServiceManager.getADataStream(pids.get(i), "projectDescription");
+							} else if (fedoraObjectType.equals("collection")) {
+								description = fedoraServiceManager.getADataStream(pids.get(i), "collectionDescription");
+							}
+						} 
+						//request.setAttribute("object"+pidCount+"description", description);
+						if (description != null) {
+							//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
+							request.setAttribute("object"+pidCount+"description", description);
+						} else {
+							request.setAttribute("object"+pidCount+"description", "");
+						}
+						
+						/*request.setAttribute("object"+pidCount+"projectFunder", description);
+						
+						projectCost = fedoraServiceManager.getADataStream(pids.get(i), "projectCost");
+						if (description != null) {
+							//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
+							request.setAttribute("object"+pidCount+"description", description);
+						} else {
+							request.setAttribute("object"+pidCount+"description", "");
+						}*/
+						
+						storageType = fedoraServiceManager.getADataStream(pids.get(i), "storageType");
+						if (storageType != null) {
+							//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
+							request.setAttribute("object"+pidCount+"storageType", storageType);
+						} else {
+							request.setAttribute("object"+pidCount+"storageType", "");
+						}
+						
+						collectionCost = fedoraServiceManager.getADataStream(pids.get(i), "collectionCost");
+						if (collectionCost != null) {
+							//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
+							request.setAttribute("object"+pidCount+"collectionCost", collectionCost);
+						} else {
+							request.setAttribute("object"+pidCount+"collectionCost", "");
+						}
+						
+						actionRequired = fedoraServiceManager.getADataStream(pids.get(i), "actionRequired");
+						if (actionRequired != null) {
+							//request.setAttribute("object"+i+"action", fedoraServiceManager.getContentAction(fedoraClient, pids.get(i)));
+							request.setAttribute("object"+pidCount+"actionRequired", actionRequired);
+						} else {
+							request.setAttribute("object"+pidCount+"actionRequired", "");
+						}
+						
+						request.setAttribute("url"+pidCount, url);
+						//request.setAttribute("mimeType"+i, mimeType);
+						request.setAttribute("nameSpace"+pidCount, splitedNameSpaceAndPid[0]);
+						request.setAttribute("alphaNumericName"+pidCount, splitedNameSpaceAndPid[1]);
+						//request.setAttribute("fileExtension"+pidCount, fileExtension);
+						request.setAttribute("parentFolderNameForDuracloud"+pidCount,"");
+						request.setAttribute("parentFolderNameForFedora"+pidCount,"");
+						
+						if (fedoraObjectType.equals("project")) {
+							displayName = fedoraServiceManager.getADataStream(pids.get(i), "projectName");
+						} else if (fedoraObjectType.equals("collection")) {
+							displayName = fedoraServiceManager.getADataStream(pids.get(i), "collectionName");
+						} else if (fedoraObjectType.equals("folder")) {
+							displayName = fedoraServiceManager.getADataStream(pids.get(i), "folderName");
+						}
+						request.setAttribute("displayName"+pidCount, displayName);
+						
+						startDate = fedoraServiceManager.getADataStream("root:"+projectName, "startDate");
+						if (startDate != null) {
+							request.setAttribute("object"+pidCount+"startDate", startDate);
+						} else {
+							request.setAttribute("object"+pidCount+"startDate", "");
+						}
+						
+						endDate = fedoraServiceManager.getADataStream("root:"+projectName, "endDate");
+						if (endDate != null) {
+							request.setAttribute("object"+pidCount+"endDate", endDate);
+						} else {
+							request.setAttribute("object"+pidCount+"endDate", "");
+						}
+						
+						projectContact = fedoraServiceManager.getADataStream("root:"+projectName, "projectContact");
+						if (startDate != null) {
+							request.setAttribute("object"+pidCount+"projectContact", projectContact);
+						} else {
+							request.setAttribute("object"+pidCount+"projectContact", "");
+						}
+						
+						pidCount++;
+					}	
 				}
+				request.setAttribute("pidCount", pidCount);
 			}
 		}
 	}

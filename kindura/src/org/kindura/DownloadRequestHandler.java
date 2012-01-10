@@ -48,19 +48,21 @@ public class DownloadRequestHandler extends HttpServlet {
 	 * Download the specified file.
 	 */
 	private void downloadFile(HttpServletResponse response, String[] nameSpaceAndPid, String fileExtension) throws ServletException, IOException {
-		ConfigurationFileParser cfp = new ConfigurationFileParser();
+		ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
 		//final String downloadTempDirectory = "C:/Program Files/Apache Software Foundation/Tomcat 6.0/webapps/kindura2/downloadtemp/";
-		final String tempDownloadDirectory = cfp.getKinduraParameters().get("TempDownloadDirectory");
+		final String tempDownloadDirectory = configurationFileParser.getKinduraParameters().get("TempDownloadDirectory");
 		//final String displayDownloadDirectory = "downloadtemp/";
-		final String displayDownloadDirectory = cfp.getKinduraParameters().get("DisplayDownloadDirectory");
+		final String displayDownloadDirectory = configurationFileParser.getKinduraParameters().get("DisplayDownloadDirectory");
 		
 		String revisedFileNameForDownload = reviseFileNameForDownload(nameSpaceAndPid[1]);
 		//Download the specified file from Cloud to local server and store it in a local temporary folder.
 		try {
 			//duraStoreClient = new DuraStoreClient("localhost", "8080", "durastore", "root", "rpw");
-			DuraStoreClient duraStoreClient = new DuraStoreClient(cfp.getKinduraParameters().get("DuraCloudHost"), cfp.getKinduraParameters().get("DuraCloudPort"), 
-					cfp.getKinduraParameters().get("DuraCloudContext"), cfp.getKinduraParameters().get("DuraCloudUsername"), cfp.getKinduraParameters().get("DuraCloudPassword"));
-			duraStoreClient.downloadFile(nameSpaceAndPid[0], nameSpaceAndPid[1], revisedFileNameForDownload, tempDownloadDirectory, fileExtension, Integer.valueOf(cfp.getKinduraParameters().get("NumberOfBytes")));
+			DuraStoreClient duraStoreClient = new DuraStoreClient(configurationFileParser.getKinduraParameters().get("DuraCloudHost"), configurationFileParser.getKinduraParameters().get("DuraCloudPort"), 
+					configurationFileParser.getKinduraParameters().get("DuraCloudContext"), configurationFileParser.getKinduraParameters().get("DuraCloudUsername"), configurationFileParser.getKinduraParameters().get("DuraCloudPassword"));
+			//duraStoreClient.downloadFile(nameSpaceAndPid[0], nameSpaceAndPid[1], revisedFileNameForDownload, tempDownloadDirectory, fileExtension, Integer.valueOf(cfp.getKinduraParameters().get("NumberOfBytes")));
+			//////duraStoreClient.downloadFile(duraStoreClient.defaultContentStore, "root", nameSpaceAndPid[1], revisedFileNameForDownload, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+			duraStoreClient.downloadFile(duraStoreClient.defaultContentStore, nameSpaceAndPid[0], nameSpaceAndPid[1], revisedFileNameForDownload, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 		} catch (ContentStoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -16,13 +16,13 @@ public class DatabaseConnector {
 	 * Connect to the database.
 	 */
 	public void connectDatabase(String username, String password, String database) {
-    	System.out.println("Start to connect to database server");
-    	ConfigurationFileParser cfp = new ConfigurationFileParser();
+    	System.out.println("Connecting to database server for user "+username);
+    	ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
     	try
         {
             //String url = "jdbc:mysql://localhost:3306/"+database;
             //String url = cfp.kinduraParameters.get("MySQLURL")+database;
-    		String url = cfp.getKinduraParameters().get("MySQLURL")+database;
+    		String url = configurationFileParser.getKinduraParameters().get("MySQLURL")+database;
             Class.forName ("com.mysql.jdbc.Driver").newInstance ();
             dbconnection = DriverManager.getConnection (url, username, password);
             System.out.println ("Database connection established");

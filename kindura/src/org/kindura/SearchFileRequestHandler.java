@@ -25,7 +25,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
 public class SearchFileRequestHandler extends HttpServlet {
 	
 	FedoraServiceManager fedoraServiceManager = new FedoraServiceManager();
-	ConfigurationFileParser cfp = new ConfigurationFileParser();
+	//ConfigurationFileParser cfp = new ConfigurationFileParser();
 	//FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection(cfp.getKinduraParameters().get("FedoraHost"), cfp.getKinduraParameters().get("FedoraUsername"), cfp.getKinduraParameters().get("FedoraPassword"));
 	FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
 	
