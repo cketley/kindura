@@ -33,9 +33,9 @@ public class LoginRequestHandler extends HttpServlet {
 	 */
 	public String[] validateLogin(String username, String password) {
 		DatabaseConnector databaseConnector = new DatabaseConnector();	
-		ConfigurationFileParser cfp = new ConfigurationFileParser();
+		ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
 		//Connect to the database.
-		databaseConnector.connectDatabase(cfp.getKinduraParameters().get("MySQLUsername"), cfp.getKinduraParameters().get("MySQLPassword"), cfp.getKinduraParameters().get("MySQLDatabase"));
+		databaseConnector.connectDatabase(configurationFileParser.getKinduraParameters().get("MySQLUsername"), configurationFileParser.getKinduraParameters().get("MySQLPassword"), configurationFileParser.getKinduraParameters().get("MySQLDatabase"));
 		
 		//Query username and password.
 		String[] usernameAndRole = databaseConnector.queryUser(username, password);

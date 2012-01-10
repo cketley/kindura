@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.duracloud.error.ContentStoreException;
+
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
@@ -30,71 +32,47 @@ public class ViewProjectRequestHandler extends HttpServlet {
 	FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
 	
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("[SearchFileRequestHandler] nameSpace: "+request.getParameter("nameSpace"));
-		System.out.println("[SearchFileRequestHandler] pid: "+request.getParameter("pid"));
+		String nameSpace = null;
+		String alphaNumericName = null;
+		String projectName = null;
+		String requestType = null;
+		
+		System.out.println("[ViewProjectRequestHandler] nameSpace: "+request.getParameter("nameSpace"));
+		System.out.println("[ViewProjectRequestHandler] alphaNumericName: "+request.getParameter("alphaNumericName"));
+		System.out.println("[ViewProjectRequestHandler] projectName: "+request.getParameter("projectName"));
 		
 		//get search term and rename it if necessary.
-		String nameSpace = request.getParameter("nameSpace");
+		nameSpace = request.getParameter("nameSpace");
 		
-		String alphaNumericName = request.getParameter("pid");
+		alphaNumericName = request.getParameter("alphaNumericName");
 		
-		//String parentFolderName = request.getParameter("parentFolderName");
+		projectName = request.getParameter("projectName");
 		
-		String parentFolderNameForDuracloud = request.getParameter("parentFolderNameForDuracloud").replace("_", "/");
+		requestType = request.getParameter("requestType");
 		
-		String parentFolderNameForFedora = request.getParameter("parentFolderNameForFedora").replace("_", ".");
+		System.out.println("[ViewProjectRequestHandler] pid "+nameSpace+":"+alphaNumericName);
 		
-		String collectionName = request.getParameter("collectionName");
-		
-		System.out.println("[SearchFileRequestHandler] pid "+nameSpace+":"+alphaNumericName);
-		
-		ArrayList<DatastreamType> datastreams = fedoraServiceManager.getDataStreams(nameSpace+":"+alphaNumericName);
-		
-		//Set<String> nextLevelFolders = getNextLevelStructure(datastreams, parentFolderName);
-		Map<String, String> nextLevelFolders = getNextLevelStructure(datastreams, parentFolderNameForFedora);
-		
-		//Iterator it = nextLevelFolders.iterator();
-		//while (it.hasNext()) {
-        //    System.out.println("[SearchFileRequestHandler] folder name: " + (String)it.next());
-		//}
-		
-		//setDataStreamValues(request, nameSpace, alphaNumericName, nextLevelFolders, collectionName);
-		setDataStreamValues(request, nameSpace, alphaNumericName, nextLevelFolders, alphaNumericName, parentFolderNameForDuracloud, parentFolderNameForFedora);
-		
-		RequestDispatcher requestDispatcher = request.getRequestDispatcher("viewprojectfolders.jsp");
-		requestDispatcher.forward(request, response);
-	}
-	
-	/*private Set<String> getNextLevelStructure(List<DatastreamType> datastreams, String parentFolderName) {
-		Set<String> nextLevelFolders = new HashSet<String>();
-		String folderName = null;
-		String choppedFolderName = null;
-		for (int i=0;i<datastreams.size();i++) {
-			folderName = datastreams.get(i).getDsid();
-			System.out.println("[SearchFileRequestHandler] folder name "+folderName);
-			System.out.println("[SearchFileRequestHandler] parent folder name "+parentFolderName);
-			//if ((parentFolderName != "") && folderName.contains("parentFolderName")) {
-			if (folderName.contains(".") && (folderName.contains(parentFolderName) || (parentFolderName == ""))) {
-				if (parentFolderName != "") {
-					//choppedFolderName = folderName.substring(parentFolderName.length()+1);
-					choppedFolderName = folderName.substring(folderName.indexOf(parentFolderName)+parentFolderName.length()+1);
-				} else {
-					choppedFolderName = folderName;
-				}
-				System.out.println("[SearchFileRequestHandler] folder name after chopping parent folder "+choppedFolderName);
-				if (choppedFolderName.contains(".")) {
-					choppedFolderName = choppedFolderName.substring(0, choppedFolderName.indexOf("."));
-					System.out.println("[SearchFileRequestHandler] folder name after chopping child folder "+choppedFolderName);
-					nextLevelFolders.add(choppedFolderName);
-				}
-				else {
-					nextLevelFolders.add(folderName);
-				}
-			}
-			
+		//HashMap<String, String> collectionPIDs = fedoraServiceManager.getChildNames(nameSpace+":"+alphaNumericName);
+		//setParameters(request, collectionPIDs);
+		HashMap<String, String> collectionPIDs = null;
+		if (alphaNumericName == null) {
+			collectionPIDs = fedoraServiceManager.getChildPIDs(nameSpace+":"+projectName);
+		} else {
+			collectionPIDs = fedoraServiceManager.getChildPIDs(nameSpace+":"+alphaNumericName);
 		}
-		return nextLevelFolders;
-	}*/
+		setDataStreamValues(request, collectionPIDs, projectName);
+		
+		//Map<String, String> nextLevelFolders = getNextLevelStructure(datastreams, parentFolderNameForFedora);
+		
+		//setDataStreamValues(request, nameSpace, alphaNumericName, nextLevelFolders, alphaNumericName, parentFolderNameForDuracloud, parentFolderNameForFedora);
+		if (requestType.equals("view")) {
+			RequestDispatcher requestDispatcher = request.getRequestDispatcher("viewprojectcollection.jsp");
+			requestDispatcher.forward(request, response);
+		} else if (requestType.equals("search")) {
+			RequestDispatcher requestDispatcher = request.getRequestDispatcher("drilldownfolder.jsp");
+			requestDispatcher.forward(request, response);
+		}
+	}
 	
 	private Map<String, String> getNextLevelStructure(List<DatastreamType> datastreams, String parentFolderNameForFedora) {
 		HashMap<String, String> nextLevelFolders = new HashMap<String, String>();
@@ -148,139 +126,108 @@ public class ViewProjectRequestHandler extends HttpServlet {
 		}
 	}
 	
+	private void setParameters(HttpServletRequest request, Map<String, String> PIDs) {
+		int pidCount = 0;
+		for (Map.Entry<String, String> entry : PIDs.entrySet()) {
+			request.setAttribute("nameSpace"+pidCount, entry.getKey().substring(0,entry.getKey().indexOf(":")));
+			request.setAttribute("alphaNumericName"+pidCount, entry.getKey().substring(entry.getKey().indexOf(":")+1));
+			request.setAttribute("pid"+pidCount+"fedoraObjectType", entry.getValue());
+			pidCount++;
+		}
+		request.setAttribute("numberOfRows", pidCount);
+	}
+	
 	/*
 	 * This method sets the value of the attribute for the request which is retrieved later in "searchresults.jsp" by passing the request object through the dispatcher method.
 	 */
-	private void setDataStreamValues(HttpServletRequest request, String nameSpace, String alphaNumericName, Map<String, String> files, String projectName, String parentFolderNameForDuracloud, String parentFolderNameForFedora) {
-		//String pid = null;
-		//String cost = null;
-		//String action = null;
-		//String projectName = null;
+	//private void setDataStreamValues(HttpServletRequest request, String nameSpace, String alphaNumericName, Map<String, String> files, String projectName, String parentFolderNameForDuracloud, String parentFolderNameForFedora) {
+	private void setDataStreamValues(HttpServletRequest request, Map<String, String> collectionPIDs, String projectName) {
 		
 		String fileExtension = null;
 		
 		String[] splitedNameSpaceAndPid = null;
-		System.out.println("files.size(): "+files.size());
+		System.out.println("collectionPIDs.size(): "+collectionPIDs.size());
 		
 		//List<String> attribute = null;
 		String attribute = null;
 		
-		if (files.size() == 0) {
-			request.setAttribute("dataStreamCount", 0);
+		request.setAttribute("projectName", projectName);
+		System.out.println("[ViewProjectRequestHandler] projectName "+projectName);
+		
+		if (collectionPIDs.size() == 0) {
+			request.setAttribute("numberOfRows", 0);
 		}
-		else if (files.size() > 0) {
-			request.setAttribute("dataStreamCount", files.size());
+		else if (collectionPIDs.size() > 0) {
+			request.setAttribute("numberOfRows", collectionPIDs.size());
 			//Iterator it = files.iterator();
 			int i = 0;
-			String fileName = null;
+			/////String projectName = null;
+			String collectionName = null;
+			String nameSpace = null;
+			String pid = null;
+			String baseFileName = null;
 			String fileType = null;
 			String fileSize = null;
 			String url = null;
-			for (Map.Entry<String, String> entry : files.entrySet()) {
-			//while (it.hasNext()) {
-				//fileName = (String)it.next();
-				fileName = entry.getKey();
+			String alphaNumericName = null;
+			String fileOriginalPath;
+			String filePathOfDuracloud;
+			String originalFileName = null;
+			for (Map.Entry<String, String> entry : collectionPIDs.entrySet()) {
+				
+				pid = entry.getKey();
 				fileType = entry.getValue();
-				//projectName = fedoraServiceManager.getADataStream(fedoraClient, nameSpace+":"+alphaNumericName, parentFolderNameForFedora+"."+fileName+".projectName");
-				//collectionName = fedoraServiceManager.getADataStream(fedoraClient, nameSpace+":"+alphaNumericName, parentFolderName+"."+fileName+".collectionName");
-				//creator = fedoraServiceManager.getADataStream(fedoraClient, nameSpace+":"+alphaNumericName, parentFolderName+"."+fileName+".creator");
-				//collectionDescription = fedoraServiceManager.getADataStream(fedoraClient, nameSpace+":"+alphaNumericName, parentFolderName+"."+fileName+".collectionDescription");
-				//storageType = fedoraServiceManager.getADataStream(fedoraClient, nameSpace+":"+alphaNumericName, parentFolderName+"."+fileName+".storageType");
-				//actionRequired = fedoraServiceManager.getADataStream(fedoraClient, nameSpace+":"+alphaNumericName, parentFolderName+"."+fileName+".actionRequired");
-				fileSize = fedoraServiceManager.getADataStream(nameSpace+":"+alphaNumericName, parentFolderNameForFedora+"."+fileName+".fileSize");
+				request.setAttribute("pid"+i+"fedoraObjectType", fileType);
+				System.out.println("[ViewProjectRequestHandler] fileType: "+fileType);
+				
+				nameSpace = entry.getKey().substring(0,entry.getKey().indexOf(":"));
+				request.setAttribute("nameSpace"+i, nameSpace);
+				System.out.println("[ViewProjectRequestHandler] nameSpace "+nameSpace);
+				
+				if (fileType.equals("project")) {
+					alphaNumericName = fedoraServiceManager.getADataStream(pid,"projectName");
+				} else if (fileType.equals("collection")) {
+					alphaNumericName = fedoraServiceManager.getADataStream(pid,"collectionName");
+				} else if (fileType.equals("folder")) {
+					alphaNumericName = fedoraServiceManager.getADataStream(pid,"folderName");
+				} else if (fileType.equals("file")) {
+					alphaNumericName = fedoraServiceManager.getADataStream(pid,"baseFileName");
+					
+					baseFileName = fedoraServiceManager.getADataStream(pid,"baseFileName");
+					request.setAttribute("baseFileName"+i, baseFileName);
+					
+					fileExtension = fedoraServiceManager.getADataStream(pid, "fileExtension");
+					request.setAttribute("fileExtension"+i, fileExtension);
+					System.out.println("[ViewProjectRequestHandler] fileExtension "+fileExtension);
+					collectionName = fedoraServiceManager.getADataStream(pid, "collectionName");
+					request.setAttribute("collectionName"+i, collectionName);
+					fileOriginalPath = fedoraServiceManager.getADataStream(pid, "filePath");
+					
+					ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
+					DuraStoreClient duraStoreClient = null;
+					try {
+						duraStoreClient = new DuraStoreClient(configurationFileParser.getKinduraParameters().get("DuraCloudHost"), configurationFileParser.getKinduraParameters().get("DuraCloudPort"), configurationFileParser.getKinduraParameters().get("DuraCloudContext"), configurationFileParser.getKinduraParameters().get("DuraCloudUsername"), configurationFileParser.getKinduraParameters().get("DuraCloudPassword"));
+					} catch (ContentStoreException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					//////filePathOfDuracloud = collectionName+"/"+duraStoreClient.reviseFilePathForDuracloud(fileOriginalPath);
+					filePathOfDuracloud = duraStoreClient.reviseFilePathForDuracloud(fileOriginalPath);
+					request.setAttribute("parentFolderNameForDuracloud"+i, filePathOfDuracloud);
+				}
+				alphaNumericName = entry.getKey().substring(entry.getKey().indexOf(":")+1);
+				request.setAttribute("alphaNumericName"+i, alphaNumericName);
+				System.out.println("[ViewProjectRequestHandler] nameSpace "+alphaNumericName);
+				
+				fileSize = fedoraServiceManager.getADataStream(pid, "fileSize");
 				if (fileSize == null) {
 					fileSize = "";
 				}
-				url = fedoraServiceManager.getADataStream(nameSpace+":"+alphaNumericName, parentFolderNameForFedora+"."+fileName+".url");
-				fileExtension = fedoraServiceManager.getADataStream(nameSpace+":"+alphaNumericName, parentFolderNameForFedora+"."+fileName+".fileNameExtension");
-				System.out.println("[SearchFileRequestHandler] pid "+nameSpace+":"+alphaNumericName);
-				System.out.println("[SearchFileRequestHandler] datastream "+parentFolderNameForFedora+"."+fileName+".url");
-				System.out.println("[SearchFileRequestHandler] url "+url);
-				
-				request.setAttribute("projectName", projectName);
-				//request.setAttribute("collectionName"+i, collectionName);
-				//request.setAttribute("creator"+i, creator);
-				//request.setAttribute("collectionDescription", collectionDescription);
-				//request.setAttribute("storage"+i, storageType);
-				//request.setAttribute("actionRequired"+i, actionRequired);
-				
-				request.setAttribute("fileName"+i, fileName);
-				request.setAttribute("fileType"+i, fileType);
 				request.setAttribute("fileSize"+i, fileSize);
-				request.setAttribute("url"+i, url);
+				System.out.println("[ViewProjectRequestHandler] fileSize "+fileSize);
 				
-				request.setAttribute("nameSpace"+i, nameSpace);
-				request.setAttribute("pid"+i, alphaNumericName);
-				request.setAttribute("fileExtension"+i, fileExtension);
-				request.setAttribute("parentFolderNameForDuracloud"+i,parentFolderNameForDuracloud);
-				request.setAttribute("parentFolderNameForFedora"+i,parentFolderNameForFedora);
-				
-				
+				/////projectName = fedoraServiceManager.getADataStream(pid, "projectName");
 				i++;
-				//url = fedoraServiceManager.getContentURL(fedoraClient, datastreams.get(i));
-				//fileExtension = fedoraServiceManager.getADataStream(fedoraClient, datastreams.get(i), "filenameextension");
-				//splitedNameSpaceAndPid = datastreams.get(i).split(":");
-				
-				//request.setAttribute("object"+i+"pid", fedoraServiceManager.getAObjectAttribute(fedoraClient, dataStreams.get(i), "pid"));
-				
-				/*attribute = fedoraServiceManager.getAObjectAttribute(fedoraClient, pids.get(i), "label");
-				if (attribute != null) {
-					request.setAttribute("object"+i+"label", attribute);
-				}
-				else {
-					request.setAttribute("object"+i+"label", "");
-				}
-				
-				attribute = fedoraServiceManager.getAObjectAttribute(fedoraClient, pids.get(i), "creator");
-				if (attribute != null) {
-					request.setAttribute("object"+i+"creator", attribute);
-				}
-				else {
-					request.setAttribute("object"+i+"creator", "");
-				}
-				
-				attribute = fedoraServiceManager.getAObjectAttribute(fedoraClient, pids.get(i), "cDate");
-				if (attribute != null) {
-					request.setAttribute("object"+i+"cDate", attribute);
-				}
-				else {
-					request.setAttribute("object"+i+"cDate", "");
-				}
-				
-				attribute = fedoraServiceManager.getAObjectAttribute(fedoraClient, pids.get(i), "state");
-				if (attribute != null) {
-					request.setAttribute("object"+i+"state", attribute);
-				}
-				else {
-					request.setAttribute("object"+i+"state", "");
-				}
-				
-				
-				
-				cost = fedoraServiceManager.getADataStream(fedoraClient, pids.get(i), "cost");
-				if (cost != null) {
-					//request.setAttribute("object"+i+"cost", fedoraServiceManager.getContentCost(fedoraClient, pids.get(i)));
-					request.setAttribute("object"+i+"cost", fedoraServiceManager.getADataStream(fedoraClient, pids.get(i), "cost"));
-				}
-				else {
-					request.setAttribute("object"+i+"cost", "");
-				}
-				
-				action = fedoraServiceManager.getADataStream(fedoraClient, pids.get(i), "action");
-				if (action != null) {
-					//request.setAttribute("object"+i+"action", fedoraServiceManager.getContentAction(fedoraClient, pids.get(i)));
-					request.setAttribute("object"+i+"cost", fedoraServiceManager.getADataStream(fedoraClient, pids.get(i), "action"));
-				}
-				else {
-					request.setAttribute("object"+i+"action", "");
-				}
-				
-				request.setAttribute("url"+i, url);
-				//request.setAttribute("mimeType"+i, mimeType);
-				request.setAttribute("nameSpace"+i, splitedNameSpaceAndPid[0]);
-				request.setAttribute("pid"+i, splitedNameSpaceAndPid[1]);
-				request.setAttribute("fileExtension"+i, fileExtension);
-				request.setAttribute("parentFolderName", parentFolderName);*/
 			}
 		}
 	}

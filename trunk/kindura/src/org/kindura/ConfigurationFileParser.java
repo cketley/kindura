@@ -25,10 +25,9 @@ public class ConfigurationFileParser extends DefaultHandler{
 	
 	private Map<String, String> kinduraParameters;
 	
-	public ConfigurationFileParser(){
-		kinduraParameters = new HashMap<String, String>();
-		parseDocument();
-	}
+	//public ConfigurationFileParser(){
+		
+	//}
 	
 	private void parseDocument() {
 		
@@ -40,7 +39,7 @@ public class ConfigurationFileParser extends DefaultHandler{
 			SAXParser sp = spf.newSAXParser();
 			
 			//parse the file and also register this class for call backs
-			sp.parse("webapps/kindura4/kinduraconfiguration.xml", this);
+			sp.parse("webapps/kindura6/kinduraconfiguration.xml", this);
 			
 		}catch(SAXException se) {
 			se.printStackTrace();
@@ -65,6 +64,8 @@ public class ConfigurationFileParser extends DefaultHandler{
 	}
 	
 	public Map<String, String> getKinduraParameters() {
+		kinduraParameters = new HashMap<String, String>();
+		parseDocument();
 		return kinduraParameters;
 	}
 }
