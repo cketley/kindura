@@ -196,13 +196,11 @@ public class UploadRequestHandler extends HttpServlet {
 							fileOriginalPath = fileItem.getString();
 						} else if (fileItem.getFieldName().equals("bmptojpg")) {
 							bmpToJPG = Boolean.valueOf(fileItem.getString());
-							System.out.println("[UploadRequestHandler] bmptojpg: "+bmpToJPG);
 						} else if (fileItem.getFieldName().equals("tifftojpg")) {
 							tiffToJPG = Boolean.valueOf(fileItem.getString());
 							System.out.println("[UploadRequestHandler] tifftojpg: "+tiffToJPG);
 						} else if (fileItem.getFieldName().equals("personaldata")) {
 							personaldata = Boolean.valueOf(fileItem.getString());
-							System.out.println("[UploadRequestHandler] personaldata: "+personaldata);
 						} else if (fileItem.getFieldName().equals("timestamp")) {
 							timeStamp = fileItem.getString();
 							System.out.println("[UploadRequestHandler] timestamp: "+timeStamp);
@@ -231,9 +229,10 @@ public class UploadRequestHandler extends HttpServlet {
 							throw new NullPointerException("Please select the 'Protective Marking'.");
 						}
 						else {
+							//Get storage decisions from the rule engine.
 							List<String> spaceIterator = duraStoreClient.defaultContentStore.getSpaces();
 							if (spaceIterator.contains(collectionName)) {
-								System.out.println("[UploadRequestHandler] collection name "+collectionName+" exists in Dura Cloud.");
+								System.out.println("[UploadRequestHandler] collection name "+collectionName+" exists in DuraCloud.");
 								List<String> fedoraCollectionObject = fedoraServiceManager.getObjectPIDs("*"+":"+collectionName, "pid");
 								for (String fedoraCollectionIterator : fedoraCollectionObject) {
 									if (!fedoraServiceManager.getADataStream(fedoraCollectionIterator, "timeStamp").equals(timeStamp))	{
@@ -315,13 +314,21 @@ public class UploadRequestHandler extends HttpServlet {
 						
 						filePathOfDuraCloud = duraStoreClient.reviseFilePathForDuracloud(fileOriginalPath);
 						//Create a new namespace if the namespace does not exist.
-						if (duraStoreClient.isNameSpaceExisted(nameSpace) == false) {
-							Map<String, String> spaceMetadata = new HashMap<String, String>();
-							duraStoreClient.createNamespace(nameSpace, spaceMetadata, "Amazon S3");
+						Map<String, String> spaceMetadata = new HashMap<String, String>();
+						if (duraStoreClient.isNameSpaceExisted("Amazon S3", nameSpace) == false) {
+							duraStoreClient.createNamespace("Amazon S3", nameSpace, spaceMetadata);
+						}
+						if (duraStoreClient.isNameSpaceExisted("RackSpace", nameSpace) == false) {
+							duraStoreClient.createNamespace("RackSpace", nameSpace, spaceMetadata);
 						}
 						
 						//Upload the file to the Cloud.
-						duraStoreClient.uploadFile(duraStoreClient.defaultContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						//duraStoreClient.uploadFile(duraStoreClient.defaultContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						
+						duraStoreClient.uploadFile(duraStoreClient.amazonS3ContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						duraStoreClient.uploadFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						
+						//duraStoreClient.uploadFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
 						
 						System.out.println("filePathOfDuraCloud/fileName "+filePathOfDuraCloud+"/"+fileName);
 						
@@ -346,7 +353,7 @@ public class UploadRequestHandler extends HttpServlet {
 						//Fedora operations.
 						//
 						
-						fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedAccessFrequency, collectionDescription, protectiveMarking, version, timeStamp);
+						fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedAccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, "RackSpace");
 						
 						HashMap<String, String> parentFolderNameAndPID = fedoraServiceManager.handleFolderObject(projectName, collectionName, collectionPID, fileName, fileOriginalPath);
 						

@@ -54,7 +54,8 @@ public class ViewProjectRequestHandler extends HttpServlet {
 		
 		//HashMap<String, String> collectionPIDs = fedoraServiceManager.getChildNames(nameSpace+":"+alphaNumericName);
 		//setParameters(request, collectionPIDs);
-		HashMap<String, String> collectionPIDs = null;
+		Map<String, String> collectionPIDs = null;
+
 		if (alphaNumericName == null) {
 			collectionPIDs = fedoraServiceManager.getChildPIDs(nameSpace+":"+projectName);
 		} else {
@@ -65,13 +66,16 @@ public class ViewProjectRequestHandler extends HttpServlet {
 		//Map<String, String> nextLevelFolders = getNextLevelStructure(datastreams, parentFolderNameForFedora);
 		
 		//setDataStreamValues(request, nameSpace, alphaNumericName, nextLevelFolders, alphaNumericName, parentFolderNameForDuracloud, parentFolderNameForFedora);
-		if (requestType.equals("view")) {
+		/*if (requestType.equals("view")) {
 			RequestDispatcher requestDispatcher = request.getRequestDispatcher("viewprojectcollection.jsp");
 			requestDispatcher.forward(request, response);
 		} else if (requestType.equals("search")) {
-			RequestDispatcher requestDispatcher = request.getRequestDispatcher("drilldownfolder.jsp");
+			//RequestDispatcher requestDispatcher = request.getRequestDispatcher("drilldownfolder.jsp");
+			RequestDispatcher requestDispatcher = request.getRequestDispatcher("viewprojectcollection.jsp");
 			requestDispatcher.forward(request, response);
-		}
+		}*/
+		RequestDispatcher requestDispatcher = request.getRequestDispatcher("viewprojectcollection.jsp");
+		requestDispatcher.forward(request, response);
 	}
 	
 	private Map<String, String> getNextLevelStructure(List<DatastreamType> datastreams, String parentFolderNameForFedora) {
