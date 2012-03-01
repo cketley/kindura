@@ -13,7 +13,7 @@ public class AddProjectRequestHandler extends HttpServlet {
 	FedoraServiceManager fedoraServiceManager;
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String userName = request.getParameter("username");
-		String projectName = request.getParameter("projectname");
+		String projectName = request.getParameter("projectName");
 		String primaryFunder = request.getParameter("primaryfunder");
 		String otherFunder = request.getParameter("otherfundingsource");
 		String projectDescription = request.getParameter("projectdescription");
@@ -21,54 +21,66 @@ public class AddProjectRequestHandler extends HttpServlet {
 		String projectContact = request.getParameter("projectcontact");
 		String department = request.getParameter("department");
 		String typeOfData = request.getParameter("typeofdata");
-		String startDate = request.getParameter("startdate");
-		String endDate = request.getParameter("enddate");
+		String startDate = request.getParameter("startDate");
+		String endDate = request.getParameter("endDate");
 		String role = request.getParameter("role");
 		
-		String storageType = null;
 		String root = "root";
 		String rootPID = "fedora:root";
 		
-		BigDecimal projectCost = new BigDecimal(Math.random());
-		BigDecimal factor = new BigDecimal(100);
-		projectCost = projectCost.multiply(factor);
-		projectCost = projectCost.setScale(2, BigDecimal.ROUND_HALF_UP);
+		// TODO the cost, cloud provider and storage type are unknown at this stage of input
+		BigDecimal projectCost;
+		projectCost = BigDecimal.valueOf(Double.parseDouble("0.0"));
+		// amounts are rounded up so that very tiny fractions of one penny appear as at
+		// least 1p or 1cent. 
+		// In this case zero should appear as zero.
+		projectCost = projectCost.setScale(2, BigDecimal.ROUND_UP);
+
+		String storageType = "";
+		String actionRequired = "unknown";
+		String cloudProvider = "unknown";
 		
-		//Generate a random storage type based on the cost.
-		double storage = Math.random();
-		if (storage > 0.66) {
-			storageType = "Fast";
-		} else if (storage > 0.33) {
-			storageType = "Medium";
-		} else {
-			storageType = "Slow";
-		}
 		
-		String actionRequired = null;
-		double migration = Math.random();
-		if (migration > 0.5) {
-			actionRequired = "Migrate";
-		} else {
-			actionRequired = "None";
-		}
-		
-		String cloudProvider = null;
-		double provider = Math.random();
-		if (provider > 0.75) {
-			cloudProvider = "Amazon S3";
-		} else if (provider > 0.5) {
-			cloudProvider = "Amazon Reduced Redundency";
-		} else if (provider > 0.25) {
-			cloudProvider = "Rackspace";
-		} else {
-			cloudProvider = "Windows Azure";
-		} 
+//		BigDecimal projectCost = new BigDecimal(Math.random());
+//		BigDecimal factor = new BigDecimal(100);
+//		projectCost = projectCost.multiply(factor);
+//		projectCost = projectCost.setScale(2, BigDecimal.ROUND_UP);
+//		
+//		//Generate a random storage type based on the cost.
+//		double storage = Math.random();
+//		if (storage > 0.66) {
+//			storageType = "Fast";
+//		} else if (storage > 0.33) {
+//			storageType = "Medium";
+//		} else {
+//			storageType = "Slow";
+//		}
+//		
+//		String actionRequired = null;
+//		double migration = Math.random();
+//		if (migration > 0.5) {
+//			actionRequired = "Migrate";
+//		} else {
+//			actionRequired = "None";
+//		}
+//		
+//		String cloudProvider = null;
+//		double provider = Math.random();
+//		if (provider > 0.75) {
+//			cloudProvider = "Amazon S3";
+//		} else if (provider > 0.5) {
+//			cloudProvider = "Amazon Reduced Redundency";
+//		} else if (provider > 0.25) {
+//			cloudProvider = "Rackspace";
+//		} else {
+//			cloudProvider = "Windows Azure";
+//		} 
 		
 		System.out.println("[AddProjectRequesthandler] User Name: "+userName);
 		System.out.println("[AddProjectRequesthandler] Project Name: "+projectName);
 		HttpSession session = request.getSession(true);
 		session.setAttribute("username", userName);
-		session.setAttribute("projectname", projectName);
+		session.setAttribute("projectName", projectName);
 		session.setAttribute("role", role);
 		
 		//Setup connection with Fedora repository.

@@ -57,17 +57,17 @@
 						<tr>
 						<td>
 						<b>Title</b>
-						<input type="text" name="collectionname" title="Name of the Data Collection" style="width:200px"/>
-						<img border="0" src="images/requiredfield.gif" title="The name of the collection(required filed)" width="9" height="9"/>
+						<input type="text" name="collectionName" title="Name of the Data Collection" style="width:200px"/>
+						<img border="0" src="images/requiredfield.gif" title="The name of the collection(required field)" width="9" height="9"/>
 						&nbsp &nbsp &nbsp &nbsp &nbsp
 						<br/><br/><br/><br/>
 						</td>
 						<td>
 						<b>Project</b>
-						<select name="projectname" style="width:190px">
+						<select name="projectName" style="width:190px">
 							<%
 								//List<String> projectNames = fedoraServiceManager.getUserDefinedPIDs(username);
-								List<String> projectNames = fedoraServiceManager.getProjectNames();
+								List<String> projectNames = fedoraServiceManager.getprojectNames();
 								Iterator<String> iterator = projectNames.iterator();
 								while (iterator.hasNext()) {
 									out.println("<option>"+iterator.next()+"</option>");
@@ -80,7 +80,7 @@
 						</td>
 						<td>
 						<b>Estimated access frequency</b>
-						<select name="accessfrequency" style="width:180px">
+						<select name="accessFrequency" style="width:180px">
 							<option>10+ accesses per day</option>
 							<option>1-10 accesses per day</option>
 							<option>1-10 accesses per week</option>
@@ -95,14 +95,14 @@
 						<tr>
 						<td>
 						<b>Description</b>
-						<textarea name="collectiondescription" style="width:148px;heigth:50px"></textarea>
+						<textarea name="collectionDescription" style="width:148px;heigth:50px"></textarea>
 						<img border="0" src="images/questionmark.jpg" title="Description of the Data Collection" width="15" height="15"/>
 						<br/><br/><br/><br/>
 						</td>
 						
 						<td>
 						<b>Protective marking</b>
-						<select name="protectivemarking">
+						<select name="protectiveMarking">
 							<option selected="selected">Confidential</option>
 							<option>Internal</option>
 							<option>Public</option>

@@ -38,6 +38,10 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
 public class FedoraServiceManager {
 	FedoraCredentials fedoracredential = null;
 	FedoraClient fedoraClient = null;
+	
+	String duraCloudURL = null;
+	String fedoraURL = null;
+	
 	/*
 	 * Get a connection to the Fedora repository.
 	 */
@@ -49,7 +53,7 @@ public class FedoraServiceManager {
 			fedoracredential = new FedoraCredentials(hosturl, username, password);
 			fedoraClient = new FedoraClient(fedoracredential);
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return fedoraClient;
@@ -65,8 +69,10 @@ public class FedoraServiceManager {
 		try {
 			fedoracredential = new FedoraCredentials(configurationFileParser.getKinduraParameters().get("FedoraHost"), configurationFileParser.getKinduraParameters().get("FedoraUsername"), configurationFileParser.getKinduraParameters().get("FedoraPassword"));
 			fedoraClient = new FedoraClient(fedoracredential);
+			fedoraURL = configurationFileParser.getKinduraParameters().get("FedoraHost");
+			duraCloudURL = configurationFileParser.getKinduraParameters().get("DuraCloudHost");
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -82,7 +88,7 @@ public class FedoraServiceManager {
 			//response = new Ingest(datastreamid).label(title).execute(fedoraClient);
 			//fedoraClient.addRelationship(datastreamid).predicate("isACollectionOf").object(pid).isLiteral(false).execute(fedoraClient);
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return true;
@@ -122,7 +128,7 @@ public class FedoraServiceManager {
 				}
 			}
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -180,7 +186,7 @@ public class FedoraServiceManager {
 			if (pids.size() > 0) {
 				for (int i=0;i<pids.size();i++) {
 			    	//System.out.println("pid " + pids.get(i));
-			    	attribute = getADataStream(pids.get(i), "projectname");
+			    	attribute = getADataStream(pids.get(i), "projectName");
 			    	//System.out.println("attribute "+attribute);
 			   		//System.out.println("search_term "+search_term);
 			    	if (attribute != null) {
@@ -191,7 +197,7 @@ public class FedoraServiceManager {
 				return filteredpids;
 			}
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -209,15 +215,15 @@ public class FedoraServiceManager {
 			Statement s;
 			while (it.hasNext()) {
 				s = (Statement) it.next();
-				System.out.println(s.getSubject().toString());
-				System.out.println(s.getPredicate().toString());
-				System.out.println(s.getObject().toString());
+//				System.out.println(s.getSubject().toString());
+//				System.out.println(s.getPredicate().toString());
+//				System.out.println(s.getObject().toString());
 				projectPIDs.add(s.getObject().toString());
 				//System.out.println();
 			}
 			return projectPIDs;
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -243,13 +249,13 @@ public class FedoraServiceManager {
 			}
 			return collectionPIDs;
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
 	}
 	
-	public List<String> getProjectNames() {
+	public List<String> getprojectNames() {
 		FedoraResponse fedoraResponse;
 		List<String> projectNames = new ArrayList<String>();
 		String projectName = null;
@@ -272,7 +278,7 @@ public class FedoraServiceManager {
 			Collections.sort(projectNames);
 			return projectNames;
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -320,10 +326,11 @@ public class FedoraServiceManager {
 			//System.out.println("attribute size "+attribute.size());
 			for (int i=0;i<attribute.size();i++) {
 				//System.out.println(pid+"."+search_by+": "+attribute.get(i));
+				// TODO why is this empty?
 			} 
 		}
 			catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 				e.printStackTrace();
 			}
 		//return attribute;
@@ -345,7 +352,7 @@ public class FedoraServiceManager {
 			response = new ListDatastreams(pid).execute(fedoraClient);
 			dsList = new ArrayList(response.getDatastreams());
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return dsList;
@@ -372,7 +379,7 @@ public class FedoraServiceManager {
 				}
 			}
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return datasStreamContent;
@@ -394,7 +401,7 @@ public class FedoraServiceManager {
 		    	}
 			}
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return contenturl;
@@ -416,10 +423,10 @@ public class FedoraServiceManager {
 	        in.close();
 	        //store.getContent(space,filename);
 	    } catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -435,7 +442,7 @@ public class FedoraServiceManager {
 				return true;
 			}
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
@@ -447,22 +454,25 @@ public class FedoraServiceManager {
 			//String url = "http://localhost:8080/duradmin/";
 			//FedoraClient.addDatastream(rootPID, "fedoraObjectType").controlGroup("R").dsLabel("project").dsLocation(url).mimeType("text/xml").execute(fedoraClient);
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public void createProjectObject(String creator, String root, String projectName, String projectFunder, String projectDescription, String ownerShip, String projectContact, String department, String typeOfData, String startDate, String endDate, String projectCost, String actionRequired, String storageType, String cloudProvider) {
 		
-		//Generate a random cost value between 0 and 100.
-		BigDecimal cost = new BigDecimal(Math.random());
-		BigDecimal factor = new BigDecimal(100);
-		cost = cost.multiply(factor);
-		cost = cost.setScale(2, BigDecimal.ROUND_HALF_UP);
+		BigDecimal cost;
+		cost = BigDecimal.valueOf(Double.parseDouble(projectCost));
+		// amounts are rounded up so that very tiny fractions of one penny appear as at
+		// least 1p or 1cent.
+		cost = cost.setScale(2, BigDecimal.ROUND_UP);
+
 		
 		String pid = root+":"+projectName;
 		String mimeType = "text/xml";
-		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
+		String url = duraCloudURL + "download/contentItem?spaceId="+creator;
+		System.out.println("[FedoraServiceManger] url is " + url);
+//		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
 		
 		//Create a new fedora object if it does not exist in Fedora repository.
 		
@@ -486,27 +496,30 @@ public class FedoraServiceManager {
 			
 			FedoraClient.addDatastream(pid, "fedoraObjectType").controlGroup("R").dsLabel("project").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			
+			// TODO we need to store the service provider and account details don't we?
+			
 			FedoraClient.addRelationship(pid).subject(pid).predicate(pid+"/isAChildOf").object("fedora:"+root).execute(fedoraClient);
 			FedoraClient.addRelationship("fedora:"+root).subject("fedora:"+root).predicate("fedora:"+root+"/isParentOf").object(pid).execute(fedoraClient);
 			
 			System.out.println("[FedoraServiceManger] Project "+projectName+" for user "+creator+" created");
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public void updateProjectObject(String creator, String root, String projectName, String projectFunder, String projectDescription, String ownerShip, String projectContact, String department, String typeOfData, String startDate, String endDate, String projectCost, String actionRequired, String storageType, String cloudProvider) {
 		
-		//Generate a random cost value between 0 and 100.
-		BigDecimal cost = new BigDecimal(Math.random());
-		BigDecimal factor = new BigDecimal(100);
-		cost = cost.multiply(factor);
-		cost = cost.setScale(2, BigDecimal.ROUND_HALF_UP);
+		BigDecimal cost;
+		cost = BigDecimal.valueOf(Double.parseDouble(projectCost));
+		// amounts are rounded up so that very tiny fractions of one penny appear as at
+		// least 1p or 1cent.
+		cost = cost.setScale(2, BigDecimal.ROUND_UP);
 		
 		String pid = root+":"+projectName;
 		String mimeType = "text/xml";
-		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
+		String url = duraCloudURL + "download/contentItem?spaceId="+creator;
+//		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
 		
 		//Create a new fedora object if it does not exist in Fedora repository.
 		
@@ -534,23 +547,24 @@ public class FedoraServiceManager {
 			
 			System.out.println("[FedoraServiceManger] Project "+projectName+" for user "+creator+" updated");
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	public void createCollectionObject(String collectionName, String root, String projectName, String estimatedAccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp) {
+	public void createCollectionObject(String collectionName, String root, String projectName, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cheapCost, String cheapCostCurrency, String svcPrvAccountDetails, Double storageUsed) {
 		
 		String pid = projectName+":"+collectionName;
 		String mimeType = "text/xml";
-		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
+		String url = duraCloudURL + "download/contentItem?spaceId="+creator;
+//		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
 		
 		try {
 			//FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
 			IngestResponse ingest = new Ingest(pid).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "projectName").controlGroup("R").dsLabel(projectName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "collectionName").controlGroup("R").dsLabel(collectionName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "estimatedAccessFrequency").controlGroup("R").dsLabel(estimatedAccessFrequency).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			FedoraClient.addDatastream(pid, "estimatedaccessFrequency").controlGroup("R").dsLabel(estimatedaccessFrequency).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "collectionDescription").controlGroup("R").dsLabel(collectionDescription).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "protectiveMarking").controlGroup("R").dsLabel(protectiveMarking).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "version").controlGroup("R").dsLabel(version).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
@@ -560,7 +574,13 @@ public class FedoraServiceManager {
 			FedoraClient.addDatastream(pid, "collectionCost").controlGroup("R").dsLabel(collectionCost).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "actionRequired").controlGroup("R").dsLabel(actionRequired).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "timeStamp").controlGroup("R").dsLabel(timeStamp).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			
+
+			FedoraClient.addDatastream(pid, "collectionTotSize").controlGroup("R").dsLabel(String.valueOf(storageUsed)).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+
+			FedoraClient.addDatastream(pid, "lowestCost").controlGroup("R").dsLabel(cheapCost).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			FedoraClient.addDatastream(pid, "lowestCostCurrency").controlGroup("R").dsLabel(cheapCostCurrency).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			FedoraClient.addDatastream(pid, "svcPrvAccountDetails").controlGroup("R").dsLabel(svcPrvAccountDetails).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+
 			FedoraClient.addDatastream(pid, "fedoraObjectType").controlGroup("R").dsLabel("collection").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			
 			FedoraClient.addRelationship(pid).subject(pid).predicate(pid+"/isAChildOf").object(root+":"+projectName).execute(fedoraClient);
@@ -568,22 +588,23 @@ public class FedoraServiceManager {
 			
 			System.out.println("[FedoraServiceManger] Collection "+collectionName+" for project "+projectName+" created");
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	public void updateCollectionObject(String collectionName, String root, String projectName, String estimatedAccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp) {
+	public void updateCollectionObject(String collectionName, String root, String projectName, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cheapCost, String cheapCostCurrency, String svcPrvAccountDetails, Double storageUsed) {
 		
 		String pid = projectName+":"+collectionName;
 		String mimeType = "text/xml";
-		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
+//		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
+		String url = duraCloudURL + "download/contentItem?spaceId="+creator;
 		
 		try {
 			//FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
 			FedoraClient.addDatastream(pid, "projectName").controlGroup("R").dsLabel(projectName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "collectionName").controlGroup("R").dsLabel(collectionName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "estimatedAccessFrequency").controlGroup("R").dsLabel(estimatedAccessFrequency).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			FedoraClient.addDatastream(pid, "estimatedaccessFrequency").controlGroup("R").dsLabel(estimatedaccessFrequency).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "collectionDescription").controlGroup("R").dsLabel(collectionDescription).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "protectiveMarking").controlGroup("R").dsLabel(protectiveMarking).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "version").controlGroup("R").dsLabel(version).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
@@ -593,7 +614,13 @@ public class FedoraServiceManager {
 			FedoraClient.addDatastream(pid, "collectionCost").controlGroup("R").dsLabel(collectionCost).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "actionRequired").controlGroup("R").dsLabel(actionRequired).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "timeStamp").controlGroup("R").dsLabel(timeStamp).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			
+
+			FedoraClient.addDatastream(pid, "collectionTotSize").controlGroup("R").dsLabel(String.valueOf(storageUsed)).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+
+			FedoraClient.addDatastream(pid, "lowestCost").controlGroup("R").dsLabel(cheapCost).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			FedoraClient.addDatastream(pid, "lowestCostCurrency").controlGroup("R").dsLabel(cheapCostCurrency).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			FedoraClient.addDatastream(pid, "svcPrvAccountDetails").controlGroup("R").dsLabel(svcPrvAccountDetails).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+
 			FedoraClient.addDatastream(pid, "fedoraObjectType").controlGroup("R").dsLabel("collection").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			
 			FedoraClient.addRelationship(pid).subject(pid).predicate(pid+"/isAChildOf").object(root+":"+projectName).execute(fedoraClient);
@@ -601,30 +628,45 @@ public class FedoraServiceManager {
 			
 			System.out.println("[FedoraServiceManger] Collection "+collectionName+" for project "+projectName+" updated");
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	public void handleCollectionObject(String userName, String projectName, String collectionName, String collectionPID, String estimatedAccessFrequency, String collectionDescription, String protectiveMarking, String version, String timeStamp) {
+	public void handleCollectionObject(String userName, String projectName, String collectionName, String collectionPID, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String timeStamp, Double cheaperCost, String cheaperCostCurrency, String svcPrvAcctDetails, Double collTotStorageUsed, String opsFlag) {
 		//Create a new collection object for the collection if it does not exist in Fedora repository.
-		BigDecimal cost = generateRandomCost();
-		cost = cost.setScale(2, BigDecimal.ROUND_HALF_UP);
-		String collectionCost = String.valueOf(cost);
-		
-		String storageType = generateRandomStorageType();
-		String actionRequired = generateRandomAction();
+		BigDecimal cost;
+		cost = BigDecimal.valueOf(cheaperCost);
+		// amounts are rounded up so that very tiny fractions of one penny appear as at
+		// least 1p or 1cent.
+		cost = cost.setScale(2, BigDecimal.ROUND_UP);
+		String cheaperCostTxt = String.valueOf(cost);
+
+		BigDecimal collCost;
+		// TODO remove this duplicate field
+		collCost = BigDecimal.valueOf(cheaperCost);
+		// amounts are rounded up so that very tiny fractions of one penny appear as at
+		// least 1p or 1cent.
+		collCost = collCost.setScale(2, BigDecimal.ROUND_UP);
+		String collectionCost = String.valueOf(collCost);
+
+		// TODO don't know where this info comes from
+		String storageType = "fast";
+		// TODO migration is not yet implemented
+		String actionRequired = opsFlag;
+//		String storageType = generateRandomStorageType();
+//		String actionRequired = generateRandomAction();
 		
 		if ((isFedoraObjectExisted(collectionPID) == true) && (getADataStream(collectionPID, "projectName").equals(projectName))) {
 			System.out.println("Collection pid "+collectionPID+" exists");
 			//throw new FedoraClientException("Collection name is already existed");
-			updateCollectionObject(collectionName, "root", projectName, estimatedAccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp);
+			updateCollectionObject(collectionName, "root", projectName, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cheaperCostTxt, cheaperCostCurrency, svcPrvAcctDetails, collTotStorageUsed);
 			
 		} else {
 			System.out.println("Collection pid "+collectionPID+" does NOT exist");
 			//IngestResponse ingest = new Ingest(collectionPID).execute(fedoraClient);
 			
-			createCollectionObject(collectionName, "root", projectName, estimatedAccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp);
+			createCollectionObject(collectionName, "root", projectName, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cheaperCostTxt, cheaperCostCurrency, svcPrvAcctDetails, collTotStorageUsed);
 			//FedoraClient.addDatastream(nameSpaceAndPid, baseFilename+".cost").controlGroup("R").dsLabel(cost.toString()).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
 		} 
 	}
@@ -638,7 +680,8 @@ public class FedoraServiceManager {
 		}
 			
 		String mimeType = "text/xml";
-		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+folderName;
+		String url = duraCloudURL + "download/contentItem?spaceId="+folderName;
+//		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+folderName;
 		
 		try {
 			int count = 1;
@@ -662,7 +705,7 @@ public class FedoraServiceManager {
 			
 			System.out.println("[FedoraServiceManger] Folder "+folderName+" for collection "+collectionName+" created");
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return pid;
@@ -680,7 +723,8 @@ public class FedoraServiceManager {
 		//String pid = folderPID;
 			
 		String mimeType = "text/xml";
-		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+folderName;
+		String url = duraCloudURL + "download/contentItem?spaceId="+folderName;
+//		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+folderName;
 		
 		try {
 			FedoraClient.addDatastream(pid, "projectName").controlGroup("R").dsLabel(projectName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
@@ -694,7 +738,7 @@ public class FedoraServiceManager {
 			
 			System.out.println("[FedoraServiceManger] Folder "+folderName+" for collection "+collectionName+" updated");
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -834,7 +878,8 @@ public class FedoraServiceManager {
 	public void createFileObject(String nameSpace, String projectName, String collectionName, String fileOriginalPath, String parentFolderName, String parentPID, String baseFileName, String fileExtension, String fileSize) {
 		String pid = parentFolderName+":"+baseFileName;
 		String mimeType = "text/xml";
-		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
+		String url = duraCloudURL + "download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
+//		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
 		
 		try {
 			int count = 1;
@@ -865,7 +910,7 @@ public class FedoraServiceManager {
 			
 			System.out.println("[FedoraServiceManger] file "+baseFileName+" for collection "+collectionName+" created");
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -878,7 +923,8 @@ public class FedoraServiceManager {
 		
 		String pid = filePID;
 		String mimeType = "text/xml";
-		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
+		String url = duraCloudURL + "download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
+//		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
 		
 		try {
 			//IngestResponse ingest = new Ingest(fedoraClient.getNextPID().namespace(projectName).numPIDs(1)).execute(fedoraClient);
@@ -899,7 +945,7 @@ public class FedoraServiceManager {
 			
 			System.out.println("[FedoraServiceManger] file "+baseFileName+" for collection "+collectionName+" updated");
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -944,47 +990,53 @@ public class FedoraServiceManager {
 		
 	}
 	
-	public void createFedoraObject(String userName, String projectName, String projectDescription, String storageType, String actionRequired) {
+	public void createFedoraObject(String userName, String projectName, String projectDescription, String storageType, String actionRequired, String svcPrvAccountDetails) {
 		
-		//Generate a random cost value between 0 and 100.
-		BigDecimal cost = new BigDecimal(Math.random());
-		BigDecimal factor = new BigDecimal(100);
-		cost = cost.multiply(factor);
-		cost = cost.setScale(2, BigDecimal.ROUND_HALF_UP);
+		// TODO this method doesn't seem to be referenced from anywhere
+		// so i won't assign a cost to it
+		Double cheaperCost = 0.0;
+		BigDecimal cost;
+		cost = BigDecimal.valueOf(cheaperCost);
+		// amounts are rounded up so that very tiny fractions of one penny appear as at
+		// least 1p or 1cent.
+		cost = cost.setScale(2, BigDecimal.ROUND_UP);
 		
 		String pid = userName+":"+projectName;
 		String mimeType = "text/xml";
-		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+userName;
+		String url = duraCloudURL + "download/contentItem?spaceId="+userName;
+//		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+userName;
 		
 		//Create a new fedora object if it does not exist in Fedora repository.
 		
 		try {
 			//FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
 			IngestResponse ingest = new Ingest(pid).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "projectname").controlGroup("R").dsLabel(projectName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			FedoraClient.addDatastream(pid, "projectName").controlGroup("R").dsLabel(projectName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "projectcost").controlGroup("R").dsLabel(cost.toString()).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			
 			FedoraClient.addDatastream(pid, "creator").controlGroup("R").dsLabel(userName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "projectName").controlGroup("R").dsLabel(projectName).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "collectionDescription").controlGroup("R").dsLabel(projectDescription).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "storageType").controlGroup("R").dsLabel(storageType).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			//FedoraClient.addDatastream(pid, "collectionCost").controlGroup("R").dsLabel(actionRequired).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
+			FedoraClient.addDatastream(pid, "collectionCost").controlGroup("R").dsLabel(cost.toString()).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "actionRequired").controlGroup("R").dsLabel(actionRequired).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			
+			FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel(svcPrvAccountDetails).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			
 			System.out.println("[AddProjectRequesthandler] Project "+projectName+" for user "+userName+" created");
 			
-			double cloudProviderChooser = Math.random();
-			if (cloudProviderChooser < 0.25) {
-				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("iRODs").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			} else if (cloudProviderChooser < 50) {
-				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("Amazon S3").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			} else if (cloudProviderChooser < 75) {
-				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("RackSpace").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			} else if (cloudProviderChooser < 75) {
-				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("Microsoft Azure").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			}
+//			double cloudProviderChooser = Math.random();
+//			if (cloudProviderChooser < 0.25) {
+//				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("iRODs").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+//			} else if (cloudProviderChooser < 50) {
+//				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("Amazon S3").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+//			} else if (cloudProviderChooser < 75) {
+//				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("RackSpace").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+//			} else if (cloudProviderChooser < 75) {
+//				FedoraClient.addDatastream(pid, "cloudProvider").controlGroup("R").dsLabel("Microsoft Azure").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+//			}
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -1012,7 +1064,7 @@ public class FedoraServiceManager {
 				childPIDs.put(childPID, fedoraObjectType);
 			}
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return childPIDs;
@@ -1052,7 +1104,7 @@ public class FedoraServiceManager {
 				childNames.put(childName, fedoraObjectType);
 			}
 		} catch (FedoraClientException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return childNames;
@@ -1081,7 +1133,9 @@ public class FedoraServiceManager {
 		BigDecimal cost = new BigDecimal(Math.random());
 		BigDecimal factor = new BigDecimal(100);
 		cost = cost.multiply(factor);
-		cost = cost.setScale(2, BigDecimal.ROUND_HALF_UP);
+		// amounts are rounded up so that very tiny fractions of one penny appear as at
+		// least 1p or 1cent.
+		cost = cost.setScale(2, BigDecimal.ROUND_UP);
 		return cost;
 	}
 	

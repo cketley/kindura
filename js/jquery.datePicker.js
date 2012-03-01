@@ -316,34 +316,34 @@
  *
  * @param String|Date d A Date object or string representing the first selectable date (formatted according to Date.format).
  * @type jQuery
- * @name dpSetStartDate
+ * @name dpSetstartDate
  * @cat plugins/datePicker
  * @author Kelvin Luck (http://www.kelvinluck.com/)
  *
  * @example $('.date-picker').datePicker();
- * $('.date-picker').dpSetStartDate('01/01/2000');
+ * $('.date-picker').dpSetstartDate('01/01/2000');
  * @desc Creates a date picker associated with all elements with a class of "date-picker" then sets the first selectable date for each of these to the first day of the millenium.
  **/
-		dpSetStartDate : function(d)
+		dpSetstartDate : function(d)
 		{
-			return _w.call(this, 'setStartDate', d);
+			return _w.call(this, 'setstartDate', d);
 		},
 /**
  * Updates the last selectable date for any date pickers on any matched elements.
  *
  * @param String|Date d A Date object or string representing the last selectable date (formatted according to Date.format).
  * @type jQuery
- * @name dpSetEndDate
+ * @name dpSetendDate
  * @cat plugins/datePicker
  * @author Kelvin Luck (http://www.kelvinluck.com/)
  *
  * @example $('.date-picker').datePicker();
- * $('.date-picker').dpSetEndDate('01/01/2010');
+ * $('.date-picker').dpSetendDate('01/01/2010');
  * @desc Creates a date picker associated with all elements with a class of "date-picker" then sets the last selectable date for each of these to the first Janurary 2010.
  **/
-		dpSetEndDate : function(d)
+		dpSetendDate : function(d)
 		{
-			return _w.call(this, 'setEndDate', d);
+			return _w.call(this, 'setendDate', d);
 		},
 /**
  * Gets a list of Dates currently selected by this datePicker. This will be an empty array if no dates are currently selected or NULL if there is no datePicker associated with the matched element.
@@ -574,8 +574,8 @@
 		{	
 			init : function(s)
 			{
-				this.setStartDate(s.startDate);
-				this.setEndDate(s.endDate);
+				this.setstartDate(s.startDate);
+				this.setendDate(s.endDate);
 				this.setDisplayedMonth(Number(s.month), Number(s.year));
 				this.setRenderCallback(s.renderCallback);
 				this.showYearNavigation = s.showYearNavigation;
@@ -596,7 +596,7 @@
 					this.display();
 				}
 			},
-			setStartDate : function(d)
+			setstartDate : function(d)
 			{
 				if (d) {
 					if (d instanceof Date) {
@@ -610,7 +610,7 @@
 				}
 				this.setDisplayedMonth(this.displayedMonth, this.displayedYear);
 			},
-			setEndDate : function(d)
+			setendDate : function(d)
 			{
 				if (d) {
 					if (d instanceof Date) {

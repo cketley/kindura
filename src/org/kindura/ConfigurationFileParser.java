@@ -39,7 +39,8 @@ public class ConfigurationFileParser extends DefaultHandler{
 			SAXParser sp = spf.newSAXParser();
 			
 			//parse the file and also register this class for call backs
-			sp.parse("webapps/kindura6/kinduraconfiguration.xml", this);
+			sp.parse("C:\\Documents and Settings\\ycn94546\\My Documents\\Project_work\\kindura\\Kindness\\WebContent\\kinduraconfiguration.xml", this);
+//			sp.parse("webapps/kindura6/kinduraconfiguration.xml", this);
 			
 		}catch(SAXException se) {
 			se.printStackTrace();

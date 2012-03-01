@@ -45,7 +45,7 @@
 				<td style="background-color:#FFFFFF;height:550px;width:700px;text-align:center;">
 					</br></br>
 					<font size=4 face="verdana" color=FF0000>
-						<b>Error: Project "<%=session.getAttribute("projectname")% class="LinkToPage">" is already existed. Please try again.</b> 
+						<b>Error: Project "<%=session.getAttribute("projectName")% class="LinkToPage">" is already existed. Please try again.</b> 
 						<br><br>
 						<a href="javascript:history.back(-1)">Go back</a>
 					</font>

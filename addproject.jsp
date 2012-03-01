@@ -32,7 +32,7 @@
 		<script type="text/javascript" src="js/jquery.ui.datepicker-en-GB.js"></script>
 		<script>
 		$(function() {
-			var dates = $( "#startdate, #enddate" ).datepicker({
+			var dates = $( "#startDate, #endDate" ).datepicker({
 				minDate: 0,
 				changeMonth: true,
 				changeYear: true,
@@ -41,7 +41,7 @@
 				//showOn: "button",
 				//buttonImage: "questionmark.jpg",
 				onSelect: function( selectedDate ) {
-					var option = this.id == "startdate" ? "minDate" : "maxDate",
+					var option = this.id == "startDate" ? "minDate" : "maxDate",
 						instance = $( this ).data( "datepicker" ),
 						date = $.datepicker.parseDate(
 							instance.settings.dateFormat ||
@@ -55,7 +55,7 @@
 		</script>
 		<script type="text/javascript">
 			function validateForm() {
-				var projectname = document.forms["projectmetadata"]["projectname"].value;
+				var projectName = document.forms["projectmetadata"]["projectName"].value;
 				var description = document.forms["projectmetadata"]["projectdescription"].value;
 				var primaryfunder = document.forms["projectmetadata"]["primaryfunder"].value;
 				var department = document.forms["projectmetadata"]["department"].value;
@@ -64,7 +64,7 @@
 				var ownership = document.forms["projectmetadata"]["ownership"].value;
 				var validformat=/^\d{2}\/\d{2}\/\d{4}$/; //Basic check for format validity
 				
-				if (projectname == null || projectname == "") {
+				if (projectName == null || projectName == "") {
 					alert("Please fill in the 'Project name'.");
 					return false;
 				}
@@ -72,11 +72,11 @@
 					alert("Please fill in the 'Description' for the project.");
 					return false;
 				} 
-				if (!validformat.test(document.forms["projectmetadata"]["startdate"].value)) {
+				if (!validformat.test(document.forms["projectmetadata"]["startDate"].value)) {
 					alert("Please select the 'Start date' of the storage period.");
 					return false;
 				} 
-				if (!validformat.test(document.forms["projectmetadata"]["enddate"].value)) {
+				if (!validformat.test(document.forms["projectmetadata"]["endDate"].value)) {
 					alert("Please select the 'End date' of the storage period.");
 					return false;
 				} 
@@ -149,7 +149,7 @@
 							<tr>
 								<td>
 									<b>Project Name</b> &nbsp &nbsp &nbsp
-									<input type="text" name="projectname" style="width:600px"/>
+									<input type="text" name="projectName" style="width:600px"/>
 									<img border="0" src="images/questionmark.jpg" title="Name of the data collection" width="15" height="15"/>
 									<!--<img border="0" src="images/requiredfield.gif" title="Name of the data collection (Required field)" width="10" height="10"/>-->
 									<br/><br/><br/><br/>
@@ -174,13 +174,13 @@
 								<td>
 									<b>Start Date</b>&nbsp &nbsp
 								
-									<input type="text" id="startdate" name="startdate" style="width:200px"/>
+									<input type="text" id="startDate" name="startDate" style="width:200px"/>
 									<img border="0" src="images/questionmark.jpg" title="Start date of the storage period" width="15" height="15"/>
 									&nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp
 									<br/><br/>
 									<b>End Date</b>&nbsp &nbsp
 									<!--<label for="to">to</label>-->
-									<input type="text" id="enddate" name="enddate" style="width:208px"/>
+									<input type="text" id="endDate" name="endDate" style="width:208px"/>
 									<img border="0" src="images/questionmark.jpg" title="End date of the storage period" width="15" height="15"/>
 									<br/><br/><br/><br/>
 								</td>
@@ -252,7 +252,7 @@
 							<tr>
 							<td>
 							<b>Project Name</b>
-							<input type="text" name="projectname" style="width:150px"/>
+							<input type="text" name="projectName" style="width:150px"/>
 							<img border="0" src="images/requiredfield.gif" title="Name of the data collection (Required field)" width="10" height="10"/>
 							&nbsp &nbsp &nbsp &nbsp &nbsp
 							<br/><br/><br/><br/>
@@ -339,13 +339,13 @@
 							<td>
 							<b>Start Date:</b>
 							
-							<input type="text" id="startdate" name="startdate" style="width:165px"/>
+							<input type="text" id="startDate" name="startDate" style="width:165px"/>
 							<img border="0" src="images/questionmark.jpg" title="Start date of the storage period" width="15" height="15"/>
 							<br/><br/><br/><br/>
 							</td>
 							<td>
 							<b>End Date:</b>
-							<input type="text" id="enddate" name="enddate" style="width:180px"/>
+							<input type="text" id="endDate" name="endDate" style="width:180px"/>
 							<img border="0" src="images/questionmark.jpg" title="End date of the storage period" width="15" height="15"/>
 							<br/><br/><br/><br/>
 							</td>

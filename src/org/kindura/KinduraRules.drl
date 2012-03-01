@@ -1,0 +1,556 @@
+package org.kindura;
+
+/*
+Copyright 2011 Roger Downing and 2012 Cheney Ketley, employees of Science & Technology Facilities Council and
+subcontracted to Kings College London.
+This file is part of Kindura.
+
+Kindura is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Kindura is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Kindura.  If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+import org.kindura.UploadCollection;
+import org.kindura.StorageProvider;
+import org.kindura.StorageProviderConstraint;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
+
+////////////////////////////////////////////////////////////////
+// Define the appraisal periods for different funding situations
+// First set of rules defines periods for project funding
+rule "Institutional funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "Institutional" )
+then
+    $collection.setAppraisalDate( 6 );
+        System.err.println("firing Institutional funder appraisal period -> 6 years");
+    //update ($collection)    
+end
+
+rule "AHRC funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "AHRC" )
+then
+    $collection.setAppraisalDate( 3 );
+    System.err.println("firing AHRC funder appraisal period -> 3 years");
+    //update ($collection)
+end
+
+rule "ESRC funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "ESRC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing ESRC funder appraisal period -> 10 years");
+    //update ($collection)
+end
+
+rule "EC funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "EC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing EC funder appraisal period -> 10 years");
+    //update ($collection)
+end
+
+
+rule "EPSRC funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "EPSRC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing EPSRC funder appraisal period -> 10 years");
+    //update ($collection)
+end
+
+
+rule "Combination funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "Combination" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing Combination funder appraisal period -> 10 years");
+    //update ($collection)
+end
+
+rule "MRC funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "MRC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing MRC funder appraisal period -> 10 years");
+    //update ($collection)
+end
+
+rule "NERC funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "NERC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing NERC funder appraisal period -> 10 years");
+    //update ($collection)
+end
+
+rule "Unfunded funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "Unfunded" )
+then
+    $collection.setAppraisalDate( 5 );
+    System.err.println("firing Unfunded funder appraisal period -> 5 years");
+    //update ($collection)
+end
+
+rule "Other funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "Other" )
+then
+    $collection.setAppraisalDate( 3 );
+    System.err.println("firing Other funder appraisal period -> 3 years");
+    //update ($collection)
+end
+
+///////////////////////////////////////////////////////////////////////////
+// Now a set of rules for specifying appraisal period on a $collection basis
+// These must overrule the project defaults, hence the lower salience
+rule "AHRC accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "AHRC" )
+then
+    $collection.setAppraisalDate( 3 );
+    System.err.println("firing AHRC accession appraisal period -> 3 years");
+    //update ($collection)
+end
+
+rule "ESRC accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "ESRC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing ESRC accession appraisal period -> 10 years");
+    //update ($collection)
+end
+
+rule "EC accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "EC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing EC accession appraisal period -> 10 years");
+    //update ($collection)
+end
+
+
+rule "EPSRC accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "EPSRC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing EPSRC accession appraisal period -> 10 years");
+    //update ($collection)
+end
+
+rule "Combination accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "Combination" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing Combination accession appraisal period -> 10 years");
+    //update ($collection)
+end
+
+rule "Unfunded accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "Unfunded" )
+then
+    $collection.setAppraisalDate( 3 );
+    System.err.println("firing Unfunded accession appraisal period -> 3 years");
+    //update ($collection)
+end
+
+rule "Other accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "Other" )
+then
+    $collection.setAppraisalDate( 3 );
+    System.err.println("firing Other accession appraisal period -> 3 years");
+    //update ($collection)
+end
+
+///////////////////////////////////////////////////////////////
+// Version checks
+// These define the required number of copies of the data which must be stored
+
+rule "First version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "First version" )
+then
+    $collection.setMinCopies(4);
+    System.err.println("firing First version -> 4 copies");
+    //update ($collection)
+end
+
+rule "Milestone version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Milestone version" )
+then
+    $collection.setMinCopies(3);
+    System.err.println("firing Milestone version -> 3 copies");
+    //update ($collection)
+end
+
+rule "Publisher submitted version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Publisher submitted version" )
+then
+    $collection.setMinCopies(3);
+    System.err.println("firing Publisher submitted version -> 3 copies");
+    //update ($collection)
+end
+
+rule "Publisher's proof"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Publisher's proof" )
+then
+    $collection.setMinCopies(3);
+    System.err.println("firing Publisher's proof -> 3 copies");
+    //update ($collection)
+end
+
+rule "Work in progress"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Work in progress" )
+then
+    $collection.setMinCopies(2);
+    System.err.println("firing Work in progress -> 2 copies");
+    //update ($collection)
+end
+
+rule "Source data"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Source data" )
+then
+    $collection.setMinCopies(2);
+    System.err.println("firing Source data -> 2 copies");
+    //update ($collection)
+end
+
+rule "Intermediate version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Intermediate version" )
+then
+    $collection.setMinCopies(2);
+    System.err.println("firing Intermediate version -> 2 copies");
+    //update ($collection)
+end
+
+rule "Reformatted content"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Reformatted content" )
+then
+    $collection.setMinCopies(2);
+    System.err.println("firing Reformatted content -> 2 copies");
+    //update ($collection)
+end
+
+rule "Final version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Final version" )
+then
+    $collection.setMinCopies(4);
+    System.err.println("firing Final version -> 4 copies");
+    //update ($collection)
+end
+
+rule "Catch-all version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version != "Final version" && version != "Source data" && version != "Intermediate version" && version != "Milestone version" && version != "Reformatted content" && version != "Derived data" && version != "Work in progress" && version != "Publisher's proof" && version != "Publisher submitted version" && version != "Milestone version" && version != "First version")
+then
+    $collection.setMinCopies(4);
+    System.err.println("firing catch-call for version -> 4 copies");
+    //update ($collection)
+end
+
+//////////////////////////////////////////////////////////////
+// Data type checks
+// These rules remove potential storage providers from the list
+// in response to the type of data in the $collection
+rule "Research type"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( type != "Research" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "Local" );
+    $collection.setRegionCode ("Local");
+    System.err.println("firing Research type -> Local");
+    //update ($collection)
+end
+
+////////////////////////////////////////////////////////////
+// Data sensitivity checks
+// These rules specify geograhpical constraints on storage
+rule "Licensed(Public) sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Licensed(Public)" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EU" );
+    $collection.setRegionCode ("EU");
+    System.err.println("firing Licensed(Public) sensitivity -> EU");
+    //update ($collection)
+end
+
+rule "Licensed(Restricted) sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Licensed(Restricted)" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "Local" );
+    $collection.setRegionCode ("Local");
+    System.err.println("firing Licensed(Restricted) sensitivity -> Local");
+    //update ($collection)
+end
+rule "Unlicensed sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Unlicensed" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "WORLD" );
+    $collection.setRegionCode ("WORLD");
+    System.err.println("firing Unlicensed sensitivity -> WORLD");
+    //update ($collection)
+end
+rule "Medical sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Medical" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EU" );
+    $collection.setRegionCode ("EU");
+    System.err.println("firing Medical sensitivity -> EU");
+    //update ($collection)
+end
+
+rule "Financial sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Financial" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EEC" );
+    $collection.setRegionCode ("EEC");
+    System.err.println("firing Financial sensitivity -> EEC");
+    //update ($collection)
+end
+
+rule "Employment details sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Employment details" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EEC" );
+    $collection.setRegionCode ("EEC");
+    System.err.println("firing Employment details sensitivity -> EEC");
+    //update ($collection)
+end
+
+rule "Other sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Other" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EEC" );
+    $collection.setRegionCode ("EEC");
+    System.err.println("firing Other sensitivity -> EEC");
+//    insert ( new UploadCollection () );
+    //update ($collection)
+end
+
+rule "Neither sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity != "Other" && sensitivity != "Licensed(Public)" && sensitivity != "Licensed(Restricted)" && sensitivity != "Unlicensed" && sensitivity != "Employment details" && sensitivity != "EFinancial" && sensitivity != "Medical" || type == "Research")
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "WORLD" );
+    $collection.setRegionCode ("WORLD");
+    System.err.println("firing Neither sensitivity -> WORLD");
+//    insert ( new UploadCollection () );
+    //update ($collection)
+end
+
+
+/////////////////////////////////////////////////////////
+// Access frequency rules
+// These choose appropriate storage tiers
+rule "More than daily access"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( frequency == "10+ accesses per day" )
+then
+    $collection.addTier( StorageProviderTier.TIER5 );
+    System.err.println("firing More than daily access -> T5");
+    //update ($collection)
+end
+
+rule "Daily access"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( frequency == "1-10 accesses per day" )
+then
+    $collection.addTier( StorageProviderTier.TIER4 );
+    System.err.println("firing Daily access -> T4");
+    //update ($collection)
+end
+
+rule "More than weekly access"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( frequency == "1-10 accesses per week" )
+then
+    $collection.addTier( StorageProviderTier.TIER3 );
+    System.err.println("firing More than weekly access -> T3");
+    //update ($collection)
+end
+
+rule "Monthly access"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( frequency == "1-10 accesses per month" )
+then
+    $collection.addTier( StorageProviderTier.TIER2 );
+    System.err.println("firing Monthly access -> T2");
+    //update ($collection)
+end
+
+rule "Infrequent access"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( frequency == "Infrequent" )
+then
+    $collection.addTier( StorageProviderTier.TIER1 );
+    System.err.println("firing Infrequent access -> T1");
+    //update ($collection)
+end
+
+/////////////////////////////////////////////////////////
+

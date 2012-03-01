@@ -12,7 +12,13 @@ public class LoginRequestHandler extends HttpServlet {
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String[] usernameAndRole = validateLogin(request.getParameter("username"),request.getParameter("password"));
 		
-		
+	
+//		HttpSession session = request.getSession(true);
+//		session.setAttribute("username", "root");
+//		session.setAttribute("role", "admin");
+//		System.out.println("User root/admin is authenticated");
+//		response.sendRedirect("home.jsp");
+
 		//If the user is authenticated, send the homepage of Kindura Cloud Repository to the user.
 		if (usernameAndRole[0] != null) {
 			HttpSession session = request.getSession(true);

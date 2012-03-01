@@ -32,8 +32,8 @@
 		<link href="<%= request.getContextPath() %>/css/r4r.css" type="text/css" rel="stylesheet" media="screen" />
 		<script type="text/javascript">
 			function validateSelection() {
-				var projectname=document.forms["projectSelection"]["projectName"].value;
-				if (projectname==null || projectname=="") {
+				var projectName=document.forms["projectSelection"]["projectName"].value;
+				if (projectName==null || projectName=="") {
 					alert("Please select a project from the drop-down list.");
 					return false;
 				}
@@ -68,7 +68,7 @@
 								//out.println("<select name= 'projectName' style='width:150px'>");
 								//out.println("<option></option>");
 								//List<String> projectNames = fedoraServiceManager.getUserDefinedPIDs(username);
-								List<String> projectNames = fedoraServiceManager.getProjectNames();
+								List<String> projectNames = fedoraServiceManager.getprojectNames();
 								if (projectNames != null) {
 									Iterator<String> iterator = projectNames.iterator();
 									String projectName = "";

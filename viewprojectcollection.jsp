@@ -60,18 +60,18 @@
 							<%
 								out.println("<select name= 'projectName' style='width:150px'>");
 								//List<String> projectNames = fedoraServiceManager.getUserDefinedPIDs(username);
-								List<String> projectNames = fedoraServiceManager.getProjectNames();
+								List<String> projectNames = fedoraServiceManager.getprojectNames();
 								if (projectNames != null) {
 									Iterator<String> iterator = projectNames.iterator();
 									System.out.println(request.getAttribute("projectName"));
 									if (request.getAttribute("projectName") != null) {
 										out.println("<option>"+request.getAttribute("projectName")+"</option>");
 									}
-									String nextProjectName = null;
+									String nextprojectName = null;
 									while (iterator.hasNext()) {
-										nextProjectName = (String)iterator.next();
-										if (!nextProjectName.equals(request.getAttribute("projectName"))) {
-											out.println("<option>"+nextProjectName+"</option>");
+										nextprojectName = (String)iterator.next();
+										if (!nextprojectName.equals(request.getAttribute("projectName"))) {
+											out.println("<option>"+nextprojectName+"</option>");
 										}
 									}
 								}

@@ -45,8 +45,8 @@
 				<td style="background-color:#FFFFFF;color:#F77A52;height:550px;width:700px;text-align:center;">
 					</br></br>
 					<font size=4 face="verdana">
-						<b>Project "<%=session.getAttribute("projectname")%>" added successfully.</b>
-						<% session.removeAttribute("projectname");%>
+						<b>Project "<%=session.getAttribute("projectName")%>" added successfully.</b>
+						<% session.removeAttribute("projectName");%>
 						<br><br>
 						<!--<a href="javascript:history.back(-1)">Go back</a>-->
 					</font>

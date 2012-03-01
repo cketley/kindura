@@ -57,7 +57,7 @@
 							<tr>
 								<td>
 									<b>Collection Title</b>&nbsp &nbsp
-									<input type="text" name="collectionname" title="Name of the Data Collection" style="width:600px"/>
+									<input type="text" name="collectionName" title="Name of the Data Collection" style="width:600px"/>
 									<!--<img border="0" src="images/requiredfield.gif" title="The name of the collection(required filed)" width="9" height="9"/>-->
 									<img border="0" src="images/questionmark.jpg" title="The name of the collection" width="15" height="15"/>
 									<br/><br/><br/>
@@ -66,10 +66,10 @@
 							<tr>
 								<td>
 									<b>Associated Project</b>&nbsp &nbsp
-									<select name="projectname" style="width:575px">
+									<select name="projectName" style="width:575px">
 										<%
 											//List<String> projectNames = fedoraServiceManager.getUserDefinedPIDs(username);
-											List<String> projectNames = fedoraServiceManager.getProjectNames();
+											List<String> projectNames = fedoraServiceManager.getprojectNames();
 											if (projectNames != null) {
 												Iterator<String> iterator = projectNames.iterator();
 												out.println("<option></option>");
@@ -90,11 +90,11 @@
 							<tr>
 								<td>
 									<!--<b>Description</b>&nbsp &nbsp
-									<textarea name="collectiondescription" style="width:620px;heigth:50px"></textarea>
+									<textarea name="collectionDescription" style="width:620px;heigth:50px"></textarea>
 									<img border="0" src="images/questionmark.jpg" title="Description of the Data Collection" width="15" height="15"/>-->
 									<p class="textandtextarea">
 										<label for="textarea"><b>Description</b></label> &nbsp &nbsp
-										<textarea name = "collectiondescription" id="collectiondescription" style="width:620px;heigth:50px"></textarea>
+										<textarea name = "collectionDescription" id="collectionDescription" style="width:620px;heigth:50px"></textarea>
 										<img border="0" src="images/questionmark.jpg" title="Description of the Data Collection" width="15" height="15"/>
 									</p>
 									<br/>
@@ -119,7 +119,7 @@
 								</td>
 								<td>
 									<b>Estimated Access Frequency</b>
-									<select name="accessfrequency" style="width:190px">
+									<select name="accessFrequency" style="width:190px">
 										<option></option>
 										<option value = "10+ accesses per day">10+ accesses per day</option>
 										<option value = "1-10 accesses per day">1-10 accesses per day</option>
@@ -136,7 +136,7 @@
 							<tr>
 								<td>
 									<b>Protective Marking</b> 
-									<select name="protectivemarking" style="width:120px">
+									<select name="protectiveMarking" style="width:120px">
 										<option></option>
 										<option value = "Confidential">Confidential</option>
 										<option value = "Internal">Internal</option>

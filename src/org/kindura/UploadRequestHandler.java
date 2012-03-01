@@ -1,5 +1,26 @@
 package org.kindura;
 
+
+/*
+Copyright 2011 Jun Zhang, Kings College London 
+and copyright 2012 Cheney Ketley, employee of Science & Technology Facilities Council and
+subcontracted to Kings College London.
+This file is part of Kindura.
+
+Kindura is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Kindura is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Kindura.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 import java.io.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -37,6 +58,20 @@ public class UploadRequestHandler extends HttpServlet {
 	FedoraServiceManager fedoraServiceManager = new FedoraServiceManager();
 	FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
 	
+	// the version of this application that interacts with a human will be
+	// defaulted to ingest, but the command-line version could be other 
+	// values
+	private String operationFlag = "ingest";
+	
+	Double cheapestIngestValue = 999999999.9;
+	String cheapestIngestValueCurrency = "US$";
+	String cheapestIngestKey = "";
+	Double cheapestMigrationValue = 999999999.9;
+	String cheapestMigrationValueCurrency = "US$";
+	String cheapestMigrationKey = "";
+	Double storageUsedTot = 0.0;
+	
+
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		//Set the temporary folder to store the uploaded file(s).
@@ -56,10 +91,11 @@ public class UploadRequestHandler extends HttpServlet {
 		String filePathOfDuraCloud = null;
 		String filePathOfFedora = null;
 		//String fileUrl = null;
-		String estimatedAccessFrequency = null;
+		String estimatedaccessFrequency = null;
 		String protectiveMarking = null;
 		String version = null;
 		String timeStamp = null;
+		String researchfunder = null;
 		boolean bmpToJPG = false;
 		boolean tiffToJPG = false;
 		boolean personaldata = false;
@@ -126,6 +162,9 @@ public class UploadRequestHandler extends HttpServlet {
 			int ourMaxMemorySize  = 10000000;
 			int ourMaxRequestSize = 2000000000;
 	
+			// create a CostOptimiser
+			CostOptimiser costOpt = new CostOptimiser();
+
 			// Create a factory for disk-based file items
 			DiskFileItemFactory factory = new DiskFileItemFactory();
 	
@@ -154,15 +193,196 @@ public class UploadRequestHandler extends HttpServlet {
 			} else if (! request.getContentType().startsWith("multipart/form-data")) {
 				System.out.println("[upload.jsp] No parsing of uploaded file: content type is " + request.getContentType()); 
 			} else { 
-				List /* FileItem */ items = upload.parseRequest(request);
+				List /* FileItem */ userData = upload.parseRequest(request);
 				// Process the uploaded items
-				Iterator iter = items.iterator();
-				FileItem fileItem;
+				Iterator trundle = userData.iterator();
+				FileItem userResponse;
 				//File outputFile;
-				System.out.println("[upload.jsp]  Let's read the sent data   (" + items.size() + " items)");
+				System.out.println("[upload.jsp]  Let's read the sent data   (" + userData.size() + " items)");
 				
 				Map<String, String> inputMetadata = new HashMap<String, String>();
-					
+
+				// we are going to now iterate thru the list twice over.
+				// This is because we need to have the overall picture of 
+				// space used plus the user-selected parameters to be able to 
+				// decide on an appropriate Service Provider and physical 
+				// datacentre (for regulatory reasons). 
+				// This SP + Region information will be required by each file
+				// as it is stored later on during the second iteration.
+				// But if the user-input data is invalid we get strange results
+				// We will just have to live with that - there's a limit to what
+				// we can do without tying ourselves in knots
+				String serviceProviderAccount = "";
+				Double minimalCost = 0.0;
+				String minimalCostCurrency = "";
+
+				while (trundle.hasNext()) {
+					userResponse = (FileItem) trundle.next();
+
+					//Handle the metadata from the form field of "upload.jsp".
+					if (userResponse.isFormField()) {
+						System.out.println("[upload.jsp] (form field) " + userResponse.getFieldName() + " = " + userResponse.getString());
+
+						//If we receive the md5sum parameter, we've read finished to read the current file. It's not
+						//a very good (end of file) signal. Will be better in the future ... probably !
+						//Let's put a separator, to make output easier to read.
+						if (userResponse.getFieldName().equals("md5sum[]")) { 
+							System.out.println("[upload.jsp]  ------------------------------ ");
+						} else if (userResponse.getFieldName().equals("username")) {
+							userName = userResponse.getString();
+							if (userName == null) {
+								response.sendRedirect("sessiontimeout.jsp");
+							}
+						} else if (userResponse.getFieldName().equals("projectName")) {
+							projectName = userResponse.getString();
+						} else if (userResponse.getFieldName().equals("collectionName")) {
+							collectionName = userResponse.getString();
+						} else if (userResponse.getFieldName().equals("accessFrequency")) {
+							estimatedaccessFrequency = userResponse.getString();
+						} else if (userResponse.getFieldName().equals("collectionDescription")) {
+							collectionDescription = userResponse.getString();
+						} else if (userResponse.getFieldName().equals("protectiveMarking")) {
+							protectiveMarking = userResponse.getString();
+						} else if (userResponse.getFieldName().equals("version")) {
+							version = userResponse.getString();
+						} else if (userResponse.getFieldName().equals("pathinfo0")) {
+							fileOriginalPath = userResponse.getString();
+						} else if (userResponse.getFieldName().equals("bmptojpg")) {
+							bmpToJPG = Boolean.valueOf(userResponse.getString());
+							System.out.println("[UploadRequestHandler] bmptojpg: "+bmpToJPG);
+						} else if (userResponse.getFieldName().equals("tifftojpg")) {
+							tiffToJPG = Boolean.valueOf(userResponse.getString());
+							System.out.println("[UploadRequestHandler] tifftojpg: "+tiffToJPG);
+						} else if (userResponse.getFieldName().equals("personaldata")) {
+							personaldata = Boolean.valueOf(userResponse.getString());
+							System.out.println("[UploadRequestHandler] personaldata: "+personaldata);
+						} else if (userResponse.getFieldName().equals("timestamp")) {
+							timeStamp = userResponse.getString();
+							System.out.println("[UploadRequestHandler] timestamp: "+timeStamp);
+						} 
+
+						// For each field store the field info in the metadata for the rule engine.
+						inputMetadata.put(userResponse.getFieldName(), userResponse.getString());
+
+					} else {
+						String parentFolderName = null;
+						String parentFolderPID = null;
+						String fieldName = userResponse.getFieldName();
+						String fileName = userResponse.getName();
+						//Delete all spaces in the file name.
+						fileName = fileName.replace(" ", "");
+						String mimeType = userResponse.getContentType();
+						String fileNameExtension = fileName.substring(fileName.indexOf(".")+1);
+						String fileSize = String.valueOf(userResponse.getSize());
+						storageUsedTot += Integer.valueOf(fileSize);
+						
+						//Set the namespace of the content.
+						//////String nameSpace = userName;
+						String nameSpace = collectionName;
+						//Get the base file name of the file.
+						int dot = fileName.indexOf(".");
+						String baseFileName = fileName.substring(0, dot);
+						//Generate the namespace. To create a new Fedora object for each file, use baseFilename. To create a new Fedora object for each data collection, use collectionName. 
+						//String nameSpaceAndPid = nameSpace + ":" + baseFilename;
+						//String nameSpaceAndPid = nameSpace + ":" + collectionName;
+						//String nameSpaceAndPid = userName+":"+projectName;
+						//String nameSpaceAndPid = projectName+":"+collectionName;
+
+						String filePID = collectionName+":"+filePathOfFedora+"."+baseFileName;
+
+						// bring in the metadata from the project table
+						String keyPart = "";
+						String valPart = "";
+						Integer extractTxtPosition = 0;
+						String leftoverText = "";
+						String currentProjectKey = "";
+						String currentProjectValue = "";
+						String remainingText = "";
+						
+						// extract the previously-stored data for the project as a whole
+						// from fedora and put it into the metadata hashmap
+						List<String> projectPids = fedoraServiceManager.getProjectObjectPIDs();
+						Iterator<String> scrutinise = projectPids.iterator();
+						String currentProjectPid = "";
+						String currentProjectPidValue = "";
+						while (scrutinise.hasNext()) {
+							currentProjectPid = (String)scrutinise.next();
+							System.out.println("[UploadRequestHandler]currentProjectPid = " + currentProjectPid);
+							
+							extractTxtPosition = currentProjectPid.indexOf(":") + 1;
+							System.out.println("[UploadRequestHandler]extractTxtPosition = " + extractTxtPosition);
+							currentProjectPidValue = currentProjectPid.substring(extractTxtPosition, currentProjectPid.length());
+							System.out.println("[UploadRequestHandler]currentProjectPidValue = " + currentProjectPidValue);
+							System.out.println("[UploadRequestHandler]projectName = " + projectName);
+							if ( currentProjectPidValue.equals(projectName)) {
+								System.out.println("[UploadRequestHandler]currentProjectPidValue = " + currentProjectPidValue);
+								break;
+//								inputMetadata.put(currentProjectKey, currentProjectValue);	
+							}
+							
+						}
+						ArrayList<DatastreamType> projectMetadata = fedoraServiceManager.getDataStreams(currentProjectPid);
+						if (projectMetadata != null) {
+							// TODO sort out the indexing on projectMetadata.size()
+							// there's something funny about the projectMetadata.size(), so hardcode it as 12
+								for (int i=0;i<12;i++) {
+									keyPart = projectMetadata.get(i).getDsid();
+									valPart = projectMetadata.get(i).getLabel();	
+									System.out.println("[UploadRequestHandler] keyPart = " + keyPart);
+									System.out.println("[UploadRequestHandler] valPart = " + valPart);
+									inputMetadata.put(keyPart, valPart);									
+								}
+						}
+						// TODO the file size on disk is Bytes, but we need it in TB for the
+						// drools band selection which is a design weakness to be fixed one day
+						storageUsedTot /= 1000000000000.0;
+						inputMetadata.put("storageUsed", String.valueOf(storageUsedTot));
+						
+
+						// ingest means take in new data
+						if ( operationFlag .equals("ingest") ) {
+							// TODO need a better way to handle transfer-in costs on ingest
+							// We assume no transfer-out costs for the ingest and usually 
+							// service providers set transfer-in costs as zero
+							inputMetadata.put("transfersUsed", String.valueOf(0.0));
+							// the other data required is held in inputMetadata
+							costOpt.suggestService(inputMetadata, this);
+							minimalCost = getCheapestIngestValue();
+							minimalCostCurrency = getCheapestIngestValueCurrency();
+							// TODO bodge this to US dollars for now
+							minimalCostCurrency = "US$";
+							serviceProviderAccount = getCheapestIngestKey();
+							// migrate-across means remove from one and upload to a cheaper location
+						} else if (operationFlag .equals("migrate-across") ) {
+							inputMetadata.put("transfersUsed", String.valueOf(storageUsedTot));
+							costOpt.suggestService(inputMetadata, this);
+							minimalCostCurrency = getCheapestMigrationValueCurrency();
+							// TODO bodge this to US dollars for now
+							minimalCostCurrency = "US$";
+							minimalCost = getCheapestMigrationValue();
+							serviceProviderAccount = getCheapestMigrationKey();
+							// migrate-down means data is no longer in active use
+						} else if (operationFlag .equals("migrate-down") ) {	
+							// migrate-up means data was inactive but is now active, or error recovery
+						} else if (operationFlag .equals("migrate-up") ) {	
+							inputMetadata.put("transfersUsed", String.valueOf(storageUsedTot));
+							// retrieval means data to be copied down to local disk
+						} else if (operationFlag .equals("retrieval") ) {
+							inputMetadata.put("transfersUsed", String.valueOf(storageUsedTot));
+						} 
+					} 
+				} // while
+				
+				// now iterate through the same list again to do duracloud/fedora 
+				// operations with knowledge of the Service provider and 
+				// physical datacentre (= Region) to send it to
+//				List /* FileItem */ items = upload.parseRequest(request);
+//				List /* FileItem */ userData = upload.parseRequest(request);
+				// Process the uploaded items
+//				Iterator iter = items.iterator();
+				Iterator iter = userData.iterator();
+				FileItem fileItem;
+
 				while (iter.hasNext()) {
 					fileItem = (FileItem) iter.next();
 					
@@ -180,15 +400,15 @@ public class UploadRequestHandler extends HttpServlet {
 							if (userName == null) {
 								response.sendRedirect("sessiontimeout.jsp");
 							}
-						} else if (fileItem.getFieldName().equals("projectname")) {
+						} else if (fileItem.getFieldName().equals("projectName")) {
 							projectName = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("collectionname")) {
+						} else if (fileItem.getFieldName().equals("collectionName")) {
 							collectionName = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("accessfrequency")) {
-							estimatedAccessFrequency = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("collectiondescription")) {
+						} else if (fileItem.getFieldName().equals("accessFrequency")) {
+							estimatedaccessFrequency = fileItem.getString();
+						} else if (fileItem.getFieldName().equals("collectionDescription")) {
 							collectionDescription = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("protectivemarking")) {
+						} else if (fileItem.getFieldName().equals("protectiveMarking")) {
 							protectiveMarking = fileItem.getString();
 						} else if (fileItem.getFieldName().equals("version")) {
 							version = fileItem.getString();
@@ -196,20 +416,18 @@ public class UploadRequestHandler extends HttpServlet {
 							fileOriginalPath = fileItem.getString();
 						} else if (fileItem.getFieldName().equals("bmptojpg")) {
 							bmpToJPG = Boolean.valueOf(fileItem.getString());
-							System.out.println("[UploadRequestHandler] bmptojpg: "+bmpToJPG);
 						} else if (fileItem.getFieldName().equals("tifftojpg")) {
 							tiffToJPG = Boolean.valueOf(fileItem.getString());
 							System.out.println("[UploadRequestHandler] tifftojpg: "+tiffToJPG);
 						} else if (fileItem.getFieldName().equals("personaldata")) {
 							personaldata = Boolean.valueOf(fileItem.getString());
-							System.out.println("[UploadRequestHandler] personaldata: "+personaldata);
 						} else if (fileItem.getFieldName().equals("timestamp")) {
 							timeStamp = fileItem.getString();
 							System.out.println("[UploadRequestHandler] timestamp: "+timeStamp);
 						}
-						
-						//Store metadata from the web page "upload.jsp" for the rule engine.
-						inputMetadata.put(fileItem.getFieldName(), fileItem.getString());
+						// this was already done previously
+//Store metadata from the web page "upload.jsp" for the rule engine.
+//						inputMetadata.put(fileItem.getFieldName(), fileItem.getString());
 					} 
 					//Handle the uploaded file.
 					else {
@@ -225,15 +443,16 @@ public class UploadRequestHandler extends HttpServlet {
 							throw new NullPointerException("Please input the 'Description'.");
 						} else if (version.equals("")) {
 							throw new NullPointerException("Please select the 'Version'.");
-						} else if (estimatedAccessFrequency.equals("")) {
+						} else if (estimatedaccessFrequency.equals("")) {
 							throw new NullPointerException("Please select the 'Estimated Access Frequency'.");
 						} else if (protectiveMarking.equals("")) {
 							throw new NullPointerException("Please select the 'Protective Marking'.");
 						}
 						else {
+							//Get storage decisions from the rule engine.
 							List<String> spaceIterator = duraStoreClient.defaultContentStore.getSpaces();
 							if (spaceIterator.contains(collectionName)) {
-								System.out.println("[UploadRequestHandler] collection name "+collectionName+" exists in Dura Cloud.");
+								System.out.println("[UploadRequestHandler] collection name "+collectionName+" exists in DuraCloud.");
 								List<String> fedoraCollectionObject = fedoraServiceManager.getObjectPIDs("*"+":"+collectionName, "pid");
 								for (String fedoraCollectionIterator : fedoraCollectionObject) {
 									if (!fedoraServiceManager.getADataStream(fedoraCollectionIterator, "timeStamp").equals(timeStamp))	{
@@ -255,7 +474,6 @@ public class UploadRequestHandler extends HttpServlet {
 								}*/
 							}
 						}
-						
 						//Print out the metadata stored in the Map.
 						System.out.println("metadata stored in the Map for the rule engine:");
 						for (Map.Entry<String, String> entry : inputMetadata.entrySet()) {
@@ -294,8 +512,7 @@ public class UploadRequestHandler extends HttpServlet {
 						System.out.println("[upload.jsp] File Name: " + fileName);
 						System.out.println("[upload.jsp] MIME Type: " + mimeType);
 						System.out.println("[upload.jsp] Size (Bytes): " + fileSize);
-						
-						
+
 						//If we are in chunk mode, we add ".partN" at the end of the file, where N is the chunk number.
 						//String uploadedFilename = fileItem.getName() + ( numChunk>0 ? ".part"+numChunk : "") ;
 						String uploadedFilename = fileName + ( numChunk>0 ? ".part"+numChunk : "") ;
@@ -304,24 +521,28 @@ public class UploadRequestHandler extends HttpServlet {
 						// write the file
 						fileItem.write(uploadFile);	        
 						
-						RuleEngineTrigger ruleEngineTrigger = new RuleEngineTrigger();
-						ruleEngineTrigger.triggerRuleEngine(inputMetadata, collectionPID);
-						
-						
+					
 						///////////////////////////////////////////////////////////////////////////////////////////////////////
 						//DuraCloud operations.
 						//
-
-						
 						filePathOfDuraCloud = duraStoreClient.reviseFilePathForDuracloud(fileOriginalPath);
 						//Create a new namespace if the namespace does not exist.
-						if (duraStoreClient.isNameSpaceExisted(nameSpace) == false) {
-							Map<String, String> spaceMetadata = new HashMap<String, String>();
-							duraStoreClient.createNamespace(nameSpace, spaceMetadata, "Amazon S3");
+						Map<String, String> spaceMetadata = new HashMap<String, String>();
+						if (duraStoreClient.isNameSpaceExisted("Amazon S3", nameSpace) == false) {
+							duraStoreClient.createNamespace("Amazon S3", nameSpace, spaceMetadata);
+						}
+						if (duraStoreClient.isNameSpaceExisted("RackSpace", nameSpace) == false) {
+							duraStoreClient.createNamespace("RackSpace", nameSpace, spaceMetadata);
 						}
 						
+				
 						//Upload the file to the Cloud.
-						duraStoreClient.uploadFile(duraStoreClient.defaultContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						//duraStoreClient.uploadFile(duraStoreClient.defaultContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						
+						duraStoreClient.uploadFile(duraStoreClient.amazonS3ContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						duraStoreClient.uploadFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						
+						//duraStoreClient.uploadFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
 						
 						System.out.println("filePathOfDuraCloud/fileName "+filePathOfDuraCloud+"/"+fileName);
 						
@@ -337,7 +558,7 @@ public class UploadRequestHandler extends HttpServlet {
 							} else {
 								System.out.println("[UploadRequestHandler] file "+filePathOfDuraCloud+"/"+fileName+" has NOT been converted.");
 							}
-						}
+						} 
 						//
 						// End of DuraCloud operations.
 						///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -346,7 +567,8 @@ public class UploadRequestHandler extends HttpServlet {
 						//Fedora operations.
 						//
 						
-						fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedAccessFrequency, collectionDescription, protectiveMarking, version, timeStamp);
+						fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, minimalCost, minimalCostCurrency, serviceProviderAccount, storageUsedTot, operationFlag);
+						fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedAccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, "RackSpace");
 						
 						HashMap<String, String> parentFolderNameAndPID = fedoraServiceManager.handleFolderObject(projectName, collectionName, collectionPID, fileName, fileOriginalPath);
 						
@@ -476,5 +698,62 @@ public class UploadRequestHandler extends HttpServlet {
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	public String getOperationFlag() {
+		return operationFlag;
+	}
+
+	public void setOperationFlag(String operationFlag) {
+		this.operationFlag = operationFlag;
+	}
+
+	public Double getCheapestIngestValue() {
+		return cheapestIngestValue;
+	}
+
+	public void setCheapestIngestValue(Double cheapestIngestValue) {
+		this.cheapestIngestValue = cheapestIngestValue;
+	}
+
+	public String getCheapestIngestKey() {
+		return cheapestIngestKey;
+	}
+
+	public void setCheapestIngestKey(String cheapestIngestKey) {
+		this.cheapestIngestKey = cheapestIngestKey;
+	}
+
+	public Double getCheapestMigrationValue() {
+		return cheapestMigrationValue;
+	}
+
+	public void setCheapestMigrationValue(Double cheapestMigrationValue) {
+		this.cheapestMigrationValue = cheapestMigrationValue;
+	}
+
+	public String getCheapestMigrationKey() {
+		return cheapestMigrationKey;
+	}
+
+	public void setCheapestMigrationKey(String cheapestMigrationKey) {
+		this.cheapestMigrationKey = cheapestMigrationKey;
+	}
+
+	public String getCheapestIngestValueCurrency() {
+		return cheapestIngestValueCurrency;
+	}
+
+	public void setCheapestIngestValueCurrency(String cheapestIngestValueCurrency) {
+		this.cheapestIngestValueCurrency = cheapestIngestValueCurrency;
+	}
+
+	public String getCheapestMigrationValueCurrency() {
+		return cheapestMigrationValueCurrency;
+	}
+
+	public void setCheapestMigrationValueCurrency(
+			String cheapestMigrationValueCurrency) {
+		this.cheapestMigrationValueCurrency = cheapestMigrationValueCurrency;
 	}
 }
