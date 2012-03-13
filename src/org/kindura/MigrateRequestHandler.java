@@ -51,25 +51,16 @@ import com.yourmediashelf.fedora.client.response.IngestResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
 /**
- * This class is used to handle file upload request.
+ * This class is used to handle file migration request.
  * @author Jun Zhang
  */
-public class UploadRequestHandler extends HttpServlet {
+public class MigrateRequestHandler extends HttpServlet {
 	//Setup connection with Fedora repository.
 	FedoraServiceManager fedoraServiceManager = new FedoraServiceManager();
 	FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
 	
-	// the version of this application that interacts with a human will be
-	// defaulted to ingest, but the command-line version could be other 
-	// values
-	private String operationFlag = "ingest";
+	private String operationFlag = "migrate-across";
 	
-	Double cheapestIngestValue = 999999999.9;
-	String cheapestIngestValueCurrency = "US$";
-	String cheapestIngestKey = "";
-	Double cheapestMigrationValue = 999999999.9;
-	String cheapestMigrationValueCurrency = "US$";
-	String cheapestMigrationKey = "";
 	Double storageUsedTot = 0.0;
 	
 
@@ -80,10 +71,10 @@ public class UploadRequestHandler extends HttpServlet {
 		ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
 		String tempUploadDirectory = configurationFileParser.getKinduraParameters().get("TempUploadDirectory");
 		
-		//This String is used to store the value of parameter 'username' sent by upload.jsp.
+		//This String is used to store the value of parameter 'username' sent by MigrateRequestHandler.java.
 		String userName = null;
 		
-		//This String is used to store the value of parameter 'pathinfo0' sent by upload.jsp.
+		//This String is used to store the value of parameter 'pathinfo0' sent by MigrateRequestHandler.java.
 		String projectName = null;
 		String collectionName = null;
 		String collectionDescription = null;
@@ -115,25 +106,25 @@ public class UploadRequestHandler extends HttpServlet {
 		PrintWriter out = response.getWriter();
 
 		Enumeration<String> headers = request.getHeaderNames();
-		System.out.println("[upload.jsp]  ------------------------------ ");
-		System.out.println("[upload.jsp]  Headers of the received request:");
+		System.out.println("[MigrateRequestHandler.java]  ------------------------------ ");
+		System.out.println("[MigrateRequestHandler.java]  Headers of the received request:");
 		while (headers.hasMoreElements()) {
 			String header = headers.nextElement();
-			System.out.println("[upload.jsp]  " + header + ": " + request.getHeader(header));  	  	
+			System.out.println("[MigrateRequestHandler.java]  " + header + ": " + request.getHeader(header));  	  	
 		}
-		System.out.println("[upload.jsp]  ------------------------------ "); 
+		System.out.println("[MigrateRequestHandler.java]  ------------------------------ "); 
 
 		try {
 			// Get URL Parameters.
 			Enumeration paraNames = request.getParameterNames();
-			System.out.println("[upload.jsp]  ------------------------------ ");
-			System.out.println("[upload.jsp]  Parameters: ");
+			System.out.println("[MigrateRequestHandler.java]  ------------------------------ ");
+			System.out.println("[MigrateRequestHandler.java]  Parameters: ");
 			String parameterName;
 			String parameterValue;
 			while (paraNames.hasMoreElements()) {
 				parameterName = (String)paraNames.nextElement();
 				parameterValue = request.getParameter(parameterName);
-				System.out.println("[upload.jsp] " + parameterName + " = " + parameterValue);
+				System.out.println("[MigrateRequestHandler.java] " + parameterName + " = " + parameterValue);
 				if (parameterName.equals("jufinal")) {
 					bLastChunk = parameterValue.equals("1");
 				} else if (parameterName.equals("jupart")) {
@@ -158,7 +149,7 @@ public class UploadRequestHandler extends HttpServlet {
 				}
 	
 			}
-			System.out.println("[upload.jsp]  ------------------------------ ");
+			System.out.println("[MigrateRequestHandler.java]  ------------------------------ ");
 	
 			int ourMaxMemorySize  = 10000000;
 			int ourMaxRequestSize = 2000000000;
@@ -182,40 +173,29 @@ public class UploadRequestHandler extends HttpServlet {
 			// Parse the request
 			if (sendRequest) {
 				//For debug only. Should be removed for production systems. 
-				System.out.println("[upload.jsp] ==========================================================================="); 
-				System.out.println("[upload.jsp] Sending the received request content: "); 
+				System.out.println("[MigrateRequestHandler.java] ==========================================================================="); 
+				System.out.println("[MigrateRequestHandler.java] Sending the received request content: "); 
 				InputStream is = request.getInputStream();
 				int c;
 				while ( (c=is.read()) >= 0) {
 					out.write(c);
 				}//while
 				is.close();
-				System.out.println("[upload.jsp] ==========================================================================="); 
+				System.out.println("[MigrateRequestHandler.java] ==========================================================================="); 
 			} else if (! request.getContentType().startsWith("multipart/form-data")) {
-				System.out.println("[upload.jsp] No parsing of uploaded file: content type is " + request.getContentType()); 
+				System.out.println("[MigrateRequestHandler.java] No parsing of uploaded file: content type is " + request.getContentType()); 
 			} else { 
 				List /* FileItem */ userData = upload.parseRequest(request);
 				// Process the uploaded items
 				Iterator trundle = userData.iterator();
 				FileItem userResponse;
 				//File outputFile;
-				System.out.println("[upload.jsp]  Let's read the sent data   (" + userData.size() + " items)");
+				System.out.println("[MigrateRequestHandler.java]  Let's read the sent data   (" + userData.size() + " items)");
 				
 				Map<String, String> inputMetadata = new HashMap<String, String>();
 				LinkedList<String> concludedIngestList = new LinkedList<String>();
 				LinkedList<String> concludedMigrationList = new LinkedList<String>();
 
-
-				// we are going to now iterate thru the list twice over.
-				// This is because we need to have the overall picture of 
-				// space used plus the user-selected parameters to be able to 
-				// decide on an appropriate Service Provider and physical 
-				// datacentre (for regulatory reasons). 
-				// This SP + Region information will be required by each file
-				// as it is stored later on during the second iteration.
-				// But if the user-input data is invalid we get strange results
-				// We will just have to live with that - there's a limit to what
-				// we can do without tying ourselves in knots
 				String serviceProviderAccount = "";
 				Double minimalCost = 0.0;
 				String minimalCostCurrency = "";
@@ -223,76 +203,59 @@ public class UploadRequestHandler extends HttpServlet {
 				while (trundle.hasNext()) {
 					userResponse = (FileItem) trundle.next();
 
-					//Handle the metadata from the form field of "upload.jsp".
+					//Handle the metadata from the form field of "MigrateRequestHandler.java".
 					if (userResponse.isFormField()) {
-						System.out.println("[upload.jsp] (form field) " + userResponse.getFieldName() + " = " + userResponse.getString());
+						System.out.println("[MigrateRequestHandler.java] (form field) " + userResponse.getFieldName() + " = " + userResponse.getString());
 
-						//If we receive the md5sum parameter, we've read finished to read the current file. It's not
-						//a very good (end of file) signal. Will be better in the future ... probably !
-						//Let's put a separator, to make output easier to read.
-						if (userResponse.getFieldName().equals("md5sum[]")) { 
-							System.out.println("[upload.jsp]  ------------------------------ ");
-						} else if (userResponse.getFieldName().equals("username")) {
+						if (userResponse.getFieldName().equals("username")) {
 							userName = userResponse.getString();
 							if (userName == null) {
 								response.sendRedirect("sessiontimeout.jsp");
 							}
-						} else if (userResponse.getFieldName().equals("projectName")) {
-							projectName = userResponse.getString();
-						} else if (userResponse.getFieldName().equals("collectionName")) {
-							collectionName = userResponse.getString();
-						} else if (userResponse.getFieldName().equals("accessFrequency")) {
-							estimatedaccessFrequency = userResponse.getString();
-						} else if (userResponse.getFieldName().equals("collectionDescription")) {
-							collectionDescription = userResponse.getString();
-						} else if (userResponse.getFieldName().equals("protectiveMarking")) {
-							protectiveMarking = userResponse.getString();
-						} else if (userResponse.getFieldName().equals("version")) {
-							version = userResponse.getString();
-						} else if (userResponse.getFieldName().equals("pathinfo0")) {
-							fileOriginalPath = userResponse.getString();
-						} else if (userResponse.getFieldName().equals("bmptojpg")) {
-							bmpToJPG = Boolean.valueOf(userResponse.getString());
-							System.out.println("[UploadRequestHandler] bmptojpg: "+bmpToJPG);
-						} else if (userResponse.getFieldName().equals("tifftojpg")) {
-							tiffToJPG = Boolean.valueOf(userResponse.getString());
-							System.out.println("[UploadRequestHandler] tifftojpg: "+tiffToJPG);
-						} else if (userResponse.getFieldName().equals("personaldata")) {
-							personaldata = Boolean.valueOf(userResponse.getString());
-							System.out.println("[UploadRequestHandler] personaldata: "+personaldata);
-						} else if (userResponse.getFieldName().equals("timestamp")) {
-							timeStamp = userResponse.getString();
-							System.out.println("[UploadRequestHandler] timestamp: "+timeStamp);
+						}
+
+						List<String> projectNames = fedoraServiceManager.getprojectNames();
+						if (projectNames != null) {
+							Iterator<String> iterator = projectNames.iterator();
+							System.out.println(request.getAttribute("projectName"));
+							if (request.getAttribute("projectName") != null) {
+								out.println("<option>"+request.getAttribute("projectName")+"</option>");
+							}
+							String nextprojectName = null;
+							while (iterator.hasNext()) {
+								nextprojectName = (String)iterator.next();
+								if (!nextprojectName.equals(request.getAttribute("projectName"))) {
+									out.println("<option>"+nextprojectName+"</option>");
+								}
+							}
+						}
+						int numberOfRows = Integer.valueOf(request.getAttribute("numberOfRows").toString());
+						if (numberOfRows > 0) {
+							if (request.getAttribute("pid0fedoraObjectType").equals("collection")) {
+								out.println("<th>Title</th>");
+							} else {
+								out.println("<th>Name</th>");
+							}
+							out.println("<th>Size(Bytes)</th>");
+							out.println("<th>Type</th>");
+							for (int i=0;i< numberOfRows;i++) {
+								if (i % 2 != 0) {
+									out.println("<tr style= 'background-color:#F8F8F8;'>");
+								}
+								else {
+									out.println("<tr style= 'background-color:#FFFFFF;'>");
+								}
+								if (request.getAttribute("pid"+i+"fedoraObjectType").equals("file")) {
+									//out.println("<td><a href=DownloadRequestHandler?namespaceandpid="+request.getAttribute("nameSpace"+i)+":"+request.getAttribute("parentFolderNameForDuracloud"+i)+"/"+request.getAttribute("baseFileName"+i)+"&"+request.getAttribute("nameSpace"+i)+request.getAttribute("projectName")+"/"+request.getAttribute("parentFolderNameForDuracloud"+i)+"/"+request.getAttribute("baseFileName"+i)+"="+request.getAttribute("fileExtension"+i)+">"+request.getAttribute("alphaNumericName"+i)+"</a></td>");
+									out.println("<td><a href=MigrateRequestHandler?namespaceandpid="+request.getAttribute("collectionName"+i)+":"+request.getAttribute("parentFolderNameForDuracloud"+i)+"/"+request.getAttribute("baseFileName"+i)+"&"+request.getAttribute("collectionName"+i)+request.getAttribute("parentFolderNameForDuracloud"+i)+"/"+request.getAttribute("baseFileName"+i)+"="+request.getAttribute("fileExtension"+i)+">"+request.getAttribute("alphaNumericName"+i)+"</a></td>");
+								} else {
+									out.println("<td><a href=MigrateProjectRequestHandler?nameSpace="+request.getAttribute("nameSpace"+i)+"&projectName="+request.getAttribute("projectName")+"&alphaNumericName="+request.getAttribute("alphaNumericName"+i)+"&requestType=view>"+request.getAttribute("alphaNumericName"+i)+"</a></td>");
+								}
+								out.println("<td>"+request.getAttribute("fileSize"+i)+"</td>");
+								out.println("<td>"+request.getAttribute("pid"+i+"fedoraObjectType")+"</td>");
+		
+							}
 						} 
-
-						// For each field store the field info in the metadata for the rule engine.
-						inputMetadata.put(userResponse.getFieldName(), userResponse.getString());
-
-					} else {
-						String parentFolderName = null;
-						String parentFolderPID = null;
-						String fieldName = userResponse.getFieldName();
-						String fileName = userResponse.getName();
-						//Delete all spaces in the file name.
-						fileName = fileName.replace(" ", "");
-						String mimeType = userResponse.getContentType();
-						String fileNameExtension = fileName.substring(fileName.indexOf(".")+1);
-						String fileSize = String.valueOf(userResponse.getSize());
-						storageUsedTot += Integer.valueOf(fileSize);
-						
-						//Set the namespace of the content.
-						//////String nameSpace = userName;
-						String nameSpace = collectionName;
-						//Get the base file name of the file.
-						int dot = fileName.indexOf(".");
-						String baseFileName = fileName.substring(0, dot);
-						//Generate the namespace. To create a new Fedora object for each file, use baseFilename. To create a new Fedora object for each data collection, use collectionName. 
-						//String nameSpaceAndPid = nameSpace + ":" + baseFilename;
-						//String nameSpaceAndPid = nameSpace + ":" + collectionName;
-						//String nameSpaceAndPid = userName+":"+projectName;
-						//String nameSpaceAndPid = projectName+":"+collectionName;
-
-						String filePID = collectionName+":"+filePathOfFedora+"."+baseFileName;
 
 						// bring in the metadata from the project table
 						String keyPart = "";
@@ -346,35 +309,28 @@ public class UploadRequestHandler extends HttpServlet {
 						// no difference to the decision on which SP to use
 						
 
-						// ingest means take in new data
 						if ( operationFlag .equals("ingest") ) {
-							// TODO need a better way to handle transfer-in costs on ingest
-							// We assume no transfer-out costs for the ingest and usually 
-							// service providers set transfer-in costs as zero
-							inputMetadata.put("transfersUsed", String.valueOf(0.0));
-							// the other data required is held in inputMetadata
+							// ingest means take in new data
+							// shouldn't be here
+							break;
+						} else if (operationFlag .equals("migrate-across") ) {
+							// migrate-across means remove from one and upload to a cheaper location
+							inputMetadata.put("transfersUsed", String.valueOf(storageUsedTot));
 							concludedIngestList.clear();
 							concludedMigrationList.clear();
 							costOpt.suggestService(operationFlag, inputMetadata, concludedIngestList, concludedMigrationList);
-							minimalCost = getCheapestIngestValue();
-							minimalCostCurrency = getCheapestIngestValueCurrency();
+							minimalCostCurrency = getCheapestMigrationValueCurrency();
 							// TODO bodge this to US dollars for now
 							minimalCostCurrency = "US$";
-							serviceProviderAccount = getCheapestIngestKey();
-						} else if (operationFlag .equals("migrate-across") ) {
-							// migrate-across means remove from one and upload to a cheaper location
-							// shouldn't be here
-							break;
+							minimalCost = getCheapestMigrationValue();
+							serviceProviderAccount = getCheapestMigrationKey();
 						} else if (operationFlag .equals("migrate-down") ) {	
 							// migrate-down means data is no longer in active use
-							// shouldn't be here
-							break;
 						} else if (operationFlag .equals("migrate-up") ) {	
 							// migrate-up means data was inactive but is now active, or error recovery
-							// shouldn't be here
-							break;
 						} else if (operationFlag .equals("retrieval") ) {
 							// retrieval means data to be copied down to local disk
+							
 							// shouldn't be here
 							break;
 						} 
@@ -394,48 +350,10 @@ public class UploadRequestHandler extends HttpServlet {
 				while (iter.hasNext()) {
 					fileItem = (FileItem) iter.next();
 					
-					//Handle the metadata from the form field of "upload.jsp".
+					//Handle the metadata from the form field of "MigrateRequestHandler.java".
 					if (fileItem.isFormField()) {
-						System.out.println("[upload.jsp] (form field) " + fileItem.getFieldName() + " = " + fileItem.getString());
+						System.out.println("[MigrateRequestHandler.java] (form field) " + fileItem.getFieldName() + " = " + fileItem.getString());
 	
-						//If we receive the md5sum parameter, we've read finished to read the current file. It's not
-						//a very good (end of file) signal. Will be better in the future ... probably !
-						//Let's put a separator, to make output easier to read.
-						if (fileItem.getFieldName().equals("md5sum[]")) { 
-							System.out.println("[upload.jsp]  ------------------------------ ");
-						} else if (fileItem.getFieldName().equals("username")) {
-							userName = fileItem.getString();
-							if (userName == null) {
-								response.sendRedirect("sessiontimeout.jsp");
-							}
-						} else if (fileItem.getFieldName().equals("projectName")) {
-							projectName = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("collectionName")) {
-							collectionName = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("accessFrequency")) {
-							estimatedaccessFrequency = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("collectionDescription")) {
-							collectionDescription = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("protectiveMarking")) {
-							protectiveMarking = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("version")) {
-							version = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("pathinfo0")) {
-							fileOriginalPath = fileItem.getString();
-						} else if (fileItem.getFieldName().equals("bmptojpg")) {
-							bmpToJPG = Boolean.valueOf(fileItem.getString());
-						} else if (fileItem.getFieldName().equals("tifftojpg")) {
-							tiffToJPG = Boolean.valueOf(fileItem.getString());
-							System.out.println("[UploadRequestHandler] tifftojpg: "+tiffToJPG);
-						} else if (fileItem.getFieldName().equals("personaldata")) {
-							personaldata = Boolean.valueOf(fileItem.getString());
-						} else if (fileItem.getFieldName().equals("timestamp")) {
-							timeStamp = fileItem.getString();
-							System.out.println("[UploadRequestHandler] timestamp: "+timeStamp);
-						}
-						// this was already done previously
-//Store metadata from the web page "upload.jsp" for the rule engine.
-//						inputMetadata.put(fileItem.getFieldName(), fileItem.getString());
 					} 
 					//Handle the uploaded file.
 					else {
@@ -443,20 +361,6 @@ public class UploadRequestHandler extends HttpServlet {
 						DuraStoreClient duraStoreClient = new DuraStoreClient(configurationFileParser.getKinduraParameters().get("DuraCloudHost"), configurationFileParser.getKinduraParameters().get("DuraCloudPort"), configurationFileParser.getKinduraParameters().get("DuraCloudContext"), configurationFileParser.getKinduraParameters().get("DuraCloudUsername"), configurationFileParser.getKinduraParameters().get("DuraCloudPassword"));
 						
 						String collectionPID = projectName+":"+collectionName;
-						if (collectionName.equals("")) {
-							throw new NullPointerException("Please input the 'Collection Title'.");
-						} else if (projectName.equals("")) {
-							throw new NullPointerException("Please select the 'Associated Project'.");
-						} else if (collectionDescription.equals("")) {
-							throw new NullPointerException("Please input the 'Description'.");
-						} else if (version.equals("")) {
-							throw new NullPointerException("Please select the 'Version'.");
-						} else if (estimatedaccessFrequency.equals("")) {
-							throw new NullPointerException("Please select the 'Estimated Access Frequency'.");
-						} else if (protectiveMarking.equals("")) {
-							throw new NullPointerException("Please select the 'Protective Marking'.");
-						}
-						else {
 							//Get storage decisions from the rule engine.
 							List<String> spaceIterator = duraStoreClient.defaultContentStore.getSpaces();
 							if (spaceIterator.contains(collectionName)) {
@@ -481,17 +385,6 @@ public class UploadRequestHandler extends HttpServlet {
 									}
 								}*/
 							}
-						}
-						//Print out the metadata stored in the Map.
-						System.out.println("metadata stored in the Map for the rule engine:");
-						for (Map.Entry<String, String> entry : inputMetadata.entrySet()) {
-							System.out.println("[Metadata] Key="+entry.getKey()+" Value="+entry.getValue());
-						}
-						
-						//Ok, we've got a file. Let's process it.
-						//Again, for all informations of what is exactly a FileItem, please
-						//have a look to http://jakarta.apache.org/commons/fileupload/
-						//
 						String parentFolderName = null;
 						String parentFolderPID = null;
 						String fieldName = fileItem.getFieldName();
@@ -515,17 +408,17 @@ public class UploadRequestHandler extends HttpServlet {
 						
 						String filePID = collectionName+":"+filePathOfFedora+"."+baseFileName;
 						
-						System.out.println("[upload.jsp] File Format: " + fileNameExtension);
-						System.out.println("[upload.jsp] Field Name: " + fieldName);
-						System.out.println("[upload.jsp] File Name: " + fileName);
-						System.out.println("[upload.jsp] MIME Type: " + mimeType);
-						System.out.println("[upload.jsp] Size (Bytes): " + fileSize);
+						System.out.println("[MigrateRequestHandler.java] File Format: " + fileNameExtension);
+						System.out.println("[MigrateRequestHandler.java] Field Name: " + fieldName);
+						System.out.println("[MigrateRequestHandler.java] File Name: " + fileName);
+						System.out.println("[MigrateRequestHandler.java] MIME Type: " + mimeType);
+						System.out.println("[MigrateRequestHandler.java] Size (Bytes): " + fileSize);
 
 						//If we are in chunk mode, we add ".partN" at the end of the file, where N is the chunk number.
 						//String uploadedFilename = fileItem.getName() + ( numChunk>0 ? ".part"+numChunk : "") ;
 						String uploadedFilename = fileName + ( numChunk>0 ? ".part"+numChunk : "") ;
 						uploadFile = new File(tempUploadDirectory + (new File(uploadedFilename)).getName());
-						System.out.println("[upload.jsp] File Out: " + uploadFile.toString());
+						System.out.println("[MigrateRequestHandler.java] File Out: " + uploadFile.toString());
 						// write the file
 						fileItem.write(uploadFile);	        
 						
@@ -603,7 +496,7 @@ public class UploadRequestHandler extends HttpServlet {
 						//by concatenating all chunk parts.
 						//
 						if (bLastChunk) {	        
-							System.out.println("[upload.jsp] Last chunk received: let's rebuild the complete file (" + fileName + ")");
+							System.out.println("[MigrateRequestHandler.java] Last chunk received: let's rebuild the complete file (" + fileName + ")");
 							//First: construct the final filename.
 							FileInputStream fis;
 							FileOutputStream fos = new FileOutputStream(tempUploadDirectory + fileName);
@@ -611,10 +504,10 @@ public class UploadRequestHandler extends HttpServlet {
 							byte[] byteBuff = new byte[1024];
 							for (int i=1; i<=numChunk; i+=1) {
 								fileName = fileName + ".part" + i;
-								System.out.println("[upload.jsp] " + "  Concatenating " + fileName);
+								System.out.println("[MigrateRequestHandler.java] " + "  Concatenating " + fileName);
 								fis = new FileInputStream(tempUploadDirectory + fileName);
 								while ( (nbBytes = fis.read(byteBuff)) >= 0) {
-									//out.println("[upload.jsp] " + "     Nb bytes read: " + nbBytes);
+									//out.println("[MigrateRequestHandler.java] " + "     Nb bytes read: " + nbBytes);
 									fos.write(byteBuff, 0, nbBytes);
 								}
 								fis.close();
@@ -635,7 +528,7 @@ public class UploadRequestHandler extends HttpServlet {
 				out.println("WARNING: just a warning message.\\nOn two lines!");
 			}
 	
-			System.out.println("[upload.jsp] " + "Let's write a status, to finish the server response :");
+			System.out.println("[MigrateRequestHandler.java] " + "Let's write a status, to finish the server response :");
 	
 			if (generateError) { 
 				System.out.println("ERROR: this is a test error");
@@ -719,52 +612,4 @@ public class UploadRequestHandler extends HttpServlet {
 		this.operationFlag = operationFlag;
 	}
 
-	public Double getCheapestIngestValue() {
-		return cheapestIngestValue;
-	}
-
-	public void setCheapestIngestValue(Double cheapestIngestValue) {
-		this.cheapestIngestValue = cheapestIngestValue;
-	}
-
-	public String getCheapestIngestKey() {
-		return cheapestIngestKey;
-	}
-
-	public void setCheapestIngestKey(String cheapestIngestKey) {
-		this.cheapestIngestKey = cheapestIngestKey;
-	}
-
-	public Double getCheapestMigrationValue() {
-		return cheapestMigrationValue;
-	}
-
-	public void setCheapestMigrationValue(Double cheapestMigrationValue) {
-		this.cheapestMigrationValue = cheapestMigrationValue;
-	}
-
-	public String getCheapestMigrationKey() {
-		return cheapestMigrationKey;
-	}
-
-	public void setCheapestMigrationKey(String cheapestMigrationKey) {
-		this.cheapestMigrationKey = cheapestMigrationKey;
-	}
-
-	public String getCheapestIngestValueCurrency() {
-		return cheapestIngestValueCurrency;
-	}
-
-	public void setCheapestIngestValueCurrency(String cheapestIngestValueCurrency) {
-		this.cheapestIngestValueCurrency = cheapestIngestValueCurrency;
-	}
-
-	public String getCheapestMigrationValueCurrency() {
-		return cheapestMigrationValueCurrency;
-	}
-
-	public void setCheapestMigrationValueCurrency(
-			String cheapestMigrationValueCurrency) {
-		this.cheapestMigrationValueCurrency = cheapestMigrationValueCurrency;
-	}
 }

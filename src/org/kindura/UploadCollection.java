@@ -48,7 +48,7 @@ public class UploadCollection
     private ArrayList<StorageProviderTier> tiers = new ArrayList<StorageProviderTier>();
     private Calendar appraisalDate = Calendar.getInstance();
 
-    private int minCopies = 0;
+    private Integer minCopies = 0;
     private Calendar projEndDate = Calendar.getInstance();
     
     private String version;
@@ -71,7 +71,7 @@ public class UploadCollection
 
     private Pricing childPrcng;
     private UploadCollection thisUpldCollection;
-    private CostOptimiser parentWebApp;
+    private CostOptimiser parentCostOpt;
  	
 	
 	public UploadCollection() {
@@ -519,17 +519,17 @@ public class UploadCollection
 	}
 
 	/**
-	 * @return the parentWebApp
+	 * @return the parentCostOpt
 	 */
-	public CostOptimiser getParentWebApp() {
-		return parentWebApp;
+	public CostOptimiser getParentCostOpt() {
+		return parentCostOpt;
 	}
 
 	/**
-	 * @param parentWebApp the parentWebApp to set
+	 * @param parentCostOpt the parentCostOpt to set
 	 */
-	public void setParentWebApp(CostOptimiser parentWebApp) {
-		this.parentWebApp = parentWebApp;
+	public void setParentCostOpt(CostOptimiser parentCostOpt) {
+		this.parentCostOpt = parentCostOpt;
 	}
 
 	private boolean checkDuplicateFactsRegulatory(HashMap<String,String>  regulatoryData) {
@@ -556,7 +556,7 @@ public class UploadCollection
 //		if (serviceProviderList == "dummy") {
 //			iAmBlank = true;
 //		}
-		if (checkDuplicateFactsRegulatory(parentWebApp.getDuplicateRegulatoryHashMap())) {
+		if (checkDuplicateFactsRegulatory(parentCostOpt.getDuplicateRegulatoryHashMap())) {
 			if (debug) {System.out.println("[UpldCllctn]: skipping due to duplicate key found");};
 			iAmBlank = true;			
 		};
@@ -598,8 +598,8 @@ public class UploadCollection
 		childPrcng.setOurUpldCollectn(this);
 		childPrcng.setParentUploadCollection(this);
 //		// ok,i've forgotten where the webapp lives, so ask my earlier self
-//		myCollection.parentWebApp = this.parentWebApp;
-//		this.parentWebApp = this.parentWebApp;
+//		myCollection.parentCostOpt = this.parentCostOpt;
+//		this.parentCostOpt = this.parentCostOpt;
 		
 		
 		// and then update the linked list with the Pricing data

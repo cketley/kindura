@@ -55,7 +55,7 @@ public class Pricing {
 	private static final boolean debug = false;
 	private StatefulKnowledgeSession myKsession;
 	private UploadCollection parentUploadCollection;
-	private CostOptimiser grandparentWebApp;
+	private CostOptimiser grandparentCostOpt;
 	
 //    private Totaliser currentTotBySP;
     
@@ -113,7 +113,7 @@ public class Pricing {
 
     }
 
-    public void constructorFilterObjects(Map<String,String> metadata) {
+    public void constructorFilterObjects(Map<String,String> metadata, UploadCollection upldCollectn) {
     	// this is not a proper constructor
     	
     	Double stgUsed = 0.0;
@@ -126,9 +126,14 @@ public class Pricing {
     	
     	setTransfersUsed(xferUsed);
     	
-    	// TODO includes amounts for transfers and requests 
-    	// we've only got a figure for storage used, not transfers or requests at the mo
+    	// dream up a number of requests based on the accessFrequency
+    	Double rqstsUsed = 1.0;
+    	Double rqstsUsedEstimate = 0.0;
+    	rqstsUsedEstimate = applyFrequencyOfAccess(rqstsUsed, upldCollectn);
     	
+//    	metadata.put("requestsUsed", String.valueOf(rqstsUsedEstimatate));    	
+    	setRequestsUsed(rqstsUsedEstimate);
+   	
     }
     
     
@@ -438,7 +443,7 @@ dtableconfiguration );
 		if (parentUploadCollection.getIAmBlank()) {
 			iAmBlank = true;
 		}
-		if (checkDuplicateFactsPricing(grandparentWebApp.getDuplicatePricingHashMap())) {
+		if (checkDuplicateFactsPricing(grandparentCostOpt.getDuplicatePricingHashMap())) {
 			if (debug) {System.out.println("[Pricing]: skipping due to duplicate key found");};
 			iAmBlank = true;			
 		};
@@ -490,7 +495,7 @@ dtableconfiguration );
 			myTotaliser.setGrandparentUploadCollection(parentUploadCollection);
 			// tell the new Pricing where to find the parent, grandparent and totaliser
 			currentPrcng.parentUploadCollection = this.parentUploadCollection;
-			currentPrcng.grandparentWebApp = this.grandparentWebApp;
+			currentPrcng.grandparentCostOpt = this.grandparentCostOpt;
 			currentPrcng.myTotaliser = this.myTotaliser;
 			// tell the new Pricing the amounts to be used
 			// TODO other amounts need to be added in
@@ -526,7 +531,7 @@ dtableconfiguration );
 			if (debug) {System.out.println("[Pricing]: skipping due to blankflag");};
 			iAmBlank = true;
 		}
-		if (checkDuplicateFactsPricing(grandparentWebApp.getDuplicateServiceMatrixHashMap())) {
+		if (checkDuplicateFactsPricing(grandparentCostOpt.getDuplicateServiceMatrixHashMap())) {
 			if (debug) {System.out.println("[Pricing]: skipping due to duplicate key found");};
 			iAmBlank = true;			
 		};
@@ -556,7 +561,7 @@ dtableconfiguration );
 
 //			// tell the Totaliser where to find my parent
 //			myTotaliser.setGrandparentUploadCollection(parentUploadCollection);
-//			myTotaliser.setGreatgrandparentWebApp(grandparentWebApp);
+//			myTotaliser.setGreatgrandparentCostOpt(grandparentCostOpt);
 
 			// we have to make a new Pricing object on each index because
 			// drools can see only the address of the object
@@ -569,7 +574,7 @@ dtableconfiguration );
 			myTotaliser.setParentPricing(this);
 			// tell the new Pricing where to find the parent and grandparent and so on
 			currentPrcng.parentUploadCollection = this.parentUploadCollection;
-			currentPrcng.grandparentWebApp = this.grandparentWebApp;
+			currentPrcng.grandparentCostOpt = this.grandparentCostOpt;
 			currentPrcng.myTotaliser = this.myTotaliser;
 			currentPrcng.myKsession = this.myKsession;
 			currentPrcng.myLogger = this.myLogger;
@@ -750,17 +755,17 @@ dtableconfiguration );
 	}
 
 	/**
-	 * @return the grandparentWebApp
+	 * @return the grandparentCostOpt
 	 */
-	public CostOptimiser getGrandparentWebApp() {
-		return grandparentWebApp;
+	public CostOptimiser getGrandparentCostOpt() {
+		return grandparentCostOpt;
 	}
 
 	/**
-	 * @param grandparentWebApp the grandparentWebApp to set
+	 * @param grandparentCostOpt the grandparentCostOpt to set
 	 */
-	public void setGrandparentWebApp(CostOptimiser grandparentWebApp) {
-		this.grandparentWebApp = grandparentWebApp;
+	public void setGrandparentCostOpt(CostOptimiser grandparentCostOpt) {
+		this.grandparentCostOpt = grandparentCostOpt;
 	}
 
 	/**
@@ -854,4 +859,51 @@ dtableconfiguration );
 	public void setEnabledFlag(String enabledFlag) {
 		this.enabledFlag = enabledFlag;
 	}
+	
+
+	public Double applyFrequencyOfAccess(Double serviceSubtot, UploadCollection childCollection) {
+		// TODO look up how to do Jens's integrals
+		
+		// TODO tweak these usage multipliers
+		
+		if (debug) {System.out.println("[Pricing]: serviceSubtot is :-" + serviceSubtot);};
+		// we need to factor in the day-to-day access so do it here.
+		// The numbers will be arbitrary estimates.
+		Double percentageViewed = 2.0; // percentage of data downloaded in time period
+		                               // based on a month's total as baseline.
+		                               // Tweak this before you tweak the accessMultiplier
+		Double accessMultiplier = 0.0; // How much more activity versus one month
+		Double serviceTotal = 0.0;
+		
+		// this assumes billing is based on the calendar month, which 
+		// may not always be the case
+		if ( childCollection.getFrequency() .equals("10+ accesses per day") ) {
+			// based on 30 days * 10 * 2
+			accessMultiplier = 600.0; 
+			serviceTotal = serviceSubtot * percentageViewed * accessMultiplier / 100;
+		} else if ( childCollection.getFrequency() .equals("1-10 accesses per day") ) {
+			// based on 30 days * 10 * 1
+			accessMultiplier = 300.0; 
+			serviceTotal = serviceSubtot * percentageViewed * accessMultiplier / 100;
+		} else if ( childCollection.getFrequency() .equals("1-10 accesses per week") ) {
+			// based on a seventh of the above
+			accessMultiplier = 40.0; 
+			serviceTotal = serviceSubtot * percentageViewed * accessMultiplier / 100;
+		} else if ( childCollection.getFrequency() .equals("1-10 accesses per month") ) {
+			// based on 30 / 30 days * 10 * 1
+			accessMultiplier = 10.0; 
+			serviceTotal = serviceSubtot * percentageViewed * accessMultiplier / 100;
+		} else if ( childCollection.getFrequency() .equals("Infrequent") ) {
+			// arbitrary number
+			accessMultiplier = 0.1; 
+			serviceTotal = serviceSubtot * percentageViewed * accessMultiplier / 100;
+		}
+
+		if (debug) {System.out.println("[Pricing]: accessMultiplier is :-" + accessMultiplier);};
+		if (debug) {System.out.println("[Pricing]: new serviceTotal is :-" + serviceTotal);};
+
+		return serviceTotal;
+	}
+
+	
 }

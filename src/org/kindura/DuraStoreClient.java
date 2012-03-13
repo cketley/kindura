@@ -50,6 +50,8 @@ import javax.xml.parsers.ParserConfigurationException;
 public class DuraStoreClient {
     ContentStoreManager contentStoreManager;
     ContentStore defaultContentStore;
+    ContentStore amazonS3ContentStore;
+    ContentStore rackSpaceContentStore;
     Credential duracloudCredential;
         
     private Document dom;
@@ -61,11 +63,15 @@ public class DuraStoreClient {
     	//duracloudCredential = new Credential("junz", "p1ssw2rd");
         contentStoreManager.login(duracloudCredential);
         defaultContentStore = contentStoreManager.getPrimaryContentStore();
+
+        amazonS3ContentStore = contentStoreManager.getContentStore("0");
+        rackSpaceContentStore = contentStoreManager.getContentStore("1");
+        
     }
     
-    public boolean isCloudProviderExisted(String cloudProvider) {
+    public boolean isCloudProviderExisted(String cloudProviderName) {
 		//ContentStore contentStore = contentStoreManager.getContentStore("32");
-		String cloudProviderID = getCloudProviderID("localhost", cloudProvider);
+		String cloudProviderID = getCloudProviderID("localhost", cloudProviderName);
 		if (cloudProviderID != null) {
 			System.out.println("[DuraStoreClient] cloudProviderID: "+cloudProviderID);
 			return true;
@@ -75,10 +81,19 @@ public class DuraStoreClient {
 		}
     }
     
-    public boolean isNameSpaceExisted(String nameSpace) {
-    	List<String> storeIDs;
+    public boolean isNameSpaceExisted(String cloudProviderName, String nameSpace) {
+    	List<String> storeIDs = null;
 		try {
-			storeIDs = defaultContentStore.getSpaces();
+			//storeIDs = defaultContentStore.getSpaces();
+			if (isCloudProviderExisted(cloudProviderName) == true) {
+				if (cloudProviderName.equals("Amazon S3")) {
+					storeIDs = amazonS3ContentStore.getSpaces();
+				}
+				else if (cloudProviderName.equals("RackSpace")) {
+					storeIDs = rackSpaceContentStore.getSpaces();
+				}
+			}
+			
 			Iterator iterator = storeIDs.iterator();
 	    	boolean spaceFound = false;
 	    	while(iterator.hasNext() && (spaceFound == false)) {
@@ -101,12 +116,17 @@ public class DuraStoreClient {
     
     public String getCloudProviderID(String duracloud_host, String cloudProviderName) {
     	int cloudProviderID;
-    	if (duracloud_host.equals("localhost") || duracloud_host.equals("127.0.0.1")) {
+    	System.out.println("[DuraStoreClient] cloud provider name: "+cloudProviderName);
+    	if (duracloud_host.equals("localhost") || duracloud_host.equals("127.0.0.1") || duracloud_host.equals("137.73.172.82")) {
     		if (cloudProviderName.equals("Amazon S3")) {
         		cloudProviderID = 0;
         		return String.valueOf(cloudProviderID);
         	}
-    	} else if (duracloud_host.equals("kindura.dura")) {
+    		else if (cloudProviderName.equals("RackSpace")) {
+    			cloudProviderID = 1;
+    			return String.valueOf(cloudProviderID);
+    		}
+    	} else if (duracloud_host.equals("kindura.duracloud.org")) {
     		if (cloudProviderName.equals("Amazon S3")) {
         		cloudProviderID = 32;
         		return String.valueOf(cloudProviderID);
@@ -137,11 +157,20 @@ public class DuraStoreClient {
 		return null;
     }
     
-    public void createNamespace(String nameSpace, Map<String, String> spaceMetadata, String cloudProvider) {
+    public void createNamespace(String cloudProviderName, String nameSpace, Map<String, String> spaceMetadata) {
     	//Map<String, String> spaceMetadata = new HashMap<String, String>();
 		try {
 			//contentStore = contentStoreManager.getPrimaryContentStore();
-			defaultContentStore.createSpace(nameSpace, spaceMetadata);
+			//defaultContentStore.createSpace(nameSpace, spaceMetadata);
+			if (isCloudProviderExisted(cloudProviderName) == true) {
+				if (cloudProviderName.equals("Amazon S3")) {
+					amazonS3ContentStore.createSpace(nameSpace, spaceMetadata);
+				}
+				else if (cloudProviderName.equals("RackSpace")) {
+					rackSpaceContentStore.createSpace(nameSpace, spaceMetadata);
+				}
+			}
+			//rackSpaceContentStore.createSpace(nameSpace, spaceMetadata);
 		} catch (ContentStoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -169,7 +198,7 @@ public class DuraStoreClient {
 		contentStoreManager.logout();
     }
     
-    public void downloadFile(ContentStore contentStore, String nameSpace, String fileName, String revisedFileNameForDownload, String destinationPath, String fileExtension, int numberOfBytes) {
+    public boolean downloadFile(ContentStore contentStore, String nameSpace, String fileName, String revisedFileNameForDownload, String destinationPath, String fileExtension, int numberOfBytes) {
     	Content content = new Content();
     	try {
 			if (fileExtension != "") {
@@ -191,6 +220,7 @@ public class DuraStoreClient {
 			}
 			inputStream.close();
 			outputStream.close();
+			return true;
 		}
     	catch (ContentStoreException e1) {
 			// TODO Auto-generated catch block
@@ -200,6 +230,7 @@ public class DuraStoreClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return false;
     }
     
     public String reviseFilePathForDuracloud(String fileOriginalPath) {
@@ -245,7 +276,15 @@ public class DuraStoreClient {
         		String fullFileName = null;
         		String baseFileName = null;
         		String fileExtension = null;
-        		Iterator spaceContents = getFileNames(defaultContentStore, originalNameSpace);
+        		//Iterator spaceContents = getFileNames(defaultContentStore, originalNameSpace);
+        		Iterator spaceContents = null;
+        		if (originalCloudProvider.equals("Amazon S3")) {
+        			spaceContents = getFileNames(amazonS3ContentStore, originalNameSpace);
+        		}
+        		if (originalCloudProvider.equals("RACKSPACE")) {
+        			spaceContents = getFileNames(rackSpaceContentStore, originalNameSpace);
+        		}
+        		
 				ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
 				String tempDownloadDirectory = configurationFileParser.getKinduraParameters().get("TempDownloadDirectory");
 				System.out.println("[DuraStoreClient] Download directory: "+tempDownloadDirectory);
@@ -263,10 +302,24 @@ public class DuraStoreClient {
 					//duraStoreClient.downloadFile("root", nameSpaceAndPid[1], revisedFileNameForDownload, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					System.out.println("[duraStoreClient] Start to download file: "+fullFileName);
 					    
-					downloadFile(defaultContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+					//downloadFile(defaultContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+					if (originalCloudProvider.equals("Amazon S3")) {
+						downloadFile(amazonS3ContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+					}
+	        		if (originalCloudProvider.equals("RackSpace")) {
+	        			downloadFile(rackSpaceContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+					}
 					
 					File uploadFile = new File(tempDownloadDirectory + (new File(fullFileName)).getName());
+					
 					uploadFile(defaultContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+					if (originalCloudProvider.equals("Amazon S3")) {
+						uploadFile(amazonS3ContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+					}
+	        		if (originalCloudProvider.equals("RackSpace")) {
+	        			uploadFile(rackSpaceContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+					}
+	        		
 				}
 				
 				

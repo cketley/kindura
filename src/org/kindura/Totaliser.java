@@ -39,7 +39,7 @@ public class Totaliser {
 	private StatefulKnowledgeSession ourKsession;
 	private UploadCollection grandparentUploadCollection;
 	private Pricing parentPricing;
-	private CostOptimiser greatgrandparentWebApp;
+	private CostOptimiser greatgrandparentCostOpt;
 
     private Double storageUsed = 0.0;
     private Double requestsUsed = 0.0;
@@ -395,16 +395,16 @@ public class Totaliser {
 		if (debug) {System.out.println( "price : " + price );};
 		if (debug) {System.out.println( "*** storagePriceSubtotal : " + this.storagePriceSubtotal );};
 		       
-		addLineItem(greatgrandparentWebApp.getRollupTotaliserHashMap(), "storagePriceSubtotal", storagePriceSubtotal);
+		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "storagePriceSubtotal", storagePriceSubtotal);
 		costPerReplica = storagePriceSubtotal / replicas;
 		if (debug) {System.out.println( "*** costPerReplica : " + this.costPerReplica );};
-		addLineItem(greatgrandparentWebApp.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
+		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
     }
 
 	public void accumTransferLine(Double price) {
 		// this is for Transfer calculations
 		Double calcTransfer = Double.valueOf(transfersUsed);
-		
+
 		if (getBandDescription() == "") {
 			bandStart = 0.0;
 			bandEnd = 0.0;
@@ -423,30 +423,33 @@ public class Totaliser {
 
 		bandToUsageMultiplier = adjustBandVersusUsage();
 		priceToUsageMultiplier = adjustUsageVersusPrice();
-		
+
 		// should always be true because the rules should be feeding us only that data
 		if (calcTransfer > ( bandStart * bandToUsageMultiplier ) ) {
 			if (calcTransfer <= ( bandEnd * bandToUsageMultiplier )) {
 				calcTransfer -= ( bandStart * bandToUsageMultiplier );
 			} else { 
-					calcTransfer = ( bandEnd * bandToUsageMultiplier ) - ( bandStart * bandToUsageMultiplier );
+				calcTransfer = ( bandEnd * bandToUsageMultiplier ) - ( bandStart * bandToUsageMultiplier );
 			};
 		};
-		
-		// most service providers have transfer-in cost of zero
-		// so we just add up both transfer-in and transfer-out costs that drools has 
-		// found into the same subtotal even though they are for different providers
-		transfersPriceSubtotal += calcTransfer * getHowLongMonths() * price * priceToUsageMultiplier;   
-		if (debug) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
-		if (debug) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
-		if (debug) {System.out.println( "calcTransfer : " + calcTransfer );};
-		if (debug) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
-		if (debug) {System.out.println( "price : " + price );};
-		if (debug) {System.out.println( "transfersPriceSubtotal : " + this.transfersPriceSubtotal );};
-		addLineItem(greatgrandparentWebApp.getRollupTotaliserHashMap(), "transfersPriceSubtotal", transfersPriceSubtotal);
-//		costPerReplica = transfersPriceSubtotal / replicas;
-//		addLineItem(greatgrandparentWebApp.getRollupTotaliserHashMap(), "transfersCostPerReplica", costPerReplica);
-    }
+
+		// do not accumulate transfer-out for ingest
+		if ((getSubfeatureType() .equals("Transfers out") ) && (greatgrandparentCostOpt.getOpsFlag() .equals("ingest"))) {
+			;
+		} else {
+			transfersPriceSubtotal += calcTransfer * getHowLongMonths() * price * priceToUsageMultiplier;   
+			if (debug) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
+			if (debug) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
+			if (debug) {System.out.println( "calcTransfer : " + calcTransfer );};
+			if (debug) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
+			if (debug) {System.out.println( "price : " + price );};
+			if (debug) {System.out.println( "transfersPriceSubtotal : " + this.transfersPriceSubtotal );};
+			addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "transfersPriceSubtotal", transfersPriceSubtotal);
+			//		costPerReplica = transfersPriceSubtotal / replicas;
+			//		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "transfersCostPerReplica", costPerReplica);				
+		}
+	}
+
 
 	public void accumStoragetransactionsLine(Double price) {
 		// this is for Storagetransactions calculations
@@ -487,9 +490,9 @@ public class Totaliser {
 		if (debug) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
 		if (debug) {System.out.println( "price : " + price );};
 		if (debug) {System.out.println( "StoragetransactionsPriceSubtotal : " + this.storagetransactionsPriceSubtotal );};
-		addLineItem(greatgrandparentWebApp.getRollupTotaliserHashMap(), "storagetransactionsPriceSubtotal", storagetransactionsPriceSubtotal);
+		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "storagetransactionsPriceSubtotal", storagetransactionsPriceSubtotal);
 //		costPerReplica = storagetransactionsPriceSubtotal / replicas;
-//		addLineItem(greatgrandparentWebApp.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);       
+//		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);       
     }
 
 	public void accumServicebusLine(Double price) {
@@ -531,9 +534,9 @@ public class Totaliser {
 		if (debug) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
 		if (debug) {System.out.println( "price : " + price );};
  		if (debug) {System.out.println( "ServicebusPriceSubtotal : " + this.servicebusPriceSubtotal );};
-		addLineItem(greatgrandparentWebApp.getRollupTotaliserHashMap(), "servicebusPriceSubtotal", servicebusPriceSubtotal);
+		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "servicebusPriceSubtotal", servicebusPriceSubtotal);
 //		costPerReplica = servicebusPriceSubtotal / replicas;
-//		addLineItem(greatgrandparentWebApp.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
+//		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
     }
 
 	public void accumRequestsLine(Double price) {
@@ -575,9 +578,9 @@ public class Totaliser {
 		if (debug) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
 		if (debug) {System.out.println( "price : " + price );};
 		if (debug) {System.out.println( "requestsPriceSubtotal : " + this.requestsPriceSubtotal );};
-		addLineItem(greatgrandparentWebApp.getRollupTotaliserHashMap(), "requestsPriceSubtotal", requestsPriceSubtotal);
+		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "requestsPriceSubtotal", requestsPriceSubtotal);
 //		costPerReplica = requestsPriceSubtotal / replicas;
-//		addLineItem(greatgrandparentWebApp.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
+//		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
     }
 
 
@@ -929,7 +932,7 @@ public class Totaliser {
 		if (parentPricing.getIAmBlank()) {
 			iAmBlank = true;
 		}
-		if (checkDuplicateFacts(greatgrandparentWebApp.getDuplicateTotaliserHashMap())) {
+		if (checkDuplicateFacts(greatgrandparentCostOpt.getDuplicateTotaliserHashMap())) {
 			if (debug) {System.out.println("[Totaliser]: skipping due to duplicate key found");};
 			iAmBlank = true;			
 		};
@@ -961,8 +964,8 @@ public class Totaliser {
         parentPricing.setMyTotaliser(totaliserItem);
         
         totaliserItem.grandparentUploadCollection = this.grandparentUploadCollection;
-        totaliserItem.greatgrandparentWebApp = this.grandparentUploadCollection.getParentWebApp();
-//        totaliserItem.greatgrandparentWebApp = this.greatgrandparentWebApp;
+        totaliserItem.greatgrandparentCostOpt = this.grandparentUploadCollection.getParentCostOpt();
+//        totaliserItem.greatgrandparentCostOpt = this.greatgrandparentCostOpt;
 	}
 	
 	/**
@@ -1059,17 +1062,17 @@ public class Totaliser {
 	}
 
 	/**
-	 * @return the greatgrandparentWebApp
+	 * @return the greatgrandparentCostOpt
 	 */
-	public CostOptimiser getGreatgrandparentWebApp() {
-		return greatgrandparentWebApp;
+	public CostOptimiser getGreatgrandparentCostOpt() {
+		return greatgrandparentCostOpt;
 	}
 
 	/**
-	 * @param greatgrandparentWebApp the greatgrandparentWebApp to set
+	 * @param greatgrandparentCostOpt the greatgrandparentCostOpt to set
 	 */
-	public void setGreatgrandparentWebApp(CostOptimiser greatgrandparentWebApp) {
-		this.greatgrandparentWebApp = greatgrandparentWebApp;
+	public void setGreatgrandparentCostOpt(CostOptimiser greatgrandparentCostOpt) {
+		this.greatgrandparentCostOpt = greatgrandparentCostOpt;
 	}
 
 	/**
