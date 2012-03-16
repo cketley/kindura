@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with Kindura.  If not, see <http://www.gnu.org/licenses/>.
  */
 import org.kindura.*;
+
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,12 +31,6 @@ import java.util.Map;
 public class CostOptimiser
 {
 	private static final boolean debug = true;
-
-//	public static void main( String args[] )
-//	{
-//		CostOptimiser launcher = new CostOptimiser();
-//		launcher.runKindness();
-//	}
 
 	public  CostOptimiser() {
 
@@ -55,14 +51,16 @@ public class CostOptimiser
 	private HashMap<String,String> duplicateServiceMatrixHashMap = new HashMap<String,String>(300);
 	private HashMap<String,String> duplicateRegulatoryHashMap = new HashMap<String,String>(300);
 
-	private LinkedList<String> sortedIngestList;
-	private LinkedList<String> sortedMigrationList;
+	private LinkedList<String> sortedIngestList = new LinkedList<String>();
+	private LinkedList<String> sortedMigrationList = new LinkedList<String>();
 	
 	private String opsFlag;
 
 
 
-	public void suggestService(String opFlag, Map<String, String> metadata, LinkedList<String> conclusionIngestList, LinkedList<String> conclusionMigrationList) {
+	public void suggestService(String opFlag, Map<String, String> metadata, LinkedList<String> conclusionIngestList, LinkedList<String> conclusionMigrationList, LinkedList<String> conclusionDropList) {
+
+		setOpsFlag(opFlag);
 
 		String xmlPath = "C:\\Documents and Settings\\ycn94546\\My Documents\\Project_work\\kindura\\kindness\\src\\org\\kindura\\";
 		
@@ -155,19 +153,20 @@ public class CostOptimiser
 			if (debug) {System.out.println("Added storage " + p.name );};
 		}
 
-		setOpsFlag(opFlag);
 		rollupTots(myCollection);
 		sortedIngestList.clear();
-		sortedMigrationList.clear();	
+		sortedMigrationList.clear();
+		conclusionIngestList.clear();
+		conclusionMigrationList.clear();
+		conclusionDropList.clear();
 		buildCostList(myCollection, sortedIngestList, sortedMigrationList);
-		sortCostList(myCollection, sortedIngestList, sortedMigrationList);
-		// TODO pricing is undefined at this point...
-		calcReplicas(myCollection, myPricing, sortedIngestList, sortedMigrationList, conclusionIngestList, conclusionMigrationList);
+		sortCostList(myCollection, sortedIngestList, sortedMigrationList, conclusionDropList);
+		calcReplicas(myCollection, metadata, sortedIngestList, sortedMigrationList, conclusionIngestList, conclusionMigrationList, conclusionDropList);
 //		decideCostList(myCollection, sortedIngestList, sortedMigrationList);
 		// sort it again just in case
-		sortCostList(myCollection, conclusionIngestList, conclusionMigrationList);
+		// no don't sort it 
+//		sortCostList(myCollection, conclusionIngestList, conclusionMigrationList, conclusionDropList);
 
-		// TODO - a proper destructor here 
 		myPricing.destructorPricing();
 
 	}
@@ -284,30 +283,6 @@ public class CostOptimiser
 		Integer frontendTxtPosition = 0;
 		Integer frontendTxtSPpos = 0;
 		String serviceProviderAccount = "";
-
-		Integer firstpartTxtLength = 0;
-		Integer firstpartTxtPosition = 0;
-		String firstpartTxt = "";
-
-		Integer secondpartTxtLength = 0;
-		Integer secondpartTxtPosition = 0;
-		String secondpartTxt = "";
-
-		Integer thirdpartTxtLength = 0;
-		Integer thirdpartTxtPosition = 0;
-		String thirdpartTxt = "";
-
-		Integer fourthpartTxtLength = 0;
-		Integer fourthpartTxtPosition = 0;
-		String fourthpartTxt = "";
-		
-		Integer fifthpartTxtLength = 0;
-		Integer fifthpartTxtPosition = 0;
-		String fifthpartTxt = "";
-		
-		Integer sixthpartTxtLength = 0;
-		Integer sixthpartTxtPosition = 0;
-		String sixthpartTxt = "";
 		
 		String txtSP = "";
 		String txtReg = "";
@@ -324,6 +299,8 @@ public class CostOptimiser
 		Double calcCostPerReplica = 0.0;
 		Double calcIngestTotal = 0.0;
 		Double calcMigrationTotal = 0.0;
+		Double calcIngestApportioned = 0.0;
+		Double calcMigrationApportioned = 0.0;
 		Double valNumber = 0.0;
 		String valText = "";
 
@@ -360,36 +337,6 @@ public class CostOptimiser
 			txtSubfeature = popString(keyPart, 5);
 			txtReplicas = popString(keyPart, 6);
 						
-//			firstpartTxtPosition = frontendTxt.indexOf("|");
-//			firstpartTxtLength = frontendTxt.length() - firstpartTxtPosition;
-//			txtSP = frontendTxt.substring(0, firstpartTxtPosition);
-//			firstpartTxt = frontendTxt.substring(firstpartTxtPosition + 1, frontendTxt.length());
-//
-//			secondpartTxtPosition = firstpartTxt.indexOf("|");
-//			secondpartTxtLength = firstpartTxt.length() - secondpartTxtPosition;
-//			txtReg = firstpartTxt.substring(0, secondpartTxtPosition);
-//			secondpartTxt = firstpartTxt.substring(secondpartTxtPosition + 1, firstpartTxt.length());
-//
-//			thirdpartTxtPosition = secondpartTxt.indexOf("|");
-//			thirdpartTxtLength = secondpartTxt.length() - thirdpartTxtPosition;	
-//			txtPayPlan = secondpartTxt.substring(0, thirdpartTxtPosition);
-//			thirdpartTxt = secondpartTxt.substring(thirdpartTxtPosition + 1, secondpartTxt.length());
-//
-//			fourthpartTxtPosition = thirdpartTxt.indexOf("|");
-//			fourthpartTxtLength = thirdpartTxt.length() - fourthpartTxtPosition;
-//			txtFeature = thirdpartTxt.substring(0, fourthpartTxtPosition);
-//			fourthpartTxt = thirdpartTxt.substring(fourthpartTxtPosition + 1, thirdpartTxt.length());
-//			
-//			fifthpartTxtPosition = fourthpartTxt.indexOf("|");
-//			fifthpartTxtLength = fourthpartTxt.length() - fifthpartTxtPosition;
-//			txtSubfeature = fourthpartTxt.substring(0, fifthpartTxtPosition);
-//			fifthpartTxt = fourthpartTxt.substring(fifthpartTxtPosition + 1, fourthpartTxt.length());
-//			
-//			sixthpartTxtPosition = fifthpartTxt.indexOf("|");
-//			sixthpartTxtLength = fifthpartTxt.length() - sixthpartTxtPosition;
-//			txtReplicas = fifthpartTxt.substring(0, sixthpartTxtPosition);
-//			sixthpartTxt = fifthpartTxt.substring(sixthpartTxtPosition + 1, fifthpartTxt.length());
-			
 			serviceProviderAccount = txtSP + "|" + txtReg + "|" + txtPayPlan;
 			
 			if ( backendTxt .equals("storagePriceSubtotal")) {
@@ -426,14 +373,18 @@ public class CostOptimiser
 
 			// most service providers have transfer-in cost of zero
 			// so we just add up both transfer-in and transfer-out costs that drools has 
-			// found into the same subtotal even though they are for different providers
+			// found into the same subtotal for migration even though having both is impossible
 
 			calcIngestTotal = calcStoragePriceSubtotal + calcRequestsPriceSubtotal + calcTransfersPriceSubtotal + calcServicebusPriceSubtotal + calcStoragetransactionsPriceSubtotal;
 			calcMigrationTotal = calcTransfersPriceSubtotal + calcStoragePriceSubtotal + calcRequestsPriceSubtotal + calcServicebusPriceSubtotal + calcStoragetransactionsPriceSubtotal;
+			calcIngestApportioned = calcCostPerReplica + calcRequestsPriceSubtotal + calcTransfersPriceSubtotal + calcServicebusPriceSubtotal + calcStoragetransactionsPriceSubtotal;
+			calcMigrationApportioned = calcTransfersPriceSubtotal + calcCostPerReplica + calcRequestsPriceSubtotal + calcServicebusPriceSubtotal + calcStoragetransactionsPriceSubtotal;
+
 			if (debug) {System.out.println("[Cost Optimiser]: calcIngestTotal is " + calcIngestTotal + " for key " + keyPart ); };
 			if (debug) {System.out.println("[Cost Optimiser]: calcMigrationTotal is " + calcMigrationTotal + " for key " + keyPart ); };
 
 			
+			// TODO replicas should not be in the key
 			frontendTxt1 = serviceProviderAccount + "|" + txtReplicas + "|IngestTotal";
 			if ( getRollupServiceHashMap().containsKey(frontendTxt1)) { 
 				valText = getRollupServiceHashMap().get(frontendTxt1);
@@ -443,7 +394,17 @@ public class CostOptimiser
 			} else {
 				getRollupServiceHashMap().put(frontendTxt1, String.valueOf(calcIngestTotal));					
 			}
-//			sortedIngestList.add(calcIngestTotal + "|" + serviceProviderAccount + "|" + "US$");
+			frontendTxt1 = serviceProviderAccount + "|" + txtReplicas + "|IngestApportioned";
+			if ( getRollupServiceHashMap().containsKey(frontendTxt1)) { 
+				valText = getRollupServiceHashMap().get(frontendTxt1);
+				valNumber = Double.parseDouble(valText);
+				valNumber += calcIngestApportioned;
+				getRollupServiceHashMap().put(frontendTxt1, String.valueOf(valNumber));
+			} else {
+				getRollupServiceHashMap().put(frontendTxt1, String.valueOf(calcIngestApportioned));					
+			}
+
+			//			sortedIngestList.add(calcIngestTotal + "|" + serviceProviderAccount + "|" + "US$");
 
 			frontendTxt2 = serviceProviderAccount + "|" + txtReplicas + "|MigrationTotal";
 			if ( getRollupServiceHashMap().containsKey(frontendTxt2)) { 
@@ -454,10 +415,19 @@ public class CostOptimiser
 			} else {
 				getRollupServiceHashMap().put(frontendTxt2, String.valueOf(calcMigrationTotal));					
 			}
+			frontendTxt2 = serviceProviderAccount + "|" + txtReplicas + "|MigrationApportioned";
+			if ( getRollupServiceHashMap().containsKey(frontendTxt2)) { 
+				valText = getRollupServiceHashMap().get(frontendTxt2);
+				valNumber = Double.parseDouble(valText);
+				valNumber += calcMigrationApportioned;
+				getRollupServiceHashMap().put(frontendTxt2, String.valueOf(valNumber));
+			} else {
+				getRollupServiceHashMap().put(frontendTxt2, String.valueOf(calcMigrationApportioned));					
+			}
 //			sortedMigrationList.add(calcMigrationTotal + "|" + serviceProviderAccount + "|" + "US$");
 		}
 
-		if (debug) {System.out.println("[Cost Optimiser]: *** end walk rollupTotaliserHashMap");};		
+		if (debug) {System.out.println("[Cost Optimiser]: *** after walk rollupTotaliserHashMap");};		
 
 	}
 
@@ -466,26 +436,18 @@ public class CostOptimiser
 		String keyPart = "";
 		String valPart = "";
 		String backendTxt = "";
-//		String frontendTxt = "";
-//		String frontendTxt1 = "";
-//		String frontendTxt2 = "";
 		String frontendTxtSP = "";
-//		String frontendTxtPP = "";
-//		String frontendTxtREG = "";
-//		Integer backendTxtPosition = 0;
-//		Integer backendTxtLength = 0;
-//		Integer keyPartLength = 0;
-//		Integer frontendTxtLength = 0;
-//		Integer frontendTxtPosition = 0;
-//		Integer frontendTxtSPpos = 0;
 
 		Double calcIngestTotal = 0.0;
 		Double calcMigrationTotal = 0.0;
-		
+	
+		BigDecimal cost;
+		String costSortable;
+
 		// the previous loop rolled up the totals by SP/region/Payment plan.
 		// Now we go through it building a list of costs plus 
 		// SP/region/Payment as key ready for sorting into cost sequence.
-		if (debug) {System.out.println("[Cost Optimiser]: *** before walk rollupTotaliserHashMap");};
+		if (debug) {System.out.println("[Cost Optimiser]: *** before walk rollupServiceHashMap");};
 		Iterator trot = this.getRollupServiceHashMap().entrySet().iterator();
 		while (trot.hasNext()) {
 			Map.Entry pairs = (Map.Entry)trot.next();
@@ -494,58 +456,51 @@ public class CostOptimiser
 
 			if (debug) {System.out.println("[Cost Optimiser]: keyPart is " + keyPart);};
 			if (debug) {System.out.println("[Cost Optimiser]: valPart is " + valPart);};
-			// finds the last occurrence of the separator
-//			backendTxtPosition = keyPart.lastIndexOf("|") + 1;
-//			backendTxtLength = keyPart.length() - backendTxtPosition;
-//			backendTxt = keyPart.substring(backendTxtPosition, keyPart.length());
-//			frontendTxtSPpos = backendTxtPosition - 1;
-//			frontendTxtSP = keyPart.substring(0, frontendTxtSPpos);
 			
 			// this is operFlag type
 			backendTxt = dequeueString(keyPart, 1);
 			// this is SP, Reg, PayPlan, Replicas
+			// TODO replicas should not be in the key
 			frontendTxtSP = popString(keyPart, 1) + "|" + popString(keyPart, 2) + "|" + popString(keyPart, 3) + "|" + popString(keyPart, 4);
 			if (debug) {System.out.println("[Cost Optimiser]: backendTxt is " + backendTxt);};
 			if (debug) {System.out.println("[Cost Optimiser]: frontendTxtSP is " + frontendTxtSP);};
 			
 			
-			if ( backendTxt .equals("IngestTotal")) {
+			if ( backendTxt .equals("IngestApportioned")) {
 				calcIngestTotal = Double.parseDouble(valPart);
-				if (debug) {System.out.println("[Cost Optimiser]: calcIngestTotal is " + calcIngestTotal + " for key " + keyPart);};
+				cost = BigDecimal.valueOf(calcIngestTotal);
+				// amounts are rounded up so that very tiny fractions of one penny appear as at
+				// least 1p or 1cent.
+				cost = cost.setScale(2, BigDecimal.ROUND_UP);
+				costSortable = String.format("%10.02f", cost);
+
+				if (debug) {System.out.println("[Cost Optimiser]: calcIngestTotal is " + calcIngestTotal + " for key " + frontendTxtSP);};
+				if (debug) {System.out.println("[Cost Optimiser]: rounded Cost is " + costSortable );};
 				// store all lines for ingest - decide later which to use
 				// force currency to US$ for now
-				sortedIngestList.add(calcIngestTotal + "|" + frontendTxtSP + "|" + "US$");
-//				int compareDouble = Double.compare(calcIngestTotal, rqstHandler.getCheapestIngestValue());
-//				if ( (calcIngestTotal > 0.0) && ( compareDouble < 0 ) ) {
-//					rqstHandler.setCheapestIngestValue(calcIngestTotal);
-//					// nb we store the other key without the trailing Ingest text
-//					rqstHandler.setCheapestIngestKey(frontendTxtSP);
-//					// TODO bodge up the currency for now
-//					rqstHandler.setCheapestIngestValueCurrency("US$");
-//					if (debug) {System.out.println("[Cost Optimiser]: cheaper Ingest with " + rqstHandler.getCheapestIngestValue() + " for key " + rqstHandler.getCheapestIngestKey());};
-//				}
+				sortedIngestList.add(costSortable + "|" + frontendTxtSP + "|" + "US$");
 			} else {
-				if ( backendTxt .equals("MigrationTotal")) {
+				if ( backendTxt .equals("MigrationApportioned")) {
 					calcMigrationTotal = Double.parseDouble(valPart);
-					if (debug) {System.out.println("[Cost Optimiser]: calcMigrationTotal is " + calcMigrationTotal + " for key " + keyPart);};
+					cost = BigDecimal.valueOf(calcMigrationTotal);
+					// amounts are rounded up so that very tiny fractions of one penny appear as at
+					// least 1p or 1cent.
+					cost = cost.setScale(2, BigDecimal.ROUND_UP);
+					costSortable = String.format("%10.02f", cost);
+
+					if (debug) {System.out.println("[Cost Optimiser]: calcMigrationTotal is " + calcMigrationTotal + " for key " + frontendTxtSP);};
+					if (debug) {System.out.println("[Cost Optimiser]: rounded Cost is " + costSortable );};
 					// store all migrations 
 					// force currency to US$ for now
-					sortedMigrationList.add(calcMigrationTotal + "|" + frontendTxtSP + "|" + "US$");
-//					int compareDouble2 = Double.compare(calcMigrationTotal, rqstHandler.getCheapestMigrationValue());
-//					if ( (calcMigrationTotal > 0.0) && ( compareDouble2 < 1 ) ) {
-//						rqstHandler.setCheapestMigrationValue(calcMigrationTotal);
-//						// nb we store the other key without the trailing Migration text
-//						rqstHandler.setCheapestMigrationKey(frontendTxtSP);
-//						// TODO bodge up the currency for now
-//						rqstHandler.setCheapestMigrationValueCurrency("US$");
-//						if (debug) {System.out.println("[Cost Optimiser]: cheaper Migration with " + rqstHandler.getCheapestMigrationValue() + " for key " + rqstHandler.getCheapestMigrationKey());};
-//					}
+					sortedMigrationList.add(costSortable + "|" + frontendTxtSP + "|" + "US$");
 				}
 			}
 		}		
+		if (debug) {System.out.println("[Cost Optimiser]: *** after walk rollupServiceHashMap");};		
+
 	}
 
-	private void sortCostList(UploadCollection myCollection, LinkedList<String> unsortedIngestList, LinkedList<String> unsortedMigrationList) {
+	private void sortCostList(UploadCollection myCollection, LinkedList<String> unsortedIngestList, LinkedList<String> unsortedMigrationList, LinkedList<String> unsortedDropList) {
 
 		// we're not storing objects in the list because we'd have to have
 		// a special comparator to do the sort
@@ -553,6 +508,7 @@ public class CostOptimiser
 		// sort this into ascending cost sequence
 		Collections.sort(unsortedIngestList);
 		Collections.sort(unsortedMigrationList);
+		Collections.sort(unsortedDropList);
 		
 //		if (debug) {System.out.println("[Cost Optimiser]: Overall cheapest Ingest is " + rqstHandler.getCheapestIngestValue() + " for key " + rqstHandler.getCheapestIngestKey());};
 //		if (debug) {System.out.println("[Cost Optimiser]: Overall cheapest Migration is " + rqstHandler.getCheapestMigrationValue() + " for key " + rqstHandler.getCheapestMigrationKey());};
@@ -560,12 +516,13 @@ public class CostOptimiser
 	}
 
 
-	private void calcReplicas(UploadCollection myCollctn, Pricing myPricerite, LinkedList<String> sortedIngestList, LinkedList<String> sortedMigrationList, LinkedList<String> conclusionIngestList, LinkedList<String> conclusionMigrationList) {
+	private void calcReplicas(UploadCollection myCollctn, Map<String, String> inputMetadata, LinkedList<String> sortedIngestList, LinkedList<String> sortedMigrationList, LinkedList<String> conclusionIngestList, LinkedList<String> conclusionMigrationList, LinkedList<String> conclusionDropList) {
 
 		// this is how many copies are demanded by user
 		Integer copiesSoFar = myCollctn.getMinCopies();
 		
 		String migrData = "";
+		Double offeredIngestVal = 0.0;
 		Double offeredMigrVal = 0.0;
 		String offeredCurr = "";
 		String offeredSP = "";
@@ -573,74 +530,185 @@ public class CostOptimiser
 		String offeredPayPlan = "";
 		String offeredReplicas = "";
 		
+		// old data refers to data already present in cloud so not relevant to ingest
+		String oldSvcPrvRegAcct = "";
+		String oldSP = "";
+		String oldReg = "";
+		String oldPayPlan = "";
+		String offeredSvcPrvRegAcct = "";
+		
+		String frontendTxt1 = "";
+		
+		BigDecimal cost;
+		String costSortableIngest;
+		String costSortableMigr;
+
+		
+		boolean first_time_thru = true;
+			
+		if ( ! inputMetadata.containsKey("svcPrvAccountDetails") ) {
+			oldSvcPrvRegAcct = "|||";
+		} else {
+			oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails");			
+		};
+		oldSP = popString(oldSvcPrvRegAcct,1);
+		oldReg = popString(oldSvcPrvRegAcct,2);
+		oldPayPlan = popString(oldSvcPrvRegAcct,3);			
+		
 		Iterator wander = sortedMigrationList.iterator();
-		while (wander.hasNext()) {
+		while ( (wander.hasNext()) && (copiesSoFar > 0)){
 			
 			migrData = (String)wander.next();
-			// TODO the subtotal cost doesn't take into account the cost per replica
-			offeredMigrVal = Double.valueOf(popString(migrData, 1));
-			offeredCurr = popString(migrData, 5);
+			
 			offeredSP = popString(migrData, 2);
 			offeredReg = popString(migrData, 3);
 			offeredPayPlan = popString(migrData, 4);
+			offeredCurr = popString(migrData, 6);
 			// this is how many copies are offered by Service Provider
-			offeredReplicas = popString(migrData, 6);
+			offeredReplicas = popString(migrData, 5);
 			
+			// we have to lookup the full cost to replace the cost per replica
+			frontendTxt1 = offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + offeredReplicas + "|IngestTotal";
+			if ( getRollupServiceHashMap().containsKey(frontendTxt1)) { 
+				offeredIngestVal = Double.valueOf(getRollupServiceHashMap().get(frontendTxt1));
+			} else {
+				offeredIngestVal = 0.0;
+			}
+			frontendTxt1 = offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + offeredReplicas + "|MigrationTotal";
+			if ( getRollupServiceHashMap().containsKey(frontendTxt1)) { 
+				offeredMigrVal = Double.valueOf(getRollupServiceHashMap().get(frontendTxt1));
+			} else {
+				offeredMigrVal = 0.0;
+			}
+			offeredSvcPrvRegAcct = offeredSP + "|" + offeredReg + "|" + offeredPayPlan;
+			
+			// amounts are rounded up so that very tiny fractions of one penny appear as at
+			// least 1p or 1cent.
+			cost = BigDecimal.valueOf(offeredIngestVal);
+			cost = cost.setScale(2, BigDecimal.ROUND_UP);
+			costSortableIngest = String.format("%08.02f", cost);
+			cost = BigDecimal.valueOf(offeredMigrVal);
+			cost = cost.setScale(2, BigDecimal.ROUND_UP);
+			costSortableMigr = String.format("%08.02f", cost);
+
+			
+			if ( (first_time_thru) && (offeredSvcPrvRegAcct .equals(oldSvcPrvRegAcct)) ) {
+				// the original prices are the best - so quit looking
+				break;
+			} else if (offeredSvcPrvRegAcct .equals(oldSvcPrvRegAcct)) {
+				// ignore this item - it is itself
+				continue;
+			} else if ( (offeredSP .equals(oldSP)) && ! (offeredReg .equals(oldReg)) ) {
+				// ignore this item - we can't do regional transfers inside one service provider at the 
+				// moment because it confuses fedora
+				continue;
+			} else if ( (getOpsFlag() .equals("ingest")) && ! (offeredIngestVal > 0.0)) {
+				// ignore items with zero amounts - they must be corrupt
+				continue;
+				// this is for migrations
+			} else if ( ! (getOpsFlag() .equals("ingest")) && ! (offeredMigrVal > 0.0)) {
+				// ignore items with zero amounts - they must be corrupt
+				continue;
+			}
 			if (copiesSoFar > Integer.parseInt(offeredReplicas) ) {
 				// this datacentre does not offer enough replicas to consume all of this SP line so we need another datacentre to store it
-				if (getOpsFlag() .equals("ingest")) {
-					conclusionIngestList.add(offeredMigrVal + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
-				} else {
-					conclusionMigrationList.add(offeredMigrVal + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
-				};
 				copiesSoFar -= Integer.parseInt(offeredReplicas);
+				
 			} else {
 				// this datacentre offers more than enough replicas to consume all of this SP line
-				if (getOpsFlag() .equals("ingest")) {
-					// we can't subdivide the standard number of replicas at a datacentre so take all that are offered
-					conclusionIngestList.add(offeredMigrVal + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
-				} else {
-					conclusionMigrationList.add(offeredMigrVal + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);					
-				};
 				copiesSoFar = 0;
-				break;
 			};
+			if (getOpsFlag() .equals("ingest")) {
+				conclusionIngestList.add(costSortableIngest + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
+			} else {
+				conclusionMigrationList.add(costSortableMigr + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
+				conclusionDropList.add(costSortableMigr + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
+			};
+			
+			first_time_thru = false;
 
 		}
 	}
 	
 
-	private String popString(String migrData, Integer seq) {
+	public String popString(String migrData, Integer seq) {
 
 		// positions are relative to 1
-		Integer x = 0;
+		Integer x = 1;
+		if ( migrData .isEmpty()) {
+			migrData = "|";
+		}
 		String txtPop = migrData;
+		String tmpPop = txtPop;
 
-		for (x = 0 ; x < seq + 1 ; ){
-			txtPop = txtPop.substring(0, (txtPop.length() - txtPop.indexOf("|")));
+		for (x = 1 ; x < seq ; x++ ){
+			// force an exit when no more data to pop
+			if ( ! ( (tmpPop.indexOf("|")) > 0 )) {
+				x = seq;
+				continue;
+			} else {
+				try {
+					tmpPop = tmpPop.substring(tmpPop.indexOf("|") + 1, tmpPop.length());			
+				} catch (Exception e) {
+					tmpPop = "";
+				}
+			}
 		};
+		if ( ! ( (tmpPop.indexOf("|")) > 0 )) {
+			tmpPop = tmpPop.substring(0, tmpPop.length());
+		} else {
+			try {
+				txtPop = tmpPop.substring( 0, tmpPop.indexOf("|") );
+			} catch (Exception e) {
+				txtPop = "";
+			}
+		}
+
 		return txtPop;
 
 	}
 
 
-	private String dequeueString(String migrData, Integer seq) {
+	public String dequeueString(String migrData, Integer seq) {
 
 		// positions are relative to 1
-		Integer x = 0;
+		Integer x = 1;
+		if ( migrData .isEmpty()) {
+			migrData = "|";
+		}
 		String txtPop = migrData;
+		String tmpPop = txtPop;
 
-		for (x = 0 ; x < seq + 1 ; ){
-			txtPop = txtPop.substring((txtPop.length() - txtPop.lastIndexOf("|") + 1), txtPop.length());
+		for (x = 1 ; x < seq ; x++ ){
+			// force an exit when no more data to dequeue
+			if ( ! ( (tmpPop.lastIndexOf("|")) > 0 )) {
+				x = seq;
+				continue;
+			} else {
+				try {
+					tmpPop = tmpPop.substring(0, tmpPop.lastIndexOf("|") - 1);
+				} catch (Exception e) {
+					txtPop = "";
+				}
+			}
 		};
+		if ( ! ( (tmpPop.lastIndexOf("|")) > 0 )) {
+			tmpPop = tmpPop.substring(0, tmpPop.length());
+		} else {
+			try {
+				txtPop = tmpPop.substring(tmpPop.lastIndexOf("|") + 1, tmpPop.length());
+			} catch (Exception e) {
+				txtPop = "";
+			}
+		}
 		return txtPop;
 
 	}
 
-	private void decideCostList(UploadCollection myCollection, LinkedList<String> sortedIngestList, LinkedList<String> sortedMigrationList) {
-		// TODO Auto-generated method stub
-		
-	}
+//	private void decideCostList(UploadCollection myCollection, LinkedList<String> sortedIngestList, LinkedList<String> sortedMigrationList) {
+//		// TODO Auto-generated method stub
+//		
+//	}
 
 
 }

@@ -64,12 +64,6 @@ public class UploadRequestHandler extends HttpServlet {
 	// values
 	private String operationFlag = "ingest";
 	
-	Double cheapestIngestValue = 999999999.9;
-	String cheapestIngestValueCurrency = "US$";
-	String cheapestIngestKey = "";
-	Double cheapestMigrationValue = 999999999.9;
-	String cheapestMigrationValueCurrency = "US$";
-	String cheapestMigrationKey = "";
 	Double storageUsedTot = 0.0;
 	
 
@@ -105,6 +99,14 @@ public class UploadRequestHandler extends HttpServlet {
 		//Initialization for chunk management.
 		boolean bLastChunk = false;
 		int numChunk = 0;
+
+		String ingestData = "";
+		Double suggestedIngestVal = 0.0;
+		String suggestedCurr = "";
+		String suggestedSP = "";
+		String suggestedReg = "";
+		String suggestedPayPlan = "";
+		String suggestedReplicas = "";
 
 		//CAN BE OVERRIDEN BY THE postURL PARAMETER: if error=true is passed as a parameter on the URL
 		boolean generateError = false;  
@@ -204,6 +206,7 @@ public class UploadRequestHandler extends HttpServlet {
 				Map<String, String> inputMetadata = new HashMap<String, String>();
 				LinkedList<String> concludedIngestList = new LinkedList<String>();
 				LinkedList<String> concludedMigrationList = new LinkedList<String>();
+				LinkedList<String> concludedDropList = new LinkedList<String>();
 
 
 				// we are going to now iterate thru the list twice over.
@@ -217,8 +220,6 @@ public class UploadRequestHandler extends HttpServlet {
 				// We will just have to live with that - there's a limit to what
 				// we can do without tying ourselves in knots
 				String serviceProviderAccount = "";
-				Double minimalCost = 0.0;
-				String minimalCostCurrency = "";
 
 				while (trundle.hasNext()) {
 					userResponse = (FileItem) trundle.next();
@@ -337,6 +338,7 @@ public class UploadRequestHandler extends HttpServlet {
 									inputMetadata.put(keyPart, valPart);									
 								}
 						}
+						
 						// TODO the file size on disk is Bytes, but we need it in TB for the
 						// drools band selection which is a design weakness to be fixed one day
 						storageUsedTot /= 1000000000000.0;
@@ -355,12 +357,8 @@ public class UploadRequestHandler extends HttpServlet {
 							// the other data required is held in inputMetadata
 							concludedIngestList.clear();
 							concludedMigrationList.clear();
-							costOpt.suggestService(operationFlag, inputMetadata, concludedIngestList, concludedMigrationList);
-							minimalCost = getCheapestIngestValue();
-							minimalCostCurrency = getCheapestIngestValueCurrency();
-							// TODO bodge this to US dollars for now
-							minimalCostCurrency = "US$";
-							serviceProviderAccount = getCheapestIngestKey();
+							costOpt.suggestService(operationFlag, inputMetadata, concludedIngestList, concludedMigrationList, concludedDropList);
+							
 						} else if (operationFlag .equals("migrate-across") ) {
 							// migrate-across means remove from one and upload to a cheaper location
 							// shouldn't be here
@@ -533,62 +531,126 @@ public class UploadRequestHandler extends HttpServlet {
 						///////////////////////////////////////////////////////////////////////////////////////////////////////
 						//DuraCloud operations.
 						//
-						filePathOfDuraCloud = duraStoreClient.reviseFilePathForDuracloud(fileOriginalPath);
-						//Create a new namespace if the namespace does not exist.
-						Map<String, String> spaceMetadata = new HashMap<String, String>();
-						if (duraStoreClient.isNameSpaceExisted("Amazon S3", nameSpace) == false) {
-							duraStoreClient.createNamespace("Amazon S3", nameSpace, spaceMetadata);
-						}
-						if (duraStoreClient.isNameSpaceExisted("RackSpace", nameSpace) == false) {
-							duraStoreClient.createNamespace("RackSpace", nameSpace, spaceMetadata);
-						}
-						if (duraStoreClient.isNameSpaceExisted("iRODS", nameSpace) == false) {
-							duraStoreClient.createNamespace("iRODS", nameSpace, spaceMetadata);
-						}
 						
-				
-						//Upload the file to the Cloud.
-						//duraStoreClient.uploadFile(duraStoreClient.defaultContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+						ingestData = "";
+						suggestedIngestVal = 0.0;
+						suggestedCurr = "";
+						suggestedSP = "";
+						suggestedReg = "";
+						suggestedPayPlan = "";
+						suggestedReplicas = "";
 						
-						duraStoreClient.uploadFile(duraStoreClient.amazonS3ContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
-						duraStoreClient.uploadFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
-						
-						//duraStoreClient.uploadFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
-						
-						System.out.println("filePathOfDuraCloud/fileName "+filePathOfDuraCloud+"/"+fileName);
-						
-						if ((bmpToJPG == true) || (tiffToJPG == true)) {
-							System.out.println("[UploadRequestHandler] bmp to jpg is "+bmpToJPG+" tiffToJPG is "+tiffToJPG+". Image transformer is started.");
-							DuraServiceClient duraServiceClient = new DuraServiceClient();
-							duraServiceClient.runImageTransformerOverSpace(collectionName, collectionName, filePathOfDuraCloud+"/"+fileName, bmpToJPG, tiffToJPG);
-							if (isFileConverted(duraStoreClient.defaultContentStore, collectionName, filePathOfDuraCloud+"/"+fileName) == true) {
-								System.out.println("[UploadRequestHandler] file "+filePathOfDuraCloud+"/"+fileName+" has been converted. Change file extension in Fedora repository.");
-								fileNameExtension = "jpg";
-								duraStoreClient.defaultContentStore.deleteContent(collectionName, filePathOfDuraCloud+"/"+fileName);
-								System.out.println("[UploadRequestHandler] file "+filePathOfDuraCloud+"/"+fileName+" has been deleted.");
-							} else {
-								System.out.println("[UploadRequestHandler] file "+filePathOfDuraCloud+"/"+fileName+" has NOT been converted.");
+						Iterator wanderator = concludedIngestList.iterator();
+						while (wanderator.hasNext()) {
+
+							ingestData = (String)wanderator.next();
+							suggestedIngestVal = Double.valueOf(costOpt.popString(ingestData, 1));
+							suggestedCurr = costOpt.popString(ingestData, 6);
+							suggestedSP = costOpt.popString(ingestData, 2);
+							suggestedReg = costOpt.popString(ingestData, 3);
+							suggestedPayPlan = costOpt.popString(ingestData, 4);
+							// this is how many copies are offered by Service Provider
+							suggestedReplicas = costOpt.popString(ingestData, 5);
+
+							// this munges the filepath of the file so fedora can handle it correctly
+							filePathOfDuraCloud = duraStoreClient.reviseFilePathForDuracloud(fileOriginalPath);
+							//Create a new namespace if the namespace does not exist.
+							// The nameSpace variable passed across is actually the collection name.
+							Map<String, String> spaceMetadata = new HashMap<String, String>();
+							if ( (suggestedSP .equals("Amazon S3")) && (duraStoreClient.isNameSpaceExisted("Amazon S3", nameSpace) == false) ) {
+								duraStoreClient.createNamespace("Amazon S3", nameSpace, spaceMetadata);
+								duraStoreClient.uploadFile(duraStoreClient.amazonS3ContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
 							}
-						} 
+							if ( (suggestedSP .equals("Rackspace Cloud Files")) && (duraStoreClient.isNameSpaceExisted("Rackspace Cloud Files", nameSpace) == false) ) {
+								duraStoreClient.createNamespace("Rackspace Cloud Files", nameSpace, spaceMetadata);
+								duraStoreClient.uploadFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+							}
+							if ( (suggestedSP .equals("iRODS")) && (duraStoreClient.isNameSpaceExisted("iRODS", nameSpace) == false) ) {
+								duraStoreClient.createNamespace("iRODS", nameSpace, spaceMetadata);
+								duraStoreClient.uploadFile(duraStoreClient.iRODSContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+							}
+							if ( (suggestedSP .equals("Google Cloud Storage")) && (duraStoreClient.isNameSpaceExisted("Google Cloud Storage", nameSpace) == false) ) {
+								duraStoreClient.createNamespace("Google Cloud Storage", nameSpace, spaceMetadata);
+								duraStoreClient.uploadFile(duraStoreClient.googleCloudStorageContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+							}
+							if ( (suggestedSP .equals("Azure")) && (duraStoreClient.isNameSpaceExisted("Azure", nameSpace) == false) ) {
+								duraStoreClient.createNamespace("Azure", nameSpace, spaceMetadata);
+								duraStoreClient.uploadFile(duraStoreClient.azureContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+							}
+							if ( (suggestedSP .equals("SDSC")) && (duraStoreClient.isNameSpaceExisted("SDSC", nameSpace) == false) ) {
+								duraStoreClient.createNamespace("SDSC", nameSpace, spaceMetadata);
+								duraStoreClient.uploadFile(duraStoreClient.sdscContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+							}
+
+
+							//Upload the file to the Cloud.
+							//duraStoreClient.uploadFile(duraStoreClient.defaultContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+
+//							duraStoreClient.uploadFile(duraStoreClient.amazonS3ContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+//							duraStoreClient.uploadFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+
+							//duraStoreClient.uploadFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+
+							System.out.println("filePathOfDuraCloud/fileName "+filePathOfDuraCloud+"/"+fileName);
+
+							if ((bmpToJPG == true) || (tiffToJPG == true)) {
+								System.out.println("[UploadRequestHandler] bmp to jpg is "+bmpToJPG+" tiffToJPG is "+tiffToJPG+". Image transformer is started.");
+								DuraServiceClient duraServiceClient = new DuraServiceClient();
+								duraServiceClient.runImageTransformerOverSpace(collectionName, collectionName, filePathOfDuraCloud+"/"+fileName, bmpToJPG, tiffToJPG);
+								if (isFileConverted(duraStoreClient.defaultContentStore, collectionName, filePathOfDuraCloud+"/"+fileName) == true) {
+									System.out.println("[UploadRequestHandler] file "+filePathOfDuraCloud+"/"+fileName+" has been converted. Change file extension in Fedora repository.");
+									fileNameExtension = "jpg";
+									duraStoreClient.defaultContentStore.deleteContent(collectionName, filePathOfDuraCloud+"/"+fileName);
+									System.out.println("[UploadRequestHandler] file "+filePathOfDuraCloud+"/"+fileName+" has been deleted.");
+								} else {
+									System.out.println("[UploadRequestHandler] file "+filePathOfDuraCloud+"/"+fileName+" has NOT been converted.");
+								}
+							} 
+						
+						}
 						//
 						// End of DuraCloud operations.
 						///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 						
 						///////////////////////////////////////////////////////////////////////////////////////////////////////
 						//Fedora operations.
 						//
 						
-						fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, minimalCost, minimalCostCurrency, serviceProviderAccount, storageUsedTot, operationFlag);
-						fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedAccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, "RackSpace");
-						
-						HashMap<String, String> parentFolderNameAndPID = fedoraServiceManager.handleFolderObject(projectName, collectionName, collectionPID, fileName, fileOriginalPath);
-						
-						for (Map.Entry<String, String> entry : parentFolderNameAndPID.entrySet()) {
-							parentFolderName = entry.getKey();
-							parentFolderPID = entry.getValue();
+						ingestData = "";
+						suggestedIngestVal = 0.0;
+						suggestedCurr = "";
+						suggestedSP = "";
+						suggestedReg = "";
+						suggestedPayPlan = "";
+						suggestedReplicas = "";
+
+						Iterator wanderise = concludedIngestList.iterator();
+						while (wanderise.hasNext()) {
+
+							ingestData = (String)wanderise.next();
+							suggestedIngestVal = Double.valueOf(costOpt.popString(ingestData, 1));
+							suggestedSP = costOpt.popString(ingestData, 2);
+							suggestedReg = costOpt.popString(ingestData, 3);
+							suggestedPayPlan = costOpt.popString(ingestData, 4);
+							suggestedCurr = costOpt.popString(ingestData, 6);
+							// this is how many copies are offered by Service Provider
+							suggestedReplicas = costOpt.popString(ingestData, 5);
+							
+							serviceProviderAccount = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;
+
+							fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedIngestVal, suggestedCurr, serviceProviderAccount, storageUsedTot, operationFlag);
+
+							HashMap<String, String> parentFolderNameAndPID = fedoraServiceManager.handleFolderObject(projectName, collectionName, collectionPID, fileName, fileOriginalPath);
+
+							for (Map.Entry<String, String> entry : parentFolderNameAndPID.entrySet()) {
+								parentFolderName = entry.getKey();
+								parentFolderPID = entry.getValue();
+							}
+
+							fedoraServiceManager.handleFileObject(nameSpace, projectName, collectionName, parentFolderName, parentFolderPID, baseFileName, baseFileName, filePID, fileOriginalPath, fileNameExtension, fileSize);
+
 						}
-						
-						fedoraServiceManager.handleFileObject(nameSpace, projectName, collectionName, parentFolderName, parentFolderPID, baseFileName, baseFileName, filePID, fileOriginalPath, fileNameExtension, fileSize);
 						
 						//			
 						// End of Fedora operations.
@@ -719,52 +781,4 @@ public class UploadRequestHandler extends HttpServlet {
 		this.operationFlag = operationFlag;
 	}
 
-	public Double getCheapestIngestValue() {
-		return cheapestIngestValue;
-	}
-
-	public void setCheapestIngestValue(Double cheapestIngestValue) {
-		this.cheapestIngestValue = cheapestIngestValue;
-	}
-
-	public String getCheapestIngestKey() {
-		return cheapestIngestKey;
-	}
-
-	public void setCheapestIngestKey(String cheapestIngestKey) {
-		this.cheapestIngestKey = cheapestIngestKey;
-	}
-
-	public Double getCheapestMigrationValue() {
-		return cheapestMigrationValue;
-	}
-
-	public void setCheapestMigrationValue(Double cheapestMigrationValue) {
-		this.cheapestMigrationValue = cheapestMigrationValue;
-	}
-
-	public String getCheapestMigrationKey() {
-		return cheapestMigrationKey;
-	}
-
-	public void setCheapestMigrationKey(String cheapestMigrationKey) {
-		this.cheapestMigrationKey = cheapestMigrationKey;
-	}
-
-	public String getCheapestIngestValueCurrency() {
-		return cheapestIngestValueCurrency;
-	}
-
-	public void setCheapestIngestValueCurrency(String cheapestIngestValueCurrency) {
-		this.cheapestIngestValueCurrency = cheapestIngestValueCurrency;
-	}
-
-	public String getCheapestMigrationValueCurrency() {
-		return cheapestMigrationValueCurrency;
-	}
-
-	public void setCheapestMigrationValueCurrency(
-			String cheapestMigrationValueCurrency) {
-		this.cheapestMigrationValueCurrency = cheapestMigrationValueCurrency;
-	}
 }

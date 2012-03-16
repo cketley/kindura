@@ -497,7 +497,7 @@ public class FedoraServiceManager {
 		
 		String pid = root+":"+projectName;
 		String mimeType = "text/xml";
-		String url = duraCloudURL + "download/contentItem?spaceId="+creator;
+		String url = "http://" + duraCloudURL + "download/contentItem?spaceId="+creator;
 		System.out.println("[FedoraServiceManger] url is " + url);
 //		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
 		
@@ -545,7 +545,7 @@ public class FedoraServiceManager {
 		
 		String pid = root+":"+projectName;
 		String mimeType = "text/xml";
-		String url = duraCloudURL + "download/contentItem?spaceId="+creator;
+		String url = "http://" + duraCloudURL + "/download/contentItem?spaceId="+creator;
 //		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
 		
 		//Create a new fedora object if it does not exist in Fedora repository.
@@ -579,12 +579,11 @@ public class FedoraServiceManager {
 		}
 	}
 	
-	public void createCollectionObject(String collectionName, String root, String projectName, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cheapCost, String cheapCostCurrency, String svcPrvAccountDetails, Double storageUsed) {
-	public void createCollectionObject(String collectionName, String root, String projectName, String estimatedAccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cloudProviderNames) {
+	public void createCollectionObject(String collectionName, String root, String projectName, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cloudProviderNames, String cheapCost, String cheapCostCurrency, String svcPrvAccountDetails, Double storageUsed) {
 		
 		String pid = projectName+":"+collectionName;
 		String mimeType = "text/xml";
-		String url = duraCloudURL + "download/contentItem?spaceId="+creator;
+		String url = "http://" + duraCloudURL + "/download/contentItem?spaceId="+creator;
 //		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
 		
 		try {
@@ -623,13 +622,12 @@ public class FedoraServiceManager {
 		}
 	}
 	
-	public void updateCollectionObject(String collectionName, String root, String projectName, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cheapCost, String cheapCostCurrency, String svcPrvAccountDetails, Double storageUsed) {
-	public void updateCollectionObject(String collectionName, String root, String projectName, String estimatedAccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cloudProviderNames) {
+	public void updateCollectionObject(String collectionName, String root, String projectName, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cloudProviderNames, String cheapCost, String cheapCostCurrency, String svcPrvAccountDetails, Double storageUsed) {
 		
 		String pid = projectName+":"+collectionName;
 		String mimeType = "text/xml";
 //		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+creator;
-		String url = duraCloudURL + "download/contentItem?spaceId="+creator;
+		String url = "http://" + duraCloudURL + "/download/contentItem?spaceId="+creator;
 		
 		try {
 			//FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
@@ -666,8 +664,7 @@ public class FedoraServiceManager {
 		}
 	}
 	
-	public void handleCollectionObject(String userName, String projectName, String collectionName, String collectionPID, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String timeStamp, Double cheaperCost, String cheaperCostCurrency, String svcPrvAcctDetails, Double collTotStorageUsed, String opsFlag) {
-	public void handleCollectionObject(String userName, String projectName, String collectionName, String collectionPID, String estimatedAccessFrequency, String collectionDescription, String protectiveMarking, String version, String timeStamp, String cloudProviderNames) {
+	public void handleCollectionObject(String userName, String projectName, String collectionName, String collectionPID, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String timeStamp, String cloudProviderNames, Double cheaperCost, String cheaperCostCurrency, String svcPrvAcctDetails, Double collTotStorageUsed, String opsFlag) {
 		//Create a new collection object for the collection if it does not exist in Fedora repository.
 		BigDecimal cost;
 		cost = BigDecimal.valueOf(cheaperCost);
@@ -694,15 +691,13 @@ public class FedoraServiceManager {
 		if ((isFedoraObjectExisted(collectionPID) == true) && (getADataStream(collectionPID, "projectName").equals(projectName))) {
 			System.out.println("Collection pid "+collectionPID+" exists");
 			//throw new FedoraClientException("Collection name is already existed");
-			updateCollectionObject(collectionName, "root", projectName, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cheaperCostTxt, cheaperCostCurrency, svcPrvAcctDetails, collTotStorageUsed);
-			updateCollectionObject(collectionName, "root", projectName, estimatedAccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cloudProviderNames);
+			updateCollectionObject(collectionName, "root", projectName, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cloudProviderNames, cheaperCostTxt, cheaperCostCurrency, svcPrvAcctDetails, collTotStorageUsed);
 			
 		} else {
 			System.out.println("Collection pid "+collectionPID+" does NOT exist");
 			//IngestResponse ingest = new Ingest(collectionPID).execute(fedoraClient);
 			
-			createCollectionObject(collectionName, "root", projectName, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cheaperCostTxt, cheaperCostCurrency, svcPrvAcctDetails, collTotStorageUsed);
-			createCollectionObject(collectionName, "root", projectName, estimatedAccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cloudProviderNames);
+			createCollectionObject(collectionName, "root", projectName, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cloudProviderNames, cheaperCostTxt, cheaperCostCurrency, svcPrvAcctDetails, collTotStorageUsed);
 			//FedoraClient.addDatastream(nameSpaceAndPid, baseFilename+".cost").controlGroup("R").dsLabel(cost.toString()).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
 		} 
 	}
@@ -716,7 +711,7 @@ public class FedoraServiceManager {
 		}
 			
 		String mimeType = "text/xml";
-		String url = duraCloudURL + "download/contentItem?spaceId="+folderName;
+		String url = "http://" + duraCloudURL + "/download/contentItem?spaceId="+folderName;
 //		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+folderName;
 		
 		try {
@@ -759,7 +754,7 @@ public class FedoraServiceManager {
 		//String pid = folderPID;
 			
 		String mimeType = "text/xml";
-		String url = duraCloudURL + "download/contentItem?spaceId="+folderName;
+		String url = "http://" + duraCloudURL + "/download/contentItem?spaceId="+folderName;
 //		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+folderName;
 		
 		try {
@@ -823,8 +818,20 @@ public class FedoraServiceManager {
 			String tempParentPID = parentPID;
 			int count = 0;
 			do {
+				System.out.println("isFedoraObjectExisted for tempFolderPID is " + isFedoraObjectExisted(tempFolderPID));
 				if (isFedoraObjectExisted(tempFolderPID) == true) {
-					if (getADataStream(tempFolderPID, "collectionName").equals(collectionName) && getADataStream(tempFolderPID, "projectName").equals(projectName)) {
+// TODO problems with nulls here
+					System.out.println("getADataStream for tempFolderPID " + collectionName + "is " + getADataStream(tempFolderPID, "collectionName"));
+					System.out.println("getADataStream for tempFolderPID " + projectName + "is " + getADataStream(tempFolderPID, "projectName"));
+					if (getADataStream(tempFolderPID, "collectionName") == null) {
+						// maybe this is the end condition?
+						checkNextFolderPID = false;
+						isFolderObjectUpdated = false;				
+					} else if (getADataStream(tempFolderPID, "projectName") == null) {
+						// maybe this is the end condition?
+						checkNextFolderPID = false;
+						isFolderObjectUpdated = false;				
+					} else if (getADataStream(tempFolderPID, "collectionName").equals(collectionName) && getADataStream(tempFolderPID, "projectName").equals(projectName)) {
 						//updateFolderObject(projectName, collectionName, parentFolderName, tempFolderName, tempParentPID);
 						checkNextFolderPID = false;
 						isFolderObjectUpdated = true;
@@ -873,7 +880,15 @@ public class FedoraServiceManager {
 		int count = 0;
 		do {
 			if (isFedoraObjectExisted(tempFolderPID) == true) {
-				if (getADataStream(tempFolderPID, "collectionName").equals(collectionName) && getADataStream(tempFolderPID, "projectName").equals(projectName)) {
+				if (getADataStream(tempFolderPID, "collectionName") == null) {
+					// maybe this is the end condition?
+					checkNextFolderPID = false;
+					isFolderObjectUpdated = false;				
+				} else if (getADataStream(tempFolderPID, "projectName") == null) {
+					// maybe this is the end condition?
+					checkNextFolderPID = false;
+					isFolderObjectUpdated = false;				
+				} else if (getADataStream(tempFolderPID, "collectionName").equals(collectionName) && getADataStream(tempFolderPID, "projectName").equals(projectName)) {
 					//updateFolderObject(projectName, collectionName, parentFolderName, tempFolderName, tempParentPID);
 					checkNextFolderPID = false;
 					isFolderObjectUpdated = true;
@@ -914,7 +929,7 @@ public class FedoraServiceManager {
 	public void createFileObject(String nameSpace, String projectName, String collectionName, String fileOriginalPath, String parentFolderName, String parentPID, String baseFileName, String fileExtension, String fileSize) {
 		String pid = parentFolderName+":"+baseFileName;
 		String mimeType = "text/xml";
-		String url = duraCloudURL + "download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
+		String url = "http://" + duraCloudURL + "/download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
 //		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
 		
 		try {
@@ -959,7 +974,7 @@ public class FedoraServiceManager {
 		
 		String pid = filePID;
 		String mimeType = "text/xml";
-		String url = duraCloudURL + "download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
+		String url = "http://" + duraCloudURL + "/download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
 //		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+nameSpace+"&contentId="+projectName+"/"+collectionName+"/"+fileOriginalPath+"/"+baseFileName+"/"+fileExtension+"&storeID=0&attachment=true";
 		
 		try {
@@ -1039,7 +1054,7 @@ public class FedoraServiceManager {
 		
 		String pid = userName+":"+projectName;
 		String mimeType = "text/xml";
-		String url = duraCloudURL + "download/contentItem?spaceId="+userName;
+		String url = "http://" + duraCloudURL + "/download/contentItem?spaceId="+userName;
 //		String url = "http://localhost:8080/duradmin/download/contentItem?spaceId="+userName;
 		
 		//Create a new fedora object if it does not exist in Fedora repository.

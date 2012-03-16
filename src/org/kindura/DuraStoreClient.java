@@ -52,6 +52,10 @@ public class DuraStoreClient {
     ContentStore defaultContentStore;
     ContentStore amazonS3ContentStore;
     ContentStore rackSpaceContentStore;
+    ContentStore iRODSContentStore;
+    ContentStore azureContentStore;
+    ContentStore googleCloudStorageContentStore;
+    ContentStore sdscContentStore;
     Credential duracloudCredential;
         
     private Document dom;
@@ -64,8 +68,13 @@ public class DuraStoreClient {
         contentStoreManager.login(duracloudCredential);
         defaultContentStore = contentStoreManager.getPrimaryContentStore();
 
+        // TODO check contentStore numbering
         amazonS3ContentStore = contentStoreManager.getContentStore("0");
         rackSpaceContentStore = contentStoreManager.getContentStore("1");
+//        iRODSContentStore = contentStoreManager.getContentStore("2");
+//        azureContentStore = contentStoreManager.getContentStore("3");
+//        googleCloudStorageContentStore = contentStoreManager.getContentStore("4");
+//        sdscContentStore = contentStoreManager.getContentStore("5");
         
     }
     
@@ -89,9 +98,27 @@ public class DuraStoreClient {
 				if (cloudProviderName.equals("Amazon S3")) {
 					storeIDs = amazonS3ContentStore.getSpaces();
 				}
-				else if (cloudProviderName.equals("RackSpace")) {
+				else if (cloudProviderName.equals("Rackspace Cloud Files")) {
 					storeIDs = rackSpaceContentStore.getSpaces();
 				}
+//				else if (cloudProviderName.equals("iRODS")) {
+//					storeIDs = iRODSContentStore.getSpaces();
+//				}
+				else if (cloudProviderName.equals("RACKSPACE")) {
+					storeIDs = rackSpaceContentStore.getSpaces();
+				}
+//				else if (cloudProviderName.equals("IRODS")) {
+//					storeIDs = iRODSContentStore.getSpaces();
+//				}
+//				else if (cloudProviderName.equals("Google Cloud Storage")) {
+//					storeIDs = googleCloudStorageContentStore.getSpaces();
+//				}
+//				else if (cloudProviderName.equals("Azure")) {
+//					storeIDs = azureContentStore.getSpaces();
+//				}
+//				else if (cloudProviderName.equals("SDSC")) {
+//					storeIDs = sdscContentStore.getSpaces();
+//				}
 			}
 			
 			Iterator iterator = storeIDs.iterator();
@@ -118,22 +145,73 @@ public class DuraStoreClient {
     	int cloudProviderID;
     	System.out.println("[DuraStoreClient] cloud provider name: "+cloudProviderName);
     	if (duracloud_host.equals("localhost") || duracloud_host.equals("127.0.0.1") || duracloud_host.equals("137.73.172.82")) {
+    		// TODO check cloudProviderID numbering
     		if (cloudProviderName.equals("Amazon S3")) {
-        		cloudProviderID = 0;
-        		return String.valueOf(cloudProviderID);
-        	}
-    		else if (cloudProviderName.equals("RackSpace")) {
+    			cloudProviderID = 0;
+    			return String.valueOf(cloudProviderID);
+    		}
+    		else if (cloudProviderName.equals("Rackspace Cloud Files")) {
     			cloudProviderID = 1;
     			return String.valueOf(cloudProviderID);
     		}
+//    		else if (cloudProviderName.equals("iRODS")) {
+//    			cloudProviderID = 2;
+//    			return String.valueOf(cloudProviderID);
+//    		}
+			else if (cloudProviderName.equals("RACKSPACE")) {
+    			cloudProviderID = 1;
+    			return String.valueOf(cloudProviderID);
+			}
+//			else if (cloudProviderName.equals("IRODS")) {
+//    			cloudProviderID = 2;
+//    			return String.valueOf(cloudProviderID);
+//			}
+//    		else if (cloudProviderName.equals("Google Cloud Storage")) {
+//    			cloudProviderID = 3;
+//    			return String.valueOf(cloudProviderID);
+//    		}
+//    		else if (cloudProviderName.equals("Azure")) {
+//    			cloudProviderID = 4;
+//    			return String.valueOf(cloudProviderID);
+//    		}
+//    		else if (cloudProviderName.equals("SDSC")) {
+//    			cloudProviderID = 5;
+//    			return String.valueOf(cloudProviderID);
+//    		}
     	} else if (duracloud_host.equals("kindura.duracloud.org")) {
+    		// TODO check cloudProviderID numbering
     		if (cloudProviderName.equals("Amazon S3")) {
-        		cloudProviderID = 32;
-        		return String.valueOf(cloudProviderID);
-        	} else if (cloudProviderName.equals("RackSpace")) {
-        		cloudProviderID = 33;
-        		return String.valueOf(cloudProviderID);
-        	}
+    			cloudProviderID = 32;
+    			return String.valueOf(cloudProviderID);
+    		} 
+    		else if (cloudProviderName.equals("Rackspace Cloud Files")) {
+    			cloudProviderID = 33;
+    			return String.valueOf(cloudProviderID);
+    		}
+//    		else if (cloudProviderName.equals("iRODS")) {
+//    			cloudProviderID = 34;
+//    			return String.valueOf(cloudProviderID);
+//    		}
+			else if (cloudProviderName.equals("RACKSPACE")) {
+    			cloudProviderID = 33;
+    			return String.valueOf(cloudProviderID);
+			}
+//			else if (cloudProviderName.equals("IRODS")) {
+//    			cloudProviderID = 34;
+//    			return String.valueOf(cloudProviderID);
+//			}
+//    		else if (cloudProviderName.equals("Google Cloud Storage")) {
+//    			cloudProviderID = 35;
+//    			return String.valueOf(cloudProviderID);
+//    		}
+//    		else if (cloudProviderName.equals("Azure")) {
+//    			cloudProviderID = 36;
+//    			return String.valueOf(cloudProviderID);
+//    		}
+//    		else if (cloudProviderName.equals("SDSC")) {
+//    			cloudProviderID = 37;
+//    			return String.valueOf(cloudProviderID);
+//    		}
     	}
     	return null;
     }
@@ -166,9 +244,27 @@ public class DuraStoreClient {
 				if (cloudProviderName.equals("Amazon S3")) {
 					amazonS3ContentStore.createSpace(nameSpace, spaceMetadata);
 				}
-				else if (cloudProviderName.equals("RackSpace")) {
+				else if (cloudProviderName.equals("Rackspace Cloud Files")) {
 					rackSpaceContentStore.createSpace(nameSpace, spaceMetadata);
 				}
+//				else if (cloudProviderName.equals("iRODS")) {
+//					iRODSContentStore.createSpace(nameSpace, spaceMetadata);
+//				}
+				else if (cloudProviderName.equals("RACKSPACE")) {
+					rackSpaceContentStore.createSpace(nameSpace, spaceMetadata);
+				}
+//				else if (cloudProviderName.equals("IRODS")) {
+//					iRODSContentStore.createSpace(nameSpace, spaceMetadata);
+//				}
+//				else if (cloudProviderName.equals("Google Cloud Storage")) {
+//					googleCloudStorageContentStore.createSpace(nameSpace, spaceMetadata);
+//				}
+//				else if (cloudProviderName.equals("Azure")) {
+//					azureContentStore.createSpace(nameSpace, spaceMetadata);
+//				}
+//				else if (cloudProviderName.equals("SDSC")) {
+//					sdscContentStore.createSpace(nameSpace, spaceMetadata);
+//				}
 			}
 			//rackSpaceContentStore.createSpace(nameSpace, spaceMetadata);
 		} catch (ContentStoreException e) {
@@ -281,9 +377,27 @@ public class DuraStoreClient {
         		if (originalCloudProvider.equals("Amazon S3")) {
         			spaceContents = getFileNames(amazonS3ContentStore, originalNameSpace);
         		}
-        		if (originalCloudProvider.equals("RACKSPACE")) {
+        		if (originalCloudProvider.equals("Rackspace Cloud Files")) {
         			spaceContents = getFileNames(rackSpaceContentStore, originalNameSpace);
         		}
+//        		if (originalCloudProvider.equals("iRODS")) {
+//        			spaceContents = getFileNames(iRODSContentStore, originalNameSpace);
+//        		}
+				if (originalCloudProvider.equals("RACKSPACE")) {
+        			spaceContents = getFileNames(rackSpaceContentStore, originalNameSpace);
+				}
+//				if (originalCloudProvider.equals("IRODS")) {
+//        			spaceContents = getFileNames(iRODSContentStore, originalNameSpace);
+//				}
+//        		if (originalCloudProvider.equals("Google Cloud Storage")) {
+//        			spaceContents = getFileNames(googleCloudStorageContentStore, originalNameSpace);
+//        		}
+//        		if (originalCloudProvider.equals("Azure")) {
+//        			spaceContents = getFileNames(azureContentStore, originalNameSpace);
+//        		}
+//        		if (originalCloudProvider.equals("SDSC")) {
+//        			spaceContents = getFileNames(sdscContentStore, originalNameSpace);
+//        		}
         		
 				ConfigurationFileParser configurationFileParser = new ConfigurationFileParser();
 				String tempDownloadDirectory = configurationFileParser.getKinduraParameters().get("TempDownloadDirectory");
@@ -306,9 +420,27 @@ public class DuraStoreClient {
 					if (originalCloudProvider.equals("Amazon S3")) {
 						downloadFile(amazonS3ContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					}
-	        		if (originalCloudProvider.equals("RackSpace")) {
+	        		if (originalCloudProvider.equals("Rackspace Cloud Files")) {
 	        			downloadFile(rackSpaceContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					}
+//	        		if (originalCloudProvider.equals("iRODS")) {
+//	        			downloadFile(iRODSContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+//					}
+					if (originalCloudProvider.equals("RACKSPACE")) {
+	        			downloadFile(rackSpaceContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+					}
+//					if (originalCloudProvider.equals("IRODS")) {
+//	        			downloadFile(iRODSContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+//					}
+//	        		if (originalCloudProvider.equals("Google Cloud Storage")) {
+//	        			downloadFile(googleCloudStorageContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+//					}
+//	        		if (originalCloudProvider.equals("Azure")) {
+//	        			downloadFile(azureContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+//					}
+//	        		if (originalCloudProvider.equals("SDSC")) {
+//	        			downloadFile(sdscContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+//					}
 					
 					File uploadFile = new File(tempDownloadDirectory + (new File(fullFileName)).getName());
 					
@@ -316,9 +448,27 @@ public class DuraStoreClient {
 					if (originalCloudProvider.equals("Amazon S3")) {
 						uploadFile(amazonS3ContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 					}
-	        		if (originalCloudProvider.equals("RackSpace")) {
+	        		if (originalCloudProvider.equals("Rackspace Cloud Files")) {
 	        			uploadFile(rackSpaceContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 					}
+//	        		if (originalCloudProvider.equals("iRODS")) {
+//	        			uploadFile(iRODSContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+//					}
+					if (originalCloudProvider.equals("RACKSPACE")) {
+	        			uploadFile(rackSpaceContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+					}
+//					if (originalCloudProvider.equals("IRODS")) {
+//	        			uploadFile(iRODSContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+//					}
+//	        		if (originalCloudProvider.equals("Google Cloud Storage")) {
+//	        			uploadFile(googleCloudStorageContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+//					}
+//	        		if (originalCloudProvider.equals("Azure")) {
+//	        			uploadFile(azureContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+//					}
+//	        		if (originalCloudProvider.equals("SDSC")) {
+//	        			uploadFile(sdscContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+//					}
 	        		
 				}
 				

@@ -34,7 +34,7 @@ import org.drools.runtime.StatefulKnowledgeSession;
 public class Totaliser {
 
 	
-	private static final boolean debug = false;
+	private static final boolean debug = true;
 
 	private StatefulKnowledgeSession ourKsession;
 	private UploadCollection grandparentUploadCollection;
@@ -394,9 +394,14 @@ public class Totaliser {
 		if (debug) {System.out.println( "Months() : " + this.getHowLongMonths() );};
 		if (debug) {System.out.println( "price : " + price );};
 		if (debug) {System.out.println( "*** storagePriceSubtotal : " + this.storagePriceSubtotal );};
-		       
+		     
+		// TODO sometimes we get replicas with zero value coming thru which can't be right in this method
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "storagePriceSubtotal", storagePriceSubtotal);
-		costPerReplica = storagePriceSubtotal / replicas;
+		if ( replicas < 1) {
+			costPerReplica = storagePriceSubtotal;
+		} else {
+			costPerReplica = storagePriceSubtotal / replicas;
+		}
 		if (debug) {System.out.println( "*** costPerReplica : " + this.costPerReplica );};
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
     }
@@ -434,9 +439,10 @@ public class Totaliser {
 		};
 
 		// do not accumulate transfer-out for ingest
-		if ((getSubfeatureType() .equals("Transfers out") ) && (greatgrandparentCostOpt.getOpsFlag() .equals("ingest"))) {
-			;
-		} else {
+		// TODO reinstate no transfer-out accum for ingest
+//		if ((getSubfeatureType() .equals("Transfers out") ) && (greatgrandparentCostOpt.getOpsFlag() .equals("ingest"))) {
+//			;
+//		} else {
 			transfersPriceSubtotal += calcTransfer * getHowLongMonths() * price * priceToUsageMultiplier;   
 			if (debug) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
 			if (debug) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
@@ -447,7 +453,7 @@ public class Totaliser {
 			addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "transfersPriceSubtotal", transfersPriceSubtotal);
 			//		costPerReplica = transfersPriceSubtotal / replicas;
 			//		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "transfersCostPerReplica", costPerReplica);				
-		}
+//		}
 	}
 
 
@@ -862,6 +868,9 @@ public class Totaliser {
         return replicas;
     }
     public void setReplicas(Integer replicas) {
+    	// TODO the value of this field is not usually returned by the spreadsheet
+    	// soon enough for all Totaliser lines for the same key to pick it up, 
+    	// meaning that incorrect values can get propagated through.
         this.replicas = replicas;
         iAmBlank = false;
         if (debug) {System.out.println("[Totaliser]: Replicas is " + replicas);};
@@ -962,6 +971,10 @@ public class Totaliser {
     	Totaliser totaliserItem = new Totaliser();
     	// tell the Pricing that I am current
         parentPricing.setMyTotaliser(totaliserItem);
+        
+        // clear down the replicas count because it can propagate the wrong answer
+        // due to a timing problem
+        setReplicas(0);
         
         totaliserItem.grandparentUploadCollection = this.grandparentUploadCollection;
         totaliserItem.greatgrandparentCostOpt = this.grandparentUploadCollection.getParentCostOpt();
