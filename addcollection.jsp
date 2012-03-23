@@ -189,10 +189,13 @@
 						ALT="The java plugin must be installed.">
 						<param name="postURL" value="UploadRequestHandler" />
 						<param name="showLogWindow" value="false" />
-						<param name="showStatusBar" value="false" />
+						<param name="showStatusBar" value="true" />
 						<param name="lookAndFeel" value="system" />
 						<param name="formdata" value="metadata" />
-						<param name="debugLevel" value="1" />
+						<param name="nbFilesPerRequest" value="0" />
+						<param name="httpUploadParameterName" value="file" />
+						<param name="httpUploadParameterType" value="array" />
+						<param name="debugLevel" value="95" />
 						<!--<param name="afterUploadURL" value="parseRequest.jsp" />
 						<param name="URLParam" value="URL Parameter Value"/>-->
 						<!--<param name="formdata" value="true" />-->

@@ -47,6 +47,7 @@ public class UploadCollection
     private ArrayList<StorageProvider> providers = new ArrayList<StorageProvider>();
     private ArrayList<StorageProviderTier> tiers = new ArrayList<StorageProviderTier>();
     private Calendar appraisalDate = Calendar.getInstance();
+    private Calendar nowDate = Calendar.getInstance();
 
     private Integer minCopies = 0;
     private Calendar projEndDate = Calendar.getInstance();
@@ -166,15 +167,42 @@ public class UploadCollection
 		
 		// Add the specified number of years to the upload date to give the appraisal date	
 		this.appraisalDate = (Calendar) this.projEndDate.clone();
-		this.appraisalDate.add( Calendar.YEAR, numYears );
+//		this.appraisalDate.add( Calendar.YEAR, numYears );
 		
-		// TODO on ingest this is correct but for all others is the wrong date as input
-		Integer numMonths = numYears * 12;
-		howLongMonths = numMonths;
-		childPrcng.setHowLongMonths(numMonths);
+		if ( parentCostOpt.getOpsFlag().equals("ingest") ) {
+			Integer numMonths = numYears * 12;
+			howLongMonths = numMonths;
+			childPrcng.setHowLongMonths(numMonths);
+		} else {
+			howLongMonths = getMonthsDifference(nowDate, appraisalDate);
+			childPrcng.setHowLongMonths(howLongMonths);
+		};
 		
 	}
 	
+	@SuppressWarnings("deprecation")
+	public static final int getMonthsDifference(Calendar nowDate2, Calendar appraisalDate2) {
+
+		int m1 = 0;
+		int m2 = 0;
+		Date x;
+		try {
+			x = new SimpleDateFormat("dd/mm/yyyy").parse(nowDate2.toString());
+			m1 = x.getYear() * 12 + x.getMonth();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		Date y;
+		try {
+			y = new SimpleDateFormat("dd/mm/yyyy").parse(appraisalDate2.toString());
+			m2 = y.getYear() * 12 + y.getMonth();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		
+	    return m2 - m1 + 1;
+	}
+
 	public String getRegionName () {
 		// translates the region code into a region name as per price list
 	

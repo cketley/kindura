@@ -52,7 +52,7 @@ import org.drools.runtime.StatelessKnowledgeSession;
 public class Pricing {
 
 	
-	private static final boolean debug = true;
+	private static final boolean debug = false;
 	private StatefulKnowledgeSession myKsession;
 	private UploadCollection parentUploadCollection;
 	private CostOptimiser grandparentCostOpt;

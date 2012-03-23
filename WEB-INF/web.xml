@@ -45,6 +45,14 @@
         <url-pattern>/UploadRequestHandler</url-pattern>
     </servlet-mapping>
 	<servlet>
+        <servlet-name>MigrateRequestHandler</servlet-name>
+        <servlet-class>org.kindura.MigrateRequestHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+        <servlet-name>MigrateRequestHandler</servlet-name>
+        <url-pattern>/MigrateRequestHandler</url-pattern>
+    </servlet-mapping>
+	<servlet>
         <servlet-name>SearchRequestHandler</servlet-name>
         <servlet-class>org.kindura.SearchRequestHandler</servlet-class>
 	</servlet>

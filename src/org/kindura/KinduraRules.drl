@@ -368,19 +368,31 @@ end
 // Data type checks
 // These rules remove potential storage providers from the list
 // in response to the type of data in the $collection
+rule "Corporate type"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( type == "Corporate" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "Local" );
+    $collection.setRegionCode ("Local");
+    System.err.println("firing Corporate type -> Local");
+    //update ($collection)
+end
+
 rule "Research type"
 //ruleflow-group "filter"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( type != "Research" )
+    $collection: UploadCollection( type == "Research" )
 then
-    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "Local" );
-    $collection.setRegionCode ("Local");
-    System.err.println("firing Research type -> Local");
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "WORLD" );
+    $collection.setRegionCode ("WORLD");
+    System.err.println("firing Research type -> WORLD");
     //update ($collection)
 end
-
 ////////////////////////////////////////////////////////////
 // Data sensitivity checks
 // These rules specify geograhpical constraints on storage
@@ -479,7 +491,7 @@ rule "Neither sensitivity"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( sensitivity != "Other" && sensitivity != "Licensed(Public)" && sensitivity != "Licensed(Restricted)" && sensitivity != "Unlicensed" && sensitivity != "Employment details" && sensitivity != "EFinancial" && sensitivity != "Medical" || type == "Research")
+    $collection: UploadCollection( sensitivity != "Other" && sensitivity != "Licensed(Public)" && sensitivity != "Licensed(Restricted)" && sensitivity != "Unlicensed" && sensitivity != "Employment details" && sensitivity != "EFinancial" && sensitivity != "Medical" || type != "Research")
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "WORLD" );
     $collection.setRegionCode ("WORLD");

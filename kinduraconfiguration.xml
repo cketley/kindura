@@ -6,9 +6,9 @@
     <DuraCloudContext>durastore</DuraCloudContext>
     <DuraCloudUsername>root</DuraCloudUsername>
     <DuraCloudPassword>rpw</DuraCloudPassword>
-    <TempUploadDirectory>C:\\Documents and Settings\\ycn94546\\My Documents\\Project_work\\kindura\\kindness\\WebDataTempUploadKindura</TempUploadDirectory>
-    <TempDownloadDirectory>C:\\Documents and Settings\\ycn94546\\My Documents\\Project_work\\kindura\\kindness\\WebDataTempDownloadKindura</TempDownloadDirectory>
-    <DisplayDownloadDirectory>C:\\Documents and Settings\\ycn94546\\My Documents\\Project_work\\kindura\\kindness\\WebDataDownloadDisplayKindura</DisplayDownloadDirectory>
+    <TempUploadDirectory>C:\\Documents and Settings\\ycn94546\\My Documents\\Project_work\\kindura\\kindness\\WebDataTempUploadKindura\</TempUploadDirectory>
+    <TempDownloadDirectory>C:\\Documents and Settings\\ycn94546\\My Documents\\Project_work\\kindura\\kindness\\WebDataTempDownloadKindura\</TempDownloadDirectory>
+    <DisplayDownloadDirectory>C:\\Documents and Settings\\ycn94546\\My Documents\\Project_work\\kindura\\kindness\\WebDataDownloadDisplayKindura\</DisplayDownloadDirectory>
     <NumberOfBytes>1024</NumberOfBytes>
   </DuraCloud>
   <Fedora>
@@ -22,4 +22,5 @@
     <MySQLPassword>kindura</MySQLPassword>
     <MySQLDatabase>kindura_users</MySQLDatabase>
   </MySQL>
+  <FindObjectMaxResults>100</FindObjectMaxResults>
 </KinduraConfiguration>

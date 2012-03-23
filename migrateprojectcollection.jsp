@@ -4,13 +4,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
-<%@ page import="java.sql.*, java.util.*, java.net.*, java.io.*" %>
-<%@ page import="com.yourmediashelf.fedora.client.*, com.yourmediashelf.fedora.client.request.*, com.yourmediashelf.fedora.client.response.*, com.yourmediashelf.fedora.generated.access.*" %>
-
-
-
-<jsp:useBean id="fedoraServiceManager" class="org.kindura.FedoraServiceManager" scope="session"/>
-
+<%@ page errorPage="login.jsp" %>
+	
 <%
 	//Get the username and set the relevant attribute.
 	String username = null;
@@ -30,98 +25,83 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<title>Kindura Cloud Repository</title>
 		<link href="<%= request.getContextPath() %>/css/r4r.css" type="text/css" rel="stylesheet" media="screen" />
-		<script src="js/sorttable.js"></script>
+				
+		<link type="text/css" href="css/jquery-ui-1.8.16.custom.css" rel="Stylesheet" />	
+		<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
+		<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+		<script type="text/javascript" src="js/jquery.ui.datepicker-en-GB.js"></script>
+
 	</head>
 	<body>
-		<div id="header">
-			<h1>Kindura Cloud Repository</h1>
-		</div>
-		
 		<table width="100%" border="0">
+			<div id="header">
+				<h1>Kindura Cloud Repository</h1>
+			</div>
 			<tr valign="top">
 				<td class="menucolumn">
 					<br/>
 					<br/>
 					&nbsp &nbsp<a href="home.jsp" class="LinkToPage">Home</a><br/>
-					&nbsp &nbsp<a href="addproject.jsp" class="LinkToPage">Add project</a><br/>
-					&nbsp &nbsp<a href="addcollection.jsp" class="LinkToPage">Add collection</a><br/>
+					&nbsp &nbsp<b>Add project</b><br/>
+					&nbsp &nbsp<a href="addcollection.jsp" class="LinkToPage">Add Collection</a><br/>
 					&nbsp &nbsp<a href="search.jsp" class="LinkToPage">Search</a><br/>
-					&nbsp &nbsp<b>View</b><br/>
+					&nbsp &nbsp<a href="viewproject.jsp" class="LinkToPage">View</a><br/>
 					&nbsp &nbsp<a href="help.jsp" class="LinkToPage">Help</a></br/></br/></br/>
 					&nbsp &nbsp<a href="logout.jsp" class="LinkToPage">Log Out</a>
 				</td>
-				<td style="height:550px;width:700px;text-align:center;">
-					<div id="search">
-						<form action="MigrateProjectRequestHandler" method="get">
-							<a href="javascript:history.back(-1)" class="LinkToPage">
-							<!--<img border="0" src="images/parentfolder.png" title="Go back to parent folder" alt="" width="13" height="13" align="absmiddle" background-color="black"/>--><< Go Back
-							</a>&nbsp &nbsp &nbsp &nbsp &nbsp
-							<label><b>Select Project</b></label>
-							<%
-								out.println("<select name= 'projectName' style='width:150px'>");
-								//List<String> projectNames = fedoraServiceManager.getUserDefinedPIDs(username);
-								List<String> projectNames = fedoraServiceManager.getprojectNames();
-								if (projectNames != null) {
-									Iterator<String> iterator = projectNames.iterator();
-									System.out.println(request.getAttribute("projectName"));
-									if (request.getAttribute("projectName") != null) {
-										out.println("<option>"+request.getAttribute("projectName")+"</option>");
-									}
-									String nextprojectName = null;
-									while (iterator.hasNext()) {
-										nextprojectName = (String)iterator.next();
-										if (!nextprojectName.equals(request.getAttribute("projectName"))) {
-											out.println("<option>"+nextprojectName+"</option>");
-										}
-									}
-								}
-							%>
-							</select>
-							<input type="hidden" name="nameSpace" value="root" />
-							<input type="hidden" name="parentFolderNameForDuracloud" value="" />
-							<input type="hidden" name="parentFolderNameForFedora" value="" />
-							<input type="hidden" name="requestType" value="view" />
-							<input type="submit" value="View" id="view_button"/>	
-							
-						</form>
-					</div>
-		
-					<form method="post" name="migrate_form" action="MigrateRequestHandler">
-						<table class="sortable" id="list" style="text-align:left">	
+				
+				<td style="background-color:#FFFFFF;height:550px;width:700px;text-align:center;">
+					<form name="projectmetadata" action="MigrateRequestHandler" method="post">
+						<br/>
+						<h1 style="color:#F77A52;font-size:18px">Add Project:</h1>
+						<br/>
+						<table align="center" style="text-align:left;" border="0">
 							<tr>
-								<% 	
-									int numberOfRows = Integer.valueOf(request.getAttribute("numberOfRows").toString());
-									if (numberOfRows > 0) {
-										if (request.getAttribute("pid0fedoraObjectType").equals("collection")) {
-											out.println("<th>Title</th>");
-										} else {
-											out.println("<th>Name</th>");
-										}
-										out.println("<th>Size(Bytes)</th>");
-										out.println("<th>Type</th>");
-										for (int i=0;i< numberOfRows;i++) {
-											if (i % 2 != 0) {
-												out.println("<tr style= 'background-color:#F8F8F8;'>");
-											}
-											else {
-												out.println("<tr style= 'background-color:#FFFFFF;'>");
-											}
-											if (request.getAttribute("pid"+i+"fedoraObjectType").equals("file")) {
-												//out.println("<td><a href=DownloadRequestHandler?namespaceandpid="+request.getAttribute("nameSpace"+i)+":"+request.getAttribute("parentFolderNameForDuracloud"+i)+"/"+request.getAttribute("baseFileName"+i)+"&"+request.getAttribute("nameSpace"+i)+request.getAttribute("projectName")+"/"+request.getAttribute("parentFolderNameForDuracloud"+i)+"/"+request.getAttribute("baseFileName"+i)+"="+request.getAttribute("fileExtension"+i)+">"+request.getAttribute("alphaNumericName"+i)+"</a></td>");
-												out.println("<td><a href=MigrateRequestHandler?namespaceandpid="+request.getAttribute("collectionName"+i)+":"+request.getAttribute("parentFolderNameForDuracloud"+i)+"/"+request.getAttribute("baseFileName"+i)+"&"+request.getAttribute("collectionName"+i)+request.getAttribute("parentFolderNameForDuracloud"+i)+"/"+request.getAttribute("baseFileName"+i)+"="+request.getAttribute("fileExtension"+i)+">"+request.getAttribute("alphaNumericName"+i)+"</a></td>");
-											} else {
-												out.println("<td><a href=MigrateProjectRequestHandler?nameSpace="+request.getAttribute("nameSpace"+i)+"&projectName="+request.getAttribute("projectName")+"&alphaNumericName="+request.getAttribute("alphaNumericName"+i)+"&requestType=view>"+request.getAttribute("alphaNumericName"+i)+"</a></td>");
-											}
-											out.println("<td>"+request.getAttribute("fileSize"+i)+"</td>");
-											out.println("<td>"+request.getAttribute("pid"+i+"fedoraObjectType")+"</td>");
-								%>
-										</tr>
-								<% 		
-										}
-									} 
-								%>
+								<td>
+									<b>Project Name</b> &nbsp &nbsp &nbsp
+									<input type="text" name="projectName" style="width:600px"/>
+									<img border="0" src="images/questionmark.jpg" title="Name of the data collection" width="15" height="15"/>
+									<!--<img border="0" src="images/requiredfield.gif" title="Name of the data collection (Required field)" width="10" height="10"/>-->
+									<br/><br/><br/><br/>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<!--<b>Description</b> &nbsp &nbsp &nbsp 
+									<textarea name="projectdescription" style="heigth:30px;width:610px" title="Description of the data collection" align="ABSBOTTOM"></textarea>
+									<img border="0" src="images/questionmark.jpg" title="Description of the data collection" width="15" height="15"/>-->
+									<p class="textandtextarea">
+										<label for="textarea"><b>Description</b></label> &nbsp &nbsp &nbsp
+										<textarea id="projectdescription" style="width:610px;heigth:50px"></textarea>
+										<img border="0" src="images/questionmark.jpg" title="Description of the Data Collection" width="15" height="15"/>
+									</p>
+									<br/><br/><br/>
+								</td>
+							</tr>							
 						</table>
+
+						<!--<table align="center" style="text-align:left;" border="0">
+							<tr>
+							<td>
+							<b>Project Name</b>
+							<input type="text" name="projectName" style="width:150px"/>
+							<img border="0" src="images/requiredfield.gif" title="Name of the data collection (Required field)" width="10" height="10"/>
+							&nbsp &nbsp &nbsp &nbsp &nbsp
+							<br/><br/><br/><br/>
+							</td>
+							<td>
+							</tr>
+						
+						</table>-->
+						
+						<input type="submit" name="submit" value="Submit"/>
+						&nbsp &nbsp &nbsp
+						<input type="reset" value="Reset">
+						<input type="hidden" name="username" value="<%=username%>" />
+						<input type="hidden" name="role" value="<%=session.getAttribute("role").toString()%>" />
+						<!--<input type="hidden" name="username" value="javascript:getUserName(this.form);" />-->
 					</form>
+					<br/>
 				</td>
 			</tr>
 		</table>

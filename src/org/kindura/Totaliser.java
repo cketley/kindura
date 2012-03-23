@@ -34,7 +34,8 @@ import org.drools.runtime.StatefulKnowledgeSession;
 public class Totaliser {
 
 	
-	private static final boolean debug = true;
+	private static final boolean debug = false;
+	private static final boolean verbose = true;
 
 	private StatefulKnowledgeSession ourKsession;
 	private UploadCollection grandparentUploadCollection;
@@ -369,9 +370,9 @@ public class Totaliser {
 			bandFinitoLength = getBandDescription().length() - bandBeginLength - 1;
 			bandFinitoPosition = getBandDescription().length() - bandFinitoLength;
 			bandStart = Double.parseDouble(new String(getBandDescription().substring(0, bandBeginLength)));
-			if (debug) {System.out.println("[Totaliser]: bandStart is " + bandStart);};
+			if (verbose) {System.out.println("[Totaliser]: bandStart is " + bandStart);};
 			bandEnd = Double.parseDouble(new String(getBandDescription().substring(bandFinitoPosition, getBandDescription().length())));
-			if (debug) {System.out.println("[Totaliser]: bandEnd is " + bandEnd + "$");};
+			if (verbose) {System.out.println("[Totaliser]: bandEnd is " + bandEnd + "$");};
 		};
 
 		bandToUsageMultiplier = adjustBandVersusUsage();
@@ -388,12 +389,12 @@ public class Totaliser {
 		};
 		
 		storagePriceSubtotal = calcStorage * getHowLongMonths() * price * priceToUsageMultiplier;   
-		if (debug) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
-		if (debug) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
-		if (debug) {System.out.println( "Size calcStorage : " + calcStorage );};
-		if (debug) {System.out.println( "Months() : " + this.getHowLongMonths() );};
-		if (debug) {System.out.println( "price : " + price );};
-		if (debug) {System.out.println( "*** storagePriceSubtotal : " + this.storagePriceSubtotal );};
+		if (verbose) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
+		if (verbose) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
+		if (verbose) {System.out.println( "Size calcStorage : " + calcStorage );};
+		if (verbose) {System.out.println( "Months() : " + this.getHowLongMonths() );};
+		if (verbose) {System.out.println( "price : " + price );};
+		if (verbose) {System.out.println( "*** storagePriceSubtotal : " + this.storagePriceSubtotal );};
 		     
 		// TODO sometimes we get replicas with zero value coming thru which can't be right in this method
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "storagePriceSubtotal", storagePriceSubtotal);
@@ -402,7 +403,7 @@ public class Totaliser {
 		} else {
 			costPerReplica = storagePriceSubtotal / replicas;
 		}
-		if (debug) {System.out.println( "*** costPerReplica : " + this.costPerReplica );};
+		if (verbose) {System.out.println( "*** costPerReplica : " + this.costPerReplica );};
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
     }
 
@@ -421,9 +422,9 @@ public class Totaliser {
 			bandFinitoLength = getBandDescription().length() - bandBeginLength - 1;
 			bandFinitoPosition = getBandDescription().length() - bandFinitoLength;
 			bandStart = Double.parseDouble(new String(getBandDescription().substring(0, bandBeginLength)));
-			if (debug) {System.out.println("[Totaliser]: bandStart is " + bandStart);};
+			if (verbose) {System.out.println("[Totaliser]: bandStart is " + bandStart);};
 			bandEnd = Double.parseDouble(new String(getBandDescription().substring(bandFinitoPosition, getBandDescription().length())));
-			if (debug) {System.out.println("[Totaliser]: bandEnd is " + bandEnd + "$");};
+			if (verbose) {System.out.println("[Totaliser]: bandEnd is " + bandEnd + "$");};
 		};
 
 		bandToUsageMultiplier = adjustBandVersusUsage();
@@ -444,12 +445,12 @@ public class Totaliser {
 //			;
 //		} else {
 			transfersPriceSubtotal += calcTransfer * getHowLongMonths() * price * priceToUsageMultiplier;   
-			if (debug) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
-			if (debug) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
-			if (debug) {System.out.println( "calcTransfer : " + calcTransfer );};
-			if (debug) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
-			if (debug) {System.out.println( "price : " + price );};
-			if (debug) {System.out.println( "transfersPriceSubtotal : " + this.transfersPriceSubtotal );};
+			if (verbose) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
+			if (verbose) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
+			if (verbose) {System.out.println( "calcTransfer : " + calcTransfer );};
+			if (verbose) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
+			if (verbose) {System.out.println( "price : " + price );};
+			if (verbose) {System.out.println( "transfersPriceSubtotal : " + this.transfersPriceSubtotal );};
 			addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "transfersPriceSubtotal", transfersPriceSubtotal);
 			//		costPerReplica = transfersPriceSubtotal / replicas;
 			//		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "transfersCostPerReplica", costPerReplica);				
@@ -472,9 +473,9 @@ public class Totaliser {
 			bandFinitoLength = getBandDescription().length() - bandBeginLength - 1;
 			bandFinitoPosition = getBandDescription().length() - bandFinitoLength;
 			bandStart = Double.parseDouble(new String(getBandDescription().substring(0, bandBeginLength)));
-			if (debug) {System.out.println("[Totaliser]: bandStart is " + bandStart);};
+			if (verbose) {System.out.println("[Totaliser]: bandStart is " + bandStart);};
 			bandEnd = Double.parseDouble(new String(getBandDescription().substring(bandFinitoPosition, getBandDescription().length())));
-			if (debug) {System.out.println("[Totaliser]: bandEnd is " + bandEnd + "$");};
+			if (verbose) {System.out.println("[Totaliser]: bandEnd is " + bandEnd + "$");};
 		};
 
 		bandToUsageMultiplier = adjustBandEventVersusUsage();
@@ -490,12 +491,12 @@ public class Totaliser {
 		};
 		
 		storagetransactionsPriceSubtotal = calcStoragetransactions * getHowLongMonths() * price * priceToUsageMultiplier;   
-		if (debug) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
-		if (debug) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
-		if (debug) {System.out.println( "calcStoragetransactions : " + calcStoragetransactions );};
-		if (debug) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
-		if (debug) {System.out.println( "price : " + price );};
-		if (debug) {System.out.println( "StoragetransactionsPriceSubtotal : " + this.storagetransactionsPriceSubtotal );};
+		if (verbose) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
+		if (verbose) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
+		if (verbose) {System.out.println( "calcStoragetransactions : " + calcStoragetransactions );};
+		if (verbose) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
+		if (verbose) {System.out.println( "price : " + price );};
+		if (verbose) {System.out.println( "StoragetransactionsPriceSubtotal : " + this.storagetransactionsPriceSubtotal );};
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "storagetransactionsPriceSubtotal", storagetransactionsPriceSubtotal);
 //		costPerReplica = storagetransactionsPriceSubtotal / replicas;
 //		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);       
@@ -516,9 +517,9 @@ public class Totaliser {
 			bandFinitoLength = getBandDescription().length() - bandBeginLength - 1;
 			bandFinitoPosition = getBandDescription().length() - bandFinitoLength;
 			bandStart = Double.parseDouble(new String(getBandDescription().substring(0, bandBeginLength)));
-			if (debug) {System.out.println("[Totaliser]: bandStart is " + bandStart);};
+			if (verbose) {System.out.println("[Totaliser]: bandStart is " + bandStart);};
 			bandEnd = Double.parseDouble(new String(getBandDescription().substring(bandFinitoPosition, getBandDescription().length())));
-			if (debug) {System.out.println("[Totaliser]: bandEnd is " + bandEnd + "$");};
+			if (verbose) {System.out.println("[Totaliser]: bandEnd is " + bandEnd + "$");};
 		};
 
 		bandToUsageMultiplier = adjustBandEventVersusUsage();
@@ -534,12 +535,12 @@ public class Totaliser {
 		};
 		
 		servicebusPriceSubtotal = calcServicebus * getHowLongMonths() * price * priceToUsageMultiplier;   
-		if (debug) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
-		if (debug) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
-		if (debug) {System.out.println( "calcServicebus : " + calcServicebus );};
-		if (debug) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
-		if (debug) {System.out.println( "price : " + price );};
- 		if (debug) {System.out.println( "ServicebusPriceSubtotal : " + this.servicebusPriceSubtotal );};
+		if (verbose) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
+		if (verbose) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
+		if (verbose) {System.out.println( "calcServicebus : " + calcServicebus );};
+		if (verbose) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
+		if (verbose) {System.out.println( "price : " + price );};
+ 		if (verbose) {System.out.println( "ServicebusPriceSubtotal : " + this.servicebusPriceSubtotal );};
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "servicebusPriceSubtotal", servicebusPriceSubtotal);
 //		costPerReplica = servicebusPriceSubtotal / replicas;
 //		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
@@ -560,9 +561,9 @@ public class Totaliser {
 			bandFinitoLength = getBandDescription().length() - bandBeginLength - 1;
 			bandFinitoPosition = getBandDescription().length() - bandFinitoLength;
 			bandStart = Double.parseDouble(new String(getBandDescription().substring(0, bandBeginLength)));
-			if (debug) {System.out.println("[Totaliser]: bandStart is " + bandStart);};
+			if (verbose) {System.out.println("[Totaliser]: bandStart is " + bandStart);};
 			bandEnd = Double.parseDouble(new String(getBandDescription().substring(bandFinitoPosition, getBandDescription().length())));
-			if (debug) {System.out.println("[Totaliser]: bandEnd is " + bandEnd + "$");};
+			if (verbose) {System.out.println("[Totaliser]: bandEnd is " + bandEnd + "$");};
 		};
 
 		bandToUsageMultiplier = adjustBandEventVersusUsage();
@@ -578,12 +579,12 @@ public class Totaliser {
 		};
 		
 		requestsPriceSubtotal = calcRequests * getHowLongMonths() * price * priceToUsageMultiplier;   
-		if (debug) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
-		if (debug) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
-		if (debug) {System.out.println( "calcRequests : " + calcRequests );};
-		if (debug) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
-		if (debug) {System.out.println( "price : " + price );};
-		if (debug) {System.out.println( "requestsPriceSubtotal : " + this.requestsPriceSubtotal );};
+		if (verbose) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
+		if (verbose) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
+		if (verbose) {System.out.println( "calcRequests : " + calcRequests );};
+		if (verbose) {System.out.println( "getHowLongMonths() : " + this.getHowLongMonths() );};
+		if (verbose) {System.out.println( "price : " + price );};
+		if (verbose) {System.out.println( "requestsPriceSubtotal : " + this.requestsPriceSubtotal );};
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "requestsPriceSubtotal", requestsPriceSubtotal);
 //		costPerReplica = requestsPriceSubtotal / replicas;
 //		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);

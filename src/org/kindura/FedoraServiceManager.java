@@ -579,7 +579,7 @@ public class FedoraServiceManager {
 		}
 	}
 	
-	public void createCollectionObject(String collectionName, String root, String projectName, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cloudProviderNames, String cheapCost, String cheapCostCurrency, String svcPrvAccountDetails, Double storageUsed) {
+	public void createCollectionObject(String collectionName, String root, String projectName, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cloudProviderNames, String collectionCostCurrency, String svcPrvAccountDetails, Double storageUsed) {
 		
 		String pid = projectName+":"+collectionName;
 		String mimeType = "text/xml";
@@ -604,8 +604,7 @@ public class FedoraServiceManager {
 
 			FedoraClient.addDatastream(pid, "collectionTotSize").controlGroup("R").dsLabel(String.valueOf(storageUsed)).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 
-			FedoraClient.addDatastream(pid, "lowestCost").controlGroup("R").dsLabel(cheapCost).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "lowestCostCurrency").controlGroup("R").dsLabel(cheapCostCurrency).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			FedoraClient.addDatastream(pid, "collectionCostCurrency").controlGroup("R").dsLabel(collectionCostCurrency).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "svcPrvAccountDetails").controlGroup("R").dsLabel(svcPrvAccountDetails).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 
 			FedoraClient.addDatastream(pid, "cloudProviderNames").controlGroup("R").dsLabel(cloudProviderNames).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
@@ -622,7 +621,7 @@ public class FedoraServiceManager {
 		}
 	}
 	
-	public void updateCollectionObject(String collectionName, String root, String projectName, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cloudProviderNames, String cheapCost, String cheapCostCurrency, String svcPrvAccountDetails, Double storageUsed) {
+	public void updateCollectionObject(String collectionName, String root, String projectName, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String creator, String storageType, String collectionCost, String actionRequired, String timeStamp, String cloudProviderNames, String collectionCostCurrency, String svcPrvAccountDetails, Double storageUsed) {
 		
 		String pid = projectName+":"+collectionName;
 		String mimeType = "text/xml";
@@ -646,8 +645,7 @@ public class FedoraServiceManager {
 
 			FedoraClient.addDatastream(pid, "collectionTotSize").controlGroup("R").dsLabel(String.valueOf(storageUsed)).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 
-			FedoraClient.addDatastream(pid, "lowestCost").controlGroup("R").dsLabel(cheapCost).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
-			FedoraClient.addDatastream(pid, "lowestCostCurrency").controlGroup("R").dsLabel(cheapCostCurrency).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
+			FedoraClient.addDatastream(pid, "collectionCostCurrency").controlGroup("R").dsLabel(collectionCostCurrency).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			FedoraClient.addDatastream(pid, "svcPrvAccountDetails").controlGroup("R").dsLabel(svcPrvAccountDetails).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 
 			FedoraClient.addDatastream(pid, "cloudProviderNames").controlGroup("R").dsLabel(cloudProviderNames).dsLocation(url).mimeType(mimeType).execute(fedoraClient);
@@ -666,15 +664,8 @@ public class FedoraServiceManager {
 	
 	public void handleCollectionObject(String userName, String projectName, String collectionName, String collectionPID, String estimatedaccessFrequency, String collectionDescription, String protectiveMarking, String version, String timeStamp, String cloudProviderNames, Double cheaperCost, String cheaperCostCurrency, String svcPrvAcctDetails, Double collTotStorageUsed, String opsFlag) {
 		//Create a new collection object for the collection if it does not exist in Fedora repository.
-		BigDecimal cost;
-		cost = BigDecimal.valueOf(cheaperCost);
-		// amounts are rounded up so that very tiny fractions of one penny appear as at
-		// least 1p or 1cent.
-		cost = cost.setScale(2, BigDecimal.ROUND_UP);
-		String cheaperCostTxt = String.valueOf(cost);
 
 		BigDecimal collCost;
-		// TODO remove this duplicate field
 		collCost = BigDecimal.valueOf(cheaperCost);
 		// amounts are rounded up so that very tiny fractions of one penny appear as at
 		// least 1p or 1cent.
@@ -691,13 +682,13 @@ public class FedoraServiceManager {
 		if ((isFedoraObjectExisted(collectionPID) == true) && (getADataStream(collectionPID, "projectName").equals(projectName))) {
 			System.out.println("Collection pid "+collectionPID+" exists");
 			//throw new FedoraClientException("Collection name is already existed");
-			updateCollectionObject(collectionName, "root", projectName, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cloudProviderNames, cheaperCostTxt, cheaperCostCurrency, svcPrvAcctDetails, collTotStorageUsed);
+			updateCollectionObject(collectionName, "root", projectName, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cloudProviderNames, cheaperCostCurrency, svcPrvAcctDetails, collTotStorageUsed);
 			
 		} else {
 			System.out.println("Collection pid "+collectionPID+" does NOT exist");
 			//IngestResponse ingest = new Ingest(collectionPID).execute(fedoraClient);
 			
-			createCollectionObject(collectionName, "root", projectName, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cloudProviderNames, cheaperCostTxt, cheaperCostCurrency, svcPrvAcctDetails, collTotStorageUsed);
+			createCollectionObject(collectionName, "root", projectName, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, userName, storageType, collectionCost, actionRequired, timeStamp, cloudProviderNames, cheaperCostCurrency, svcPrvAcctDetails, collTotStorageUsed);
 			//FedoraClient.addDatastream(nameSpaceAndPid, baseFilename+".cost").controlGroup("R").dsLabel(cost.toString()).dsLocation(fileUrl).mimeType(mimeType).execute(fedoraClient);
 		} 
 	}

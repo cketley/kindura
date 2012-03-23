@@ -50,7 +50,7 @@
 				</td>
 				
 				<td style="background-color:#FFFFFF;height:550px;width:700px;text-align:center;">
-					<form name="metadata" method="post">
+					<form name="metadata" method="post" enctype="multipart/form-data" >
 						<br/>
 						<h1 style="color:#F77A52;font-size:18px">Enter collection metadata:</h1>
 						<table align="center" style="text-align:left;" border="0" cellspacing="10">
@@ -163,14 +163,17 @@
 						NAME="JUpload"
 						ARCHIVE="wjhk.jupload.jar"
 						WIDTH="700"
-						HEIGHT="300"
+						HEIGHT="600"
 						MAYSCRIPT="true"
 						ALT="The java plugin must be installed.">
 						<param name="postURL" value="UploadRequestHandler" />
 						<param name="showLogWindow" value="false" />
-						<param name="showStatusBar" value="false" />
+						<param name="showStatusBar" value="true" />
 						<param name="lookAndFeel" value="system" />
-						<param name="formdata" value="metadata" />
+						<!--<param name="formdata" value="metadata" />-->
+						<param name="nbFilesPerRequest" value="0" />
+						<param name="httpUploadParameterName" value="file" />
+						<param name="httpUploadParameterType" value="array" />
 						<param name="debugLevel" value="101" />
 						<!--<param name="afterUploadURL" value="parseRequest.jsp" />
 						<param name="URLParam" value="URL Parameter Value"/>-->

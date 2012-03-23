@@ -30,7 +30,8 @@ import java.util.Map;
 
 public class CostOptimiser
 {
-	private static final boolean debug = true;
+	private static final boolean debug = false;
+	private static final boolean verbose = true;
 
 	public  CostOptimiser() {
 
@@ -366,9 +367,9 @@ public class CostOptimiser
 					}
 				}
 			}
-			if (debug) {System.out.println("[Cost Optimiser]: calcStoragePriceSubtotal is " + calcStoragePriceSubtotal + " for key " + keyPart ); };
-			if (debug) {System.out.println("[Cost Optimiser]: calcCostPerReplica is " + calcCostPerReplica + " for key " + keyPart ); };
-			if (debug) {System.out.println("[Cost Optimiser]: calcTransfersPriceSubtotal is " + calcTransfersPriceSubtotal + " for key " + keyPart ); };
+			if (verbose) {System.out.println("[Cost Optimiser]: calcStoragePriceSubtotal is " + calcStoragePriceSubtotal + " for key " + keyPart ); };
+			if (verbose) {System.out.println("[Cost Optimiser]: calcCostPerReplica is " + calcCostPerReplica + " for key " + keyPart ); };
+			if (verbose) {System.out.println("[Cost Optimiser]: calcTransfersPriceSubtotal is " + calcTransfersPriceSubtotal + " for key " + keyPart ); };
 			if (debug) {System.out.println("[Cost Optimiser]:   getting value from " + valPart ); };
 
 			// most service providers have transfer-in cost of zero
@@ -380,8 +381,8 @@ public class CostOptimiser
 			calcIngestApportioned = calcCostPerReplica + calcRequestsPriceSubtotal + calcTransfersPriceSubtotal + calcServicebusPriceSubtotal + calcStoragetransactionsPriceSubtotal;
 			calcMigrationApportioned = calcTransfersPriceSubtotal + calcCostPerReplica + calcRequestsPriceSubtotal + calcServicebusPriceSubtotal + calcStoragetransactionsPriceSubtotal;
 
-			if (debug) {System.out.println("[Cost Optimiser]: calcIngestTotal is " + calcIngestTotal + " for key " + keyPart ); };
-			if (debug) {System.out.println("[Cost Optimiser]: calcMigrationTotal is " + calcMigrationTotal + " for key " + keyPart ); };
+			if (verbose) {System.out.println("[Cost Optimiser]: calcIngestTotal is " + calcIngestTotal + " for key " + keyPart ); };
+			if (verbose) {System.out.println("[Cost Optimiser]: calcMigrationTotal is " + calcMigrationTotal + " for key " + keyPart ); };
 
 			
 			// TODO replicas should not be in the key
@@ -472,10 +473,10 @@ public class CostOptimiser
 				// amounts are rounded up so that very tiny fractions of one penny appear as at
 				// least 1p or 1cent.
 				cost = cost.setScale(2, BigDecimal.ROUND_UP);
-				costSortable = String.format("%10.02f", cost);
+				costSortable = String.format("%08.02f", cost);
 
-				if (debug) {System.out.println("[Cost Optimiser]: calcIngestTotal is " + calcIngestTotal + " for key " + frontendTxtSP);};
-				if (debug) {System.out.println("[Cost Optimiser]: rounded Cost is " + costSortable );};
+				if (verbose) {System.out.println("[Cost Optimiser]: calcIngestTotal is " + calcIngestTotal + " for key " + frontendTxtSP);};
+				if (verbose) {System.out.println("[Cost Optimiser]: rounded Cost is " + costSortable );};
 				// store all lines for ingest - decide later which to use
 				// force currency to US$ for now
 				sortedIngestList.add(costSortable + "|" + frontendTxtSP + "|" + "US$");
@@ -486,10 +487,10 @@ public class CostOptimiser
 					// amounts are rounded up so that very tiny fractions of one penny appear as at
 					// least 1p or 1cent.
 					cost = cost.setScale(2, BigDecimal.ROUND_UP);
-					costSortable = String.format("%10.02f", cost);
+					costSortable = String.format("%08.02f", cost);
 
-					if (debug) {System.out.println("[Cost Optimiser]: calcMigrationTotal is " + calcMigrationTotal + " for key " + frontendTxtSP);};
-					if (debug) {System.out.println("[Cost Optimiser]: rounded Cost is " + costSortable );};
+					if (verbose) {System.out.println("[Cost Optimiser]: calcMigrationTotal is " + calcMigrationTotal + " for key " + frontendTxtSP);};
+					if (verbose) {System.out.println("[Cost Optimiser]: rounded Cost is " + costSortable );};
 					// store all migrations 
 					// force currency to US$ for now
 					sortedMigrationList.add(costSortable + "|" + frontendTxtSP + "|" + "US$");
@@ -654,8 +655,8 @@ public class CostOptimiser
 				}
 			}
 		};
-		if ( ! ( (tmpPop.indexOf("|")) > 0 )) {
-			tmpPop = tmpPop.substring(0, tmpPop.length());
+		if (   ! ( (tmpPop.indexOf("|")) > 0 )) {
+			txtPop = tmpPop.substring(0, tmpPop.length());
 		} else {
 			try {
 				txtPop = tmpPop.substring( 0, tmpPop.indexOf("|") );
@@ -692,8 +693,8 @@ public class CostOptimiser
 				}
 			}
 		};
-		if ( ! ( (tmpPop.lastIndexOf("|")) > 0 )) {
-			tmpPop = tmpPop.substring(0, tmpPop.length());
+		if (   ! ( (tmpPop.lastIndexOf("|")) > 0 )) {
+			txtPop = tmpPop.substring(0, tmpPop.length());
 		} else {
 			try {
 				txtPop = tmpPop.substring(tmpPop.lastIndexOf("|") + 1, tmpPop.length());
