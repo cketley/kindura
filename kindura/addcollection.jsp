@@ -30,6 +30,71 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<title>Kindura Cloud Repository</title>
 		<link href="<%= request.getContextPath() %>/css/r4r.css" type="text/css" rel="stylesheet" media="screen" />
+		<script type="text/javascript">
+			function validateCollectionTitle() {
+				var collectiontitle = document.forms["collectionmetadata"]["collectionname"].value;
+				var dotposition = collectiontitle.indexOf(".");
+				var validCollectionTitle = /^[0-9a-z_]/;
+				
+				if (collectiontitle != collectiontitle.toLowerCase()) {
+					alert("'Collection Title' must NOT contain uppercase letters.");
+					return false;
+				}
+				if (collectiontitle.length < 3 || collectiontitle.length > 42) { 
+					alert("'Collection Title' must be 3 to 42 characters long.");
+					return false;
+				}
+				if (collectiontitle.indexOf(".") > 0) {
+					alert("Please do NOT use '.' for the 'Collection Title'.");
+					return false;
+				}
+				if (collectiontitle.indexOf("_") > 0) {
+					alert("Please do NOT use '_' for the 'Collection Title'.");
+					return false;
+				}
+				if (collectiontitle.indexOf("-") == 0 || collectiontitle.lastIndexOf("-") == (collectiontitle.length-1)) {
+					alert("Please do NOT start or end the 'Collection Title' with '-'.");
+					return false;
+				}
+				if (collectiontitle.indexOf(" ") > 0) {
+					alert("Please do NOT use spaces for the 'Collection Title'.");
+					return false;
+				}
+				if (collectiontitle == "init" || collectiontitle == "stores" || collectiontitle == "spaces" || collectiontitle == "security" || collectiontitle == "task") {
+					alert("Please do NOT use the reserved name: init, stores, spaces, security, task.");
+					return false;
+				}
+				if(collectiontitle.match(validCollectionTitle) == false){
+					alert("Invalid collection title");
+					//document.forms["collectionmetadata"]["collectionname"].focus();
+					return false;
+				}
+			}
+			function validateAssociatedProject() {
+				var projectname = document.forms["collectionmetadata"]["projectname"].value;
+				if (projectname == "" || projectname == null) {
+					alert("Please select 'Associated Project' for the data collection.");
+				}
+			}
+			function validateVersion() {
+				var version = document.forms["collectionmetadata"]["version"].value;
+				if (version == "" || version == null) {
+					alert("Please select 'Version' for the data collection.");
+				}
+			}
+			function validateAccessFrequency() {
+				var accessfrequency = document.forms["collectionmetadata"]["accessfrequency"].value;
+				if (accessfrequency == "" || accessfrequency == null) {
+					alert("Please select 'Estimated Access Frequency' for the data collection.");
+				}
+			}
+			function validateProtectiveMarking() {
+				var protectivemarking = document.forms["collectionmetadata"]["protectivemarking"].value;
+				if (protectivemarking == "" || protectivemarking == null) {
+					alert("Please select 'Protective Marking' for the data collection.");
+				}
+			}
+		</script>
 	</head>
 	<body>
 		<table width="100%" border="0">
@@ -51,13 +116,13 @@
 				
 				<td style="background-color:#FFFFFF;height:550px;width:700px;text-align:center;">
 					<br/>
-					<form name="metadata" method="post">
+					<form name="collectionmetadata" method="post">
 						<h1 style="color:#F77A52;font-size:18px">Collection metadata:</h1>
 						<table align="center" style="text-align:left;" border="0" cellspacing="10">
 							<tr>
 								<td>
 									<b>Collection Title</b>&nbsp &nbsp
-									<input type="text" name="collectionname" title="Name of the Data Collection" style="width:600px"/>
+									<input type="text" name="collectionname" title="Name of the Data Collection" style="width:600px" onBlur="return validateCollectionTitle()" />
 									<!--<img border="0" src="images/requiredfield.gif" title="The name of the collection(required filed)" width="9" height="9"/>-->
 									<img border="0" src="images/questionmark.jpg" title="The name of the collection" width="15" height="15"/>
 									<br/><br/><br/>
@@ -66,7 +131,7 @@
 							<tr>
 								<td>
 									<b>Associated Project</b>&nbsp &nbsp
-									<select name="projectname" style="width:575px">
+									<select name="projectname" style="width:575px" onBlur="return validateAssociatedProject()">
 										<%
 											//List<String> projectNames = fedoraServiceManager.getUserDefinedPIDs(username);
 											List<String> projectNames = fedoraServiceManager.getProjectNames();
@@ -105,7 +170,7 @@
 							<tr>
 								<td>
 									<b>Version</b>
-									<select name="version" style="width:200px">
+									<select name="version" style="width:200px" onBlur="return validateVersion()">
 										<option></option>
 										<option value = "Source data">Source data</option>
 										<option value = "Intermediate version">Intermediate version</option>
@@ -119,7 +184,7 @@
 								</td>
 								<td>
 									<b>Estimated Access Frequency</b>
-									<select name="accessfrequency" style="width:190px">
+									<select name="accessfrequency" style="width:190px" onBlur="return validateAccessFrequency()">
 										<option></option>
 										<option value = "10+ accesses per day">10+ accesses per day</option>
 										<option value = "1-10 accesses per day">1-10 accesses per day</option>
@@ -136,7 +201,7 @@
 							<tr>
 								<td>
 									<b>Protective Marking</b> 
-									<select name="protectivemarking" style="width:120px">
+									<select name="protectivemarking" style="width:120px" onBlur="return validateProtectiveMarking()">
 										<option></option>
 										<option value = "Confidential">Confidential</option>
 										<option value = "Internal">Internal</option>
