@@ -60,7 +60,7 @@ public class UploadRequestHandler extends HttpServlet {
 	FedoraServiceManager fedoraServiceManager = new FedoraServiceManager();
 	FedoraClient fedoraClient = fedoraServiceManager.getFedoraConnection();
 	
-	private static final boolean debug = true;
+	private static final boolean debug = false;
 	private static final boolean verbose = true;
 
 	// the version of this application that interacts with a human will be
@@ -94,6 +94,7 @@ public class UploadRequestHandler extends HttpServlet {
 		String protectiveMarking = null;
 		String version = null;
 		String timeStamp = null;
+		String expiryDate = null;
 		String researchfunder = null;
 		boolean bmpToJPG = false;
 		boolean tiffToJPG = false;
@@ -236,7 +237,12 @@ public class UploadRequestHandler extends HttpServlet {
 				// But if the user-input data is invalid we get strange results
 				// We will just have to live with that - there's a limit to what
 				// we can do without tying ourselves in knots
-				String serviceProviderAccount = "";
+				String serviceProviderAccount1 = "";
+				String serviceProviderAccount2 = "";
+				String serviceProviderAccount3 = "";
+				String serviceProviderAccount4 = "";
+				String serviceProviderAccount5 = "";
+				String serviceProviderAccount6 = "";
 
 				while (trundle.hasNext()) {
 					userResponse = (FileItem) trundle.next();
@@ -404,11 +410,13 @@ public class UploadRequestHandler extends HttpServlet {
 							suggestedPayPlan = costOpt.popString(ingestData, 4);
 							// this is how many copies are offered by Service Provider
 							suggestedReplicas = costOpt.popString(ingestData, 5);
-							System.out.println("[UploadRequestHandler] suggestedIngestVal = " + suggestedIngestVal );
+							System.out.println("[UploadRequestHandler] --------------- " );
+
 							System.out.println("[UploadRequestHandler] suggestedSP = " + suggestedSP );
 							System.out.println("[UploadRequestHandler] suggestedReg = " + suggestedReg );
 							System.out.println("[UploadRequestHandler] suggestedPayPlan = " + suggestedPayPlan );
 							System.out.println("[UploadRequestHandler] suggestedReplicas = " + suggestedReplicas );
+							System.out.println("[UploadRequestHandler] suggestedIngestVal = " + suggestedIngestVal );
 							System.out.println("[UploadRequestHandler] suggestedCurr = " + suggestedCurr );
 
 						}							
@@ -605,28 +613,47 @@ public class UploadRequestHandler extends HttpServlet {
 							//Create a new namespace if the namespace does not exist.
 							// The nameSpace variable passed across is actually the collection name.
 							Map<String, String> spaceMetadata = new HashMap<String, String>();
-							if ( (suggestedSP .equals("Amazon S3")) && (duraStoreClient.isNameSpaceExisted("Amazon S3", nameSpace) == false) ) {
-								duraStoreClient.createNamespace("Amazon S3", nameSpace, spaceMetadata);
+							// TODO ugly bodge - amazon has one region per account so we have multiple accounts
+							if ( (suggestedSP .equals("Amazon S3")) && (suggestedPayPlan .equals("Pay as you go - reduced redundancy")) ) {
+								if (duraStoreClient.isNameSpaceExisted("Amazon S3 RRS", nameSpace) == false) {
+									duraStoreClient.createNamespace("Amazon S3 RRS", nameSpace, spaceMetadata);								
+								}
+								duraStoreClient.uploadFile(duraStoreClient.amazonS3RRSContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+							}
+							if ( (suggestedSP .equals("Amazon S3")) &&  ! (suggestedPayPlan .equals("Pay as you go - reduced redundancy"))  ) {
+								if (duraStoreClient.isNameSpaceExisted("Amazon S3", nameSpace) == false) {
+									duraStoreClient.createNamespace("Amazon S3", nameSpace, spaceMetadata);
+								}
 								duraStoreClient.uploadFile(duraStoreClient.amazonS3ContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
 							}
-							if ( (suggestedSP .equals("Rackspace Cloud Files")) && (duraStoreClient.isNameSpaceExisted("Rackspace Cloud Files", nameSpace) == false) ) {
-								duraStoreClient.createNamespace("Rackspace Cloud Files", nameSpace, spaceMetadata);
+							if ( (suggestedSP .equals("Rackspace Cloud Files")) ) {
+								if (duraStoreClient.isNameSpaceExisted("Rackspace Cloud Files", nameSpace) == false) {
+									duraStoreClient.createNamespace("Rackspace Cloud Files", nameSpace, spaceMetadata);									
+								}
 								duraStoreClient.uploadFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
 							}
-							if ( (suggestedSP .equals("iRODS")) && (duraStoreClient.isNameSpaceExisted("iRODS", nameSpace) == false) ) {
-								duraStoreClient.createNamespace("iRODS", nameSpace, spaceMetadata);
+							if ( (suggestedSP .equals("iRODS")) ) {
+								if (duraStoreClient.isNameSpaceExisted("iRODS", nameSpace) == false) {
+									duraStoreClient.createNamespace("iRODS", nameSpace, spaceMetadata);									
+								}
 								duraStoreClient.uploadFile(duraStoreClient.iRODSContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
 							}
-							if ( (suggestedSP .equals("Google Cloud Storage")) && (duraStoreClient.isNameSpaceExisted("Google Cloud Storage", nameSpace) == false) ) {
-								duraStoreClient.createNamespace("Google Cloud Storage", nameSpace, spaceMetadata);
+							if ( (suggestedSP .equals("Google Cloud Storage")) ) {
+								if (duraStoreClient.isNameSpaceExisted("Google Cloud Storage", nameSpace) == false) {
+									duraStoreClient.createNamespace("Google Cloud Storage", nameSpace, spaceMetadata);
+								}
 								duraStoreClient.uploadFile(duraStoreClient.googleCloudStorageContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
 							}
-							if ( (suggestedSP .equals("Azure")) && (duraStoreClient.isNameSpaceExisted("Azure", nameSpace) == false) ) {
-								duraStoreClient.createNamespace("Azure", nameSpace, spaceMetadata);
+							if ( (suggestedSP .equals("Azure")) ) {
+								if (duraStoreClient.isNameSpaceExisted("Azure", nameSpace) == false) {
+									duraStoreClient.createNamespace("Azure", nameSpace, spaceMetadata);									
+								}
 								duraStoreClient.uploadFile(duraStoreClient.azureContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
 							}
-							if ( (suggestedSP .equals("SDSC")) && (duraStoreClient.isNameSpaceExisted("SDSC", nameSpace) == false) ) {
-								duraStoreClient.createNamespace("SDSC", nameSpace, spaceMetadata);
+							if ( (suggestedSP .equals("SDSC")) ) {
+								if (duraStoreClient.isNameSpaceExisted("SDSC", nameSpace) == false) {
+									duraStoreClient.createNamespace("SDSC", nameSpace, spaceMetadata);
+								}
 								duraStoreClient.uploadFile(duraStoreClient.sdscContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
 							}
 
@@ -672,7 +699,14 @@ public class UploadRequestHandler extends HttpServlet {
 						suggestedReg = "";
 						suggestedPayPlan = "";
 						suggestedReplicas = "";
+						serviceProviderAccount1 = "";
+						serviceProviderAccount2 = "";
+						serviceProviderAccount3 = "";
+						serviceProviderAccount4 = "";
+						serviceProviderAccount5 = "";
+						serviceProviderAccount6 = "";
 
+						Integer spCount = 0;
 						Iterator wanderise = concludedIngestList.iterator();
 						while (wanderise.hasNext()) {
 
@@ -685,9 +719,21 @@ public class UploadRequestHandler extends HttpServlet {
 							// this is how many copies are offered by Service Provider
 							suggestedReplicas = costOpt.popString(ingestData, 5);
 							
-							serviceProviderAccount = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;
+							// we have only 255 characters to play with...
+							switch (spCount) 
+							{
+							case 0 : serviceProviderAccount1 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+							case 1 : serviceProviderAccount2 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+							case 2 : serviceProviderAccount3 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+							case 3 : serviceProviderAccount4 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+							case 4 : serviceProviderAccount5 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+							case 5 : serviceProviderAccount6 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+							}
+							spCount++;
 
-							fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedIngestVal, suggestedCurr, serviceProviderAccount, storageUsedTot, operationFlag);
+							expiryDate = inputMetadata.get("StorageExpiryDate");
+
+							fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedIngestVal, suggestedCurr, serviceProviderAccount1, serviceProviderAccount2, serviceProviderAccount3, serviceProviderAccount4, serviceProviderAccount5, serviceProviderAccount6, storageUsedTot, operationFlag, expiryDate);
 
 							HashMap<String, String> parentFolderNameAndPID = fedoraServiceManager.handleFolderObject(projectName, collectionName, collectionPID, fileName, fileOriginalPath);
 
@@ -697,7 +743,6 @@ public class UploadRequestHandler extends HttpServlet {
 							}
 
 							fedoraServiceManager.handleFileObject(nameSpace, projectName, collectionName, parentFolderName, parentFolderPID, baseFileName, baseFileName, filePID, fileOriginalPath, fileNameExtension, fileSize);
-
 						}
 						
 						//			

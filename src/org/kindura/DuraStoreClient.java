@@ -51,6 +51,7 @@ public class DuraStoreClient {
     ContentStoreManager contentStoreManager;
     ContentStore defaultContentStore;
     ContentStore amazonS3ContentStore;
+    ContentStore amazonS3RRSContentStore;
     ContentStore rackSpaceContentStore;
     ContentStore iRODSContentStore;
     ContentStore azureContentStore;
@@ -72,7 +73,8 @@ public class DuraStoreClient {
         amazonS3ContentStore = contentStoreManager.getContentStore("0");
         rackSpaceContentStore = contentStoreManager.getContentStore("1");
 //        iRODSContentStore = contentStoreManager.getContentStore("2");
-//        azureContentStore = contentStoreManager.getContentStore("3");
+        amazonS3RRSContentStore = contentStoreManager.getContentStore("3");
+//        azureContentStore = contentStoreManager.getContentStore("6");
 //        googleCloudStorageContentStore = contentStoreManager.getContentStore("4");
 //        sdscContentStore = contentStoreManager.getContentStore("5");
         
@@ -98,15 +100,18 @@ public class DuraStoreClient {
 				if (cloudProviderName.equals("Amazon S3")) {
 					storeIDs = amazonS3ContentStore.getSpaces();
 				}
+				if (cloudProviderName.equals("Amazon S3 RRS")) {
+					storeIDs = amazonS3RRSContentStore.getSpaces();
+				}
 				else if (cloudProviderName.equals("Rackspace Cloud Files")) {
+					storeIDs = rackSpaceContentStore.getSpaces();
+				}
+				else if (cloudProviderName.equals("RACKSPACE")) {
 					storeIDs = rackSpaceContentStore.getSpaces();
 				}
 //				else if (cloudProviderName.equals("iRODS")) {
 //					storeIDs = iRODSContentStore.getSpaces();
 //				}
-				else if (cloudProviderName.equals("RACKSPACE")) {
-					storeIDs = rackSpaceContentStore.getSpaces();
-				}
 //				else if (cloudProviderName.equals("IRODS")) {
 //					storeIDs = iRODSContentStore.getSpaces();
 //				}
@@ -150,18 +155,22 @@ public class DuraStoreClient {
     			cloudProviderID = 0;
     			return String.valueOf(cloudProviderID);
     		}
+    		if (cloudProviderName.equals("Amazon S3 RRS")) {
+    			cloudProviderID = 3;
+    			return String.valueOf(cloudProviderID);
+    		}
     		else if (cloudProviderName.equals("Rackspace Cloud Files")) {
     			cloudProviderID = 1;
     			return String.valueOf(cloudProviderID);
     		}
-//    		else if (cloudProviderName.equals("iRODS")) {
-//    			cloudProviderID = 2;
-//    			return String.valueOf(cloudProviderID);
-//    		}
 			else if (cloudProviderName.equals("RACKSPACE")) {
     			cloudProviderID = 1;
     			return String.valueOf(cloudProviderID);
 			}
+//    		else if (cloudProviderName.equals("iRODS")) {
+//    			cloudProviderID = 2;
+//    			return String.valueOf(cloudProviderID);
+//    		}
 //			else if (cloudProviderName.equals("IRODS")) {
 //    			cloudProviderID = 2;
 //    			return String.valueOf(cloudProviderID);
@@ -184,18 +193,22 @@ public class DuraStoreClient {
     			cloudProviderID = 32;
     			return String.valueOf(cloudProviderID);
     		} 
+    		if (cloudProviderName.equals("Amazon S3 RRS")) {
+    			cloudProviderID = 36;
+    			return String.valueOf(cloudProviderID);
+    		} 
     		else if (cloudProviderName.equals("Rackspace Cloud Files")) {
     			cloudProviderID = 33;
     			return String.valueOf(cloudProviderID);
     		}
-//    		else if (cloudProviderName.equals("iRODS")) {
-//    			cloudProviderID = 34;
-//    			return String.valueOf(cloudProviderID);
-//    		}
 			else if (cloudProviderName.equals("RACKSPACE")) {
     			cloudProviderID = 33;
     			return String.valueOf(cloudProviderID);
 			}
+//    		else if (cloudProviderName.equals("iRODS")) {
+//    			cloudProviderID = 34;
+//    			return String.valueOf(cloudProviderID);
+//    		}
 //			else if (cloudProviderName.equals("IRODS")) {
 //    			cloudProviderID = 34;
 //    			return String.valueOf(cloudProviderID);
@@ -244,15 +257,18 @@ public class DuraStoreClient {
 				if (cloudProviderName.equals("Amazon S3")) {
 					amazonS3ContentStore.createSpace(nameSpace, spaceMetadata);
 				}
+				if (cloudProviderName.equals("Amazon S3 RRS")) {
+					amazonS3RRSContentStore.createSpace(nameSpace, spaceMetadata);
+				}
 				else if (cloudProviderName.equals("Rackspace Cloud Files")) {
+					rackSpaceContentStore.createSpace(nameSpace, spaceMetadata);
+				}
+				else if (cloudProviderName.equals("RACKSPACE")) {
 					rackSpaceContentStore.createSpace(nameSpace, spaceMetadata);
 				}
 //				else if (cloudProviderName.equals("iRODS")) {
 //					iRODSContentStore.createSpace(nameSpace, spaceMetadata);
 //				}
-				else if (cloudProviderName.equals("RACKSPACE")) {
-					rackSpaceContentStore.createSpace(nameSpace, spaceMetadata);
-				}
 //				else if (cloudProviderName.equals("IRODS")) {
 //					iRODSContentStore.createSpace(nameSpace, spaceMetadata);
 //				}
@@ -377,15 +393,18 @@ public class DuraStoreClient {
         		if (originalCloudProvider.equals("Amazon S3")) {
         			spaceContents = getFileNames(amazonS3ContentStore, originalNameSpace);
         		}
+        		if (originalCloudProvider.equals("Amazon S3 RRS")) {
+        			spaceContents = getFileNames(amazonS3RRSContentStore, originalNameSpace);
+        		}
         		if (originalCloudProvider.equals("Rackspace Cloud Files")) {
         			spaceContents = getFileNames(rackSpaceContentStore, originalNameSpace);
         		}
-//        		if (originalCloudProvider.equals("iRODS")) {
-//        			spaceContents = getFileNames(iRODSContentStore, originalNameSpace);
-//        		}
 				if (originalCloudProvider.equals("RACKSPACE")) {
         			spaceContents = getFileNames(rackSpaceContentStore, originalNameSpace);
 				}
+//        		if (originalCloudProvider.equals("iRODS")) {
+//        			spaceContents = getFileNames(iRODSContentStore, originalNameSpace);
+//        		}
 //				if (originalCloudProvider.equals("IRODS")) {
 //        			spaceContents = getFileNames(iRODSContentStore, originalNameSpace);
 //				}
@@ -420,15 +439,18 @@ public class DuraStoreClient {
 					if (originalCloudProvider.equals("Amazon S3")) {
 						downloadFile(amazonS3ContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					}
+					if (originalCloudProvider.equals("Amazon S3 RRS")) {
+						downloadFile(amazonS3RRSContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+					}
 	        		if (originalCloudProvider.equals("Rackspace Cloud Files")) {
+	        			downloadFile(rackSpaceContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+					}
+					if (originalCloudProvider.equals("RACKSPACE")) {
 	        			downloadFile(rackSpaceContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					}
 //	        		if (originalCloudProvider.equals("iRODS")) {
 //	        			downloadFile(iRODSContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 //					}
-					if (originalCloudProvider.equals("RACKSPACE")) {
-	        			downloadFile(rackSpaceContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
-					}
 //					if (originalCloudProvider.equals("IRODS")) {
 //	        			downloadFile(iRODSContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 //					}
@@ -448,15 +470,18 @@ public class DuraStoreClient {
 					if (originalCloudProvider.equals("Amazon S3")) {
 						uploadFile(amazonS3ContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 					}
+					if (originalCloudProvider.equals("Amazon S3 RRS")) {
+						uploadFile(amazonS3RRSContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+					}
 	        		if (originalCloudProvider.equals("Rackspace Cloud Files")) {
+	        			uploadFile(rackSpaceContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+					}
+					if (originalCloudProvider.equals("RACKSPACE")) {
 	        			uploadFile(rackSpaceContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 					}
 //	        		if (originalCloudProvider.equals("iRODS")) {
 //	        			uploadFile(iRODSContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 //					}
-					if (originalCloudProvider.equals("RACKSPACE")) {
-	        			uploadFile(rackSpaceContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
-					}
 //					if (originalCloudProvider.equals("IRODS")) {
 //	        			uploadFile(iRODSContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 //					}

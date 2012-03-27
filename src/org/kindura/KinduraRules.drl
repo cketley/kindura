@@ -35,7 +35,7 @@ rule "Institutional funder appraisal period"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( project.funder == "Institutional" )
+    $collection:   UploadCollection( project.funder == "Institutional" )
 then
     $collection.setAppraisalDate( 6 );
         System.err.println("firing Institutional funder appraisal period -> 6 years");
@@ -47,7 +47,7 @@ rule "AHRC funder appraisal period"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( project.funder == "AHRC" )
+    $collection:   UploadCollection( project.funder == "AHRC" )
 then
     $collection.setAppraisalDate( 3 );
     System.err.println("firing AHRC funder appraisal period -> 3 years");
@@ -59,7 +59,7 @@ rule "ESRC funder appraisal period"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( project.funder == "ESRC" )
+    $collection:   UploadCollection( project.funder == "ESRC" )
 then
     $collection.setAppraisalDate( 10 );
     System.err.println("firing ESRC funder appraisal period -> 10 years");
@@ -71,7 +71,7 @@ rule "EC funder appraisal period"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( project.funder == "EC" )
+    $collection:   UploadCollection( project.funder == "EC" )
 then
     $collection.setAppraisalDate( 10 );
     System.err.println("firing EC funder appraisal period -> 10 years");
@@ -84,7 +84,7 @@ rule "EPSRC funder appraisal period"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( project.funder == "EPSRC" )
+    $collection:   UploadCollection( project.funder == "EPSRC" )
 then
     $collection.setAppraisalDate( 10 );
     System.err.println("firing EPSRC funder appraisal period -> 10 years");
@@ -97,7 +97,7 @@ rule "Combination funder appraisal period"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( project.funder == "Combination" )
+    $collection:   UploadCollection( project.funder == "Combination" )
 then
     $collection.setAppraisalDate( 10 );
     System.err.println("firing Combination funder appraisal period -> 10 years");
@@ -109,7 +109,7 @@ rule "MRC funder appraisal period"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( project.funder == "MRC" )
+    $collection:   UploadCollection( project.funder == "MRC" )
 then
     $collection.setAppraisalDate( 10 );
     System.err.println("firing MRC funder appraisal period -> 10 years");
@@ -121,7 +121,7 @@ rule "NERC funder appraisal period"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( project.funder == "NERC" )
+    $collection:   UploadCollection( project.funder == "NERC" )
 then
     $collection.setAppraisalDate( 10 );
     System.err.println("firing NERC funder appraisal period -> 10 years");
@@ -133,7 +133,7 @@ rule "Unfunded funder appraisal period"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( project.funder == "Unfunded" )
+    $collection:   UploadCollection( project.funder == "Unfunded" )
 then
     $collection.setAppraisalDate( 5 );
     System.err.println("firing Unfunded funder appraisal period -> 5 years");
@@ -145,7 +145,7 @@ rule "Other funder appraisal period"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( project.funder == "Other" )
+    $collection:   UploadCollection( project.funder == "Other" )
 then
     $collection.setAppraisalDate( 3 );
     System.err.println("firing Other funder appraisal period -> 3 years");
@@ -160,7 +160,7 @@ rule "AHRC accession appraisal period"
 salience 50
 no-loop
 when
-    $collection: UploadCollection( funder == "AHRC" )
+    $collection:   UploadCollection( funder == "AHRC" )
 then
     $collection.setAppraisalDate( 3 );
     System.err.println("firing AHRC accession appraisal period -> 3 years");
@@ -172,7 +172,7 @@ rule "ESRC accession appraisal period"
 salience 50
 no-loop
 when
-    $collection: UploadCollection( funder == "ESRC" )
+    $collection:   UploadCollection( funder == "ESRC" )
 then
     $collection.setAppraisalDate( 10 );
     System.err.println("firing ESRC accession appraisal period -> 10 years");
@@ -184,7 +184,7 @@ rule "EC accession appraisal period"
 salience 50
 no-loop
 when
-    $collection: UploadCollection( funder == "EC" )
+    $collection:   UploadCollection( funder == "EC" )
 then
     $collection.setAppraisalDate( 10 );
     System.err.println("firing EC accession appraisal period -> 10 years");
@@ -197,7 +197,7 @@ rule "EPSRC accession appraisal period"
 salience 50
 no-loop
 when
-    $collection: UploadCollection( funder == "EPSRC" )
+    $collection:   UploadCollection( funder == "EPSRC" )
 then
     $collection.setAppraisalDate( 10 );
     System.err.println("firing EPSRC accession appraisal period -> 10 years");
@@ -209,7 +209,7 @@ rule "Combination accession appraisal period"
 salience 50
 no-loop
 when
-    $collection: UploadCollection( funder == "Combination" )
+    $collection:   UploadCollection( funder == "Combination" )
 then
     $collection.setAppraisalDate( 10 );
     System.err.println("firing Combination accession appraisal period -> 10 years");
@@ -221,7 +221,7 @@ rule "Unfunded accession appraisal period"
 salience 50
 no-loop
 when
-    $collection: UploadCollection( funder == "Unfunded" )
+    $collection:   UploadCollection( funder == "Unfunded" )
 then
     $collection.setAppraisalDate( 3 );
     System.err.println("firing Unfunded accession appraisal period -> 3 years");
@@ -233,7 +233,7 @@ rule "Other accession appraisal period"
 salience 50
 no-loop
 when
-    $collection: UploadCollection( funder == "Other" )
+    $collection:   UploadCollection( funder == "Other" )
 then
     $collection.setAppraisalDate( 3 );
     System.err.println("firing Other accession appraisal period -> 3 years");
@@ -249,7 +249,7 @@ rule "First version"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( version == "First version" )
+    $collection:   UploadCollection( version == "First version" )
 then
     $collection.setMinCopies(4);
     System.err.println("firing First version -> 4 copies");
@@ -261,7 +261,7 @@ rule "Milestone version"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( version == "Milestone version" )
+    $collection:   UploadCollection( version == "Milestone version" )
 then
     $collection.setMinCopies(3);
     System.err.println("firing Milestone version -> 3 copies");
@@ -273,7 +273,7 @@ rule "Publisher submitted version"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( version == "Publisher submitted version" )
+    $collection:   UploadCollection( version == "Publisher submitted version" )
 then
     $collection.setMinCopies(3);
     System.err.println("firing Publisher submitted version -> 3 copies");
@@ -285,7 +285,7 @@ rule "Publisher's proof"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( version == "Publisher's proof" )
+    $collection:   UploadCollection( version == "Publisher's proof" )
 then
     $collection.setMinCopies(3);
     System.err.println("firing Publisher's proof -> 3 copies");
@@ -297,7 +297,7 @@ rule "Work in progress"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( version == "Work in progress" )
+    $collection:   UploadCollection( version == "Work in progress" )
 then
     $collection.setMinCopies(2);
     System.err.println("firing Work in progress -> 2 copies");
@@ -309,7 +309,7 @@ rule "Source data"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( version == "Source data" )
+    $collection:   UploadCollection( version == "Source data" )
 then
     $collection.setMinCopies(2);
     System.err.println("firing Source data -> 2 copies");
@@ -321,7 +321,7 @@ rule "Intermediate version"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( version == "Intermediate version" )
+    $collection:   UploadCollection( version == "Intermediate version" )
 then
     $collection.setMinCopies(2);
     System.err.println("firing Intermediate version -> 2 copies");
@@ -333,7 +333,7 @@ rule "Reformatted content"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( version == "Reformatted content" )
+    $collection:   UploadCollection( version == "Reformatted content" )
 then
     $collection.setMinCopies(2);
     System.err.println("firing Reformatted content -> 2 copies");
@@ -345,7 +345,7 @@ rule "Final version"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( version == "Final version" )
+    $collection:   UploadCollection( version == "Final version" )
 then
     $collection.setMinCopies(4);
     System.err.println("firing Final version -> 4 copies");
@@ -357,7 +357,7 @@ rule "Catch-all version"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( version != "Final version" && version != "Source data" && version != "Intermediate version" && version != "Milestone version" && version != "Reformatted content" && version != "Derived data" && version != "Work in progress" && version != "Publisher's proof" && version != "Publisher submitted version" && version != "Milestone version" && version != "First version")
+    $collection:   UploadCollection( ! (version == "Final version" || version == "Source data" || version == "Intermediate version" || version == "Milestone version" || version == "Reformatted content" || version == "Derived data" || version == "Work in progress" || version == "Publisher's proof" || version == "Publisher submitted version" || version == "Milestone version" || version == "First version"))
 then
     $collection.setMinCopies(4);
     System.err.println("firing catch-call for version -> 4 copies");
@@ -373,7 +373,7 @@ rule "Corporate type"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( type == "Corporate" )
+    $collection:   UploadCollection( type == "Corporate" )
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "Local" );
     $collection.setRegionCode ("Local");
@@ -386,7 +386,7 @@ rule "Research type"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( type == "Research" )
+    $collection:   UploadCollection( type == "Research" )
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "WORLD" );
     $collection.setRegionCode ("WORLD");
@@ -401,7 +401,7 @@ rule "Licensed(Public) sensitivity"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( sensitivity == "Licensed(Public)" )
+    $collection:   UploadCollection( sensitivity == "Licensed(Public)" )
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EU" );
     $collection.setRegionCode ("EU");
@@ -414,7 +414,7 @@ rule "Licensed(Restricted) sensitivity"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( sensitivity == "Licensed(Restricted)" )
+    $collection:   UploadCollection( sensitivity == "Licensed(Restricted)" )
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "Local" );
     $collection.setRegionCode ("Local");
@@ -426,7 +426,7 @@ rule "Unlicensed sensitivity"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( sensitivity == "Unlicensed" )
+    $collection:   UploadCollection( sensitivity == "Unlicensed" )
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "WORLD" );
     $collection.setRegionCode ("WORLD");
@@ -438,7 +438,7 @@ rule "Medical sensitivity"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( sensitivity == "Medical" )
+    $collection:   UploadCollection( sensitivity == "Medical" )
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EU" );
     $collection.setRegionCode ("EU");
@@ -451,7 +451,7 @@ rule "Financial sensitivity"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( sensitivity == "Financial" )
+    $collection:   UploadCollection( sensitivity == "Financial" )
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EEC" );
     $collection.setRegionCode ("EEC");
@@ -464,7 +464,7 @@ rule "Employment details sensitivity"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( sensitivity == "Employment details" )
+    $collection:   UploadCollection( sensitivity == "Employment details" )
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EEC" );
     $collection.setRegionCode ("EEC");
@@ -477,7 +477,7 @@ rule "Other sensitivity"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( sensitivity == "Other" )
+    $collection:   UploadCollection( sensitivity == "Other" )
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EEC" );
     $collection.setRegionCode ("EEC");
@@ -491,7 +491,7 @@ rule "Neither sensitivity"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( sensitivity != "Other" && sensitivity != "Licensed(Public)" && sensitivity != "Licensed(Restricted)" && sensitivity != "Unlicensed" && sensitivity != "Employment details" && sensitivity != "EFinancial" && sensitivity != "Medical" || type != "Research")
+    $collection:   UploadCollection(  ! (sensitivity == "Other" || sensitivity == "Licensed(Public)" || sensitivity == "Licensed(Restricted)" || sensitivity == "Unlicensed" || sensitivity == "Employment details" || sensitivity == "Financial" || sensitivity == "Medical" || type == "Research" || type == "Corporate"))
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "WORLD" );
     $collection.setRegionCode ("WORLD");
@@ -509,7 +509,7 @@ rule "More than daily access"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( frequency == "10+ accesses per day" )
+    $collection:   UploadCollection( frequency == "10+ accesses per day" )
 then
     $collection.addTier( StorageProviderTier.TIER5 );
     System.err.println("firing More than daily access -> T5");
@@ -521,7 +521,7 @@ rule "Daily access"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( frequency == "1-10 accesses per day" )
+    $collection:   UploadCollection( frequency == "1-10 accesses per day" )
 then
     $collection.addTier( StorageProviderTier.TIER4 );
     System.err.println("firing Daily access -> T4");
@@ -533,7 +533,7 @@ rule "More than weekly access"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( frequency == "1-10 accesses per week" )
+    $collection:   UploadCollection( frequency == "1-10 accesses per week" )
 then
     $collection.addTier( StorageProviderTier.TIER3 );
     System.err.println("firing More than weekly access -> T3");
@@ -545,7 +545,7 @@ rule "Monthly access"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( frequency == "1-10 accesses per month" )
+    $collection:   UploadCollection( frequency == "1-10 accesses per month" )
 then
     $collection.addTier( StorageProviderTier.TIER2 );
     System.err.println("firing Monthly access -> T2");
@@ -557,7 +557,7 @@ rule "Infrequent access"
 salience 100
 no-loop
 when
-    $collection: UploadCollection( frequency == "Infrequent" )
+    $collection:   UploadCollection( frequency == "Infrequent" )
 then
     $collection.addTier( StorageProviderTier.TIER1 );
     System.err.println("firing Infrequent access -> T1");

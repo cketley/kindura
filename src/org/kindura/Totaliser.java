@@ -35,7 +35,7 @@ public class Totaliser {
 
 	
 	private static final boolean debug = false;
-	private static final boolean verbose = true;
+	private static final boolean verbose = false;
 
 	private StatefulKnowledgeSession ourKsession;
 	private UploadCollection grandparentUploadCollection;

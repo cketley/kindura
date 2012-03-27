@@ -82,67 +82,131 @@ public class UploadCollection
 	};
 	
     public UploadCollection( Map<String,String> metadata, Pricing pricerUp ) 
-	{
-    	
+    {
+
     	if (debug) {System.out.println("[UploadCollection]: ----- UploadCollection overloaded constructor -----");};
 
     	// java doesnt like this hash map to be null
-		try
-		{
-			// Create a new UploadCollection object from a list of metadata
-			// TODO the metadata doesn't seem to know the difference between an OtherFunder
-			// and primary funder, so bodge it for now.
-			if ( ! metadata.get( "projectFunder" ) .isEmpty()) {
-				this.funder = metadata.get( "projectFunder" ).toString();
-			} else {
-					this.funder = "none";
-			}
-			if ( ! metadata.get( "projectFunder" ) .isEmpty()) {
-				if ( ! metadata.get( "projectName" ) .isEmpty()) {
-					this.project = new Project( metadata.get( "projectName").toString(), metadata.get( "projectFunder" ).toString());
-				} else {
-					this.project = new Project ("missing", "blank");
-				}
-			} else {
-				this.project = new Project ("unknown", "blank");
-			}
+    	try
+    	{
+    		// Create a new UploadCollection object from a list of metadata
+    		if ( ! ( metadata.get( "projectFunder" ) == null) ) {
+    			if ( ! metadata.get( "projectFunder" ) .isEmpty()) {
+    				funder = metadata.get( "projectFunder" );
+    			} else {
+    				funder = "none";
+    			}
+    		} else {
+    			funder = "blank";
+    		}			
+    		if ( ! ( metadata.get( "projectFunder" ) == null) ) {
+    			if ( ! metadata.get( "projectFunder" ) .isEmpty()) {
+    				if ( ! ( metadata.get( "projectName" ) == null) ) {
+    					if ( ! metadata.get( "projectName" ) .isEmpty()) {
+    						project = new Project( metadata.get( "projectName").toString(), metadata.get( "projectFunder" ).toString());
+    					} else {
+    						project = new Project ("missing", "blank");
+    					}
+    				} else {
+    					project = new Project ("unknown", "blank");
+    				} 
+    			} else {
+    				project = new Project ("empty", "blank");
+    			} 
+    		} else {
+    			project = new Project ("zilch", "blank");
+    		}
 
-			this.frequency = metadata.get( "accessFrequency" ).toString();
-//			this.name = metadata.get( "collectionName" ).toString();
-			this.version = metadata.get( "version" ).toString();
-			this.type = metadata.get("typeOfData").toString();
-			this.sensitivity = metadata.get( "protectiveMarking" ).toString();
-//			this.projEndDate = uploadDateFromString( metadata.get( "filemodificationdate0" ).toString() );
-			this.projEndDate = uploadDateFromString( metadata.get( "endDate" ).toString() );
-		} catch ( Exception e )
-		{
-			System.err.println("Caught error on hash map constructor - setting to blanks" + e.toString() );
-			this.funder = "";
-			this.project = new Project( "", "Other" );
-			this.frequency = "";
-//			this.name = "";
-			this.version = "";
-			this.type = "";
-			this.sensitivity = "";
-			this.projEndDate = uploadDateFromString("01/01/2012 1:00:00");
-		}
 
-		// clear out the nulls - drools doesnt like them
-		totaliseTrigger = "none yet";
-		regionCode = "";
-		regionName = "";
-		billingRegion = "";
-		
-		
-		// remember where to find the pricing object
-		childPrcng = pricerUp;
-		
-		// remember where to find the metadata object
-		parentMetadata = metadata;
+    		//			if ( ! metadata.get( "projectFunder" ) .isEmpty()) {
+    		//				if ( ! metadata.get( "projectName" ) .isEmpty()) {
+    		//					this.project = new Project( metadata.get( "projectName").toString(), metadata.get( "projectFunder" ).toString());
+    		//				} else {
+    		//					this.project = new Project ("missing", "blank");
+    		//				}
+    		//			} else {
+    		//				this.project = new Project ("unknown", "blank");
+    		//			}
+
+    		if ( ! ( metadata.get( "accessFrequency" ) == null) ) {
+    			if ( ! metadata.get( "accessFrequency" ) .isEmpty()) {
+    				frequency = metadata.get( "accessFrequency" );
+    			} else {
+    				frequency = "blank";
+    			}
+    		} else {
+    			frequency = "empty";
+    		}				
+
+    		if ( ! ( metadata.get( "version" ) == null) ) {
+    			if ( ! metadata.get( "version" ) .isEmpty()) {
+    				version = metadata.get( "version" );
+    			} else {
+    				version = "blank";
+    			}
+    		} else {
+    			version = "empty";
+    		}				
+
+    		if ( ! ( metadata.get( "typeOfData" ) == null) ) {
+    			if ( ! metadata.get( "typeOfData" ) .isEmpty()) {
+    				type = metadata.get( "typeOfData" );
+    			} else {
+    				type = "blank";
+    			}
+    		} else {
+    			type = "empty";
+    		}				
+
+    		if ( ! ( metadata.get( "protectiveMarking" ) == null) ) {
+    			if ( ! metadata.get( "protectiveMarking" ) .isEmpty()) {
+    				sensitivity = metadata.get( "protectiveMarking" );
+    			} else {
+    				sensitivity = "blank";
+    			}
+    		} else {
+    			sensitivity = "empty";
+    		}				
+
+
+    		if ( ! ( metadata.get( "endDate" ) == null) ) {
+    			if ( ! metadata.get( "endDate" ) .isEmpty()) {
+    				projEndDate = uploadDateFromString( metadata.get( "endDate" ).toString());
+    			} else {
+    				projEndDate = uploadDateFromString("01/01/2012 1:00:00");
+    			}
+    		} else {
+    			projEndDate = uploadDateFromString("01/01/2012 1:00:00");
+    		}				
+    	} catch ( Exception e )
+    	{
+    		System.err.println("Caught error on hash map constructor - setting to blanks" + e.toString() );
+    		this.funder = "";
+    		this.project = new Project( "", "Other" );
+    		this.frequency = "";
+    		//			this.name = "";
+    		this.version = "";
+    		this.type = "";
+    		this.sensitivity = "";
+    		this.projEndDate = uploadDateFromString("01/01/2012 1:00:00");
+    	}
+
+    	// clear out the nulls - drools doesnt like them
+    	totaliseTrigger = "none yet";
+    	regionCode = "";
+    	regionName = "";
+    	billingRegion = "";
+
+
+    	// remember where to find the pricing object
+    	childPrcng = pricerUp;
+
+    	// remember where to find the metadata object
+    	parentMetadata = metadata;
 
     	iAmBlank = true;
 
-	}
+    }
 
 	public Calendar uploadDateFromString( String uploadDate )
 	{
@@ -166,16 +230,33 @@ public class UploadCollection
 		// this is called from within KinduraRules.drl
 		
 		// Add the specified number of years to the upload date to give the appraisal date	
-		this.appraisalDate = (Calendar) this.projEndDate.clone();
-//		this.appraisalDate.add( Calendar.YEAR, numYears );
+		appraisalDate = (Calendar) this.projEndDate.clone();	
 		
 		if ( parentCostOpt.getOpsFlag().equals("ingest") ) {
 			Integer numMonths = numYears * 12;
 			howLongMonths = numMonths;
 			childPrcng.setHowLongMonths(numMonths);
+			appraisalDate.add( Calendar.YEAR, numYears );
+			parentMetadata.put("StorageExpiryDate", getAppraisalDateAsString() );
 		} else {
+    		if ( ! ( parentMetadata.get( "StorageExpiryDate" ) == null) ) {
+    			if ( ! parentMetadata.get( "StorageExpiryDate" ) .isEmpty()) {
+    				appraisalDate = uploadDateFromString( parentMetadata.get( "StorageExpiryDate" ).toString());
+    			} else {
+    				// StorageExpiryDate might be missing so use project endDate instead
+    				appraisalDate = uploadDateFromString(parentMetadata.get( "endDate" ).toString());
+    			}
+    		} else {
+    			appraisalDate = uploadDateFromString(parentMetadata.get( "endDate" ).toString());
+    		}				
 			howLongMonths = getMonthsDifference(nowDate, appraisalDate);
+			if (howLongMonths < 1) {
+				// might get negative numbers if we used project endDate
+				howLongMonths = 0;
+			}
 			childPrcng.setHowLongMonths(howLongMonths);
+//			appraisalDate.add( Calendar.MONTH, howLongMonths );
+//			parentMetadata.put("StorageExpiryDate", getAppraisalDateAsString() );
 		};
 		
 	}
@@ -183,22 +264,26 @@ public class UploadCollection
 	@SuppressWarnings("deprecation")
 	public static final int getMonthsDifference(Calendar nowDate2, Calendar appraisalDate2) {
 
+//		if (debug) {System.out.println("[UploadCollection]: nowDate2 is " + SimpleDateFormat("dd/mm/yyyy").parse(nowDate2));};
+//		if (debug) {System.out.println("[UploadCollection]: appraisalDate2 is " + appraisalDate2.toString());};
 		int m1 = 0;
 		int m2 = 0;
 		Date x;
-		try {
-			x = new SimpleDateFormat("dd/mm/yyyy").parse(nowDate2.toString());
+//		try {
+			x = nowDate2.getTime();
+//			x = new SimpleDateFormat("dd/mm/yyyy").parse(nowDate2.toString());
 			m1 = x.getYear() * 12 + x.getMonth();
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
+//		} catch (ParseException e) {
+//			e.printStackTrace();
+//		}
 		Date y;
-		try {
-			y = new SimpleDateFormat("dd/mm/yyyy").parse(appraisalDate2.toString());
+//		try {
+			y = appraisalDate2.getTime();
+//			y = new SimpleDateFormat("dd/mm/yyyy").parse(appraisalDate2.toString());
 			m2 = y.getYear() * 12 + y.getMonth();
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
+//		} catch (ParseException e) {
+//			e.printStackTrace();
+//		}
 		
 	    return m2 - m1 + 1;
 	}

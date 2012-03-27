@@ -31,13 +31,20 @@ import java.util.Map;
 public class CostOptimiser
 {
 	private static final boolean debug = false;
-	private static final boolean verbose = true;
+	private static final boolean verbose = false;
 
 	public  CostOptimiser() {
 
 		status = 0;
 		sortedIngestList.clear();
-		sortedMigrationList.clear();	
+		sortedMigrationList.clear();
+		rollupTotaliserHashMap.clear();
+		rollupServiceHashMap.clear();
+		duplicateTotaliserHashMap.clear();
+		duplicatePricingHashMap.clear();
+		duplicateServiceMatrixHashMap.clear();
+		duplicateRegulatoryHashMap.clear();
+
 
 	}
 
@@ -76,6 +83,15 @@ public class CostOptimiser
 		providers[2] = provider3;
 		providers[3] = provider4;
 
+		sortedIngestList.clear();
+		sortedMigrationList.clear();
+		rollupTotaliserHashMap.clear();
+		rollupServiceHashMap.clear();
+		duplicateTotaliserHashMap.clear();
+		duplicatePricingHashMap.clear();
+		duplicateServiceMatrixHashMap.clear();
+		duplicateRegulatoryHashMap.clear();
+
 		// now remember where to find me
 		myMetadata = metadata;
 
@@ -91,7 +107,6 @@ public class CostOptimiser
 
 		// tell the Pricing the current Totaliser
 		myPricing.setMyTotaliser(totaliserItem);
-
 
 		UploadCollection myCollection = new UploadCollection( myMetadata, myPricing );
 		myPricing.setOurUpldCollectn(myCollection);
@@ -473,7 +488,7 @@ public class CostOptimiser
 				// amounts are rounded up so that very tiny fractions of one penny appear as at
 				// least 1p or 1cent.
 				cost = cost.setScale(2, BigDecimal.ROUND_UP);
-				costSortable = String.format("%08.02f", cost);
+				costSortable = String.format("%09.02f", cost);
 
 				if (verbose) {System.out.println("[Cost Optimiser]: calcIngestTotal is " + calcIngestTotal + " for key " + frontendTxtSP);};
 				if (verbose) {System.out.println("[Cost Optimiser]: rounded Cost is " + costSortable );};
@@ -487,7 +502,7 @@ public class CostOptimiser
 					// amounts are rounded up so that very tiny fractions of one penny appear as at
 					// least 1p or 1cent.
 					cost = cost.setScale(2, BigDecimal.ROUND_UP);
-					costSortable = String.format("%08.02f", cost);
+					costSortable = String.format("%09.02f", cost);
 
 					if (verbose) {System.out.println("[Cost Optimiser]: calcMigrationTotal is " + calcMigrationTotal + " for key " + frontendTxtSP);};
 					if (verbose) {System.out.println("[Cost Optimiser]: rounded Cost is " + costSortable );};
@@ -531,7 +546,6 @@ public class CostOptimiser
 		String offeredPayPlan = "";
 		String offeredReplicas = "";
 		
-		// old data refers to data already present in cloud so not relevant to ingest
 		String oldSvcPrvRegAcct = "";
 		String oldSP = "";
 		String oldReg = "";
@@ -544,17 +558,10 @@ public class CostOptimiser
 		String costSortableIngest;
 		String costSortableMigr;
 
+		Integer spCount = 0;
 		
 		boolean first_time_thru = true;
 			
-		if ( ! inputMetadata.containsKey("svcPrvAccountDetails") ) {
-			oldSvcPrvRegAcct = "|||";
-		} else {
-			oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails");			
-		};
-		oldSP = popString(oldSvcPrvRegAcct,1);
-		oldReg = popString(oldSvcPrvRegAcct,2);
-		oldPayPlan = popString(oldSvcPrvRegAcct,3);			
 		
 		Iterator wander = sortedMigrationList.iterator();
 		while ( (wander.hasNext()) && (copiesSoFar > 0)){
@@ -567,7 +574,57 @@ public class CostOptimiser
 			offeredCurr = popString(migrData, 6);
 			// this is how many copies are offered by Service Provider
 			offeredReplicas = popString(migrData, 5);
-			
+
+			// old data refers to data already present in cloud after a previous ingest 
+			if (getOpsFlag() .equals("ingest")) {
+				oldSvcPrvRegAcct = "|||";
+			} else {
+
+				switch (spCount) 
+				{
+				case 0 : 			
+					if ( ! inputMetadata.containsKey("svcPrvAccountDetails1") ) {
+						oldSvcPrvRegAcct = "|||";
+					} else {
+						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails1");			
+					};
+				case 1 : 
+					if ( ! inputMetadata.containsKey("svcPrvAccountDetails2") ) {
+						oldSvcPrvRegAcct = "|||";
+					} else {
+						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails2");			
+					};
+				case 2 : 
+					if ( ! inputMetadata.containsKey("svcPrvAccountDetails3") ) {
+						oldSvcPrvRegAcct = "|||";
+					} else {
+						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails3");			
+					};
+				case 3 : 
+					if ( ! inputMetadata.containsKey("svcPrvAccountDetails4") ) {
+						oldSvcPrvRegAcct = "|||";
+					} else {
+						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails4");			
+					};
+				case 4 : 
+					if ( ! inputMetadata.containsKey("svcPrvAccountDetails5") ) {
+						oldSvcPrvRegAcct = "|||";
+					} else {
+						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails5");			
+					};
+				case 5 : 
+					if ( ! inputMetadata.containsKey("svcPrvAccountDetails6") ) {
+						oldSvcPrvRegAcct = "|||";
+					} else {
+						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails6");			
+					};
+				}
+
+			}
+			oldSP = popString(oldSvcPrvRegAcct,1);
+			oldReg = popString(oldSvcPrvRegAcct,2);
+			oldPayPlan = popString(oldSvcPrvRegAcct,3);			
+
 			// we have to lookup the full cost to replace the cost per replica
 			frontendTxt1 = offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + offeredReplicas + "|IngestTotal";
 			if ( getRollupServiceHashMap().containsKey(frontendTxt1)) { 
@@ -587,10 +644,10 @@ public class CostOptimiser
 			// least 1p or 1cent.
 			cost = BigDecimal.valueOf(offeredIngestVal);
 			cost = cost.setScale(2, BigDecimal.ROUND_UP);
-			costSortableIngest = String.format("%08.02f", cost);
+			costSortableIngest = String.format("%09.02f", cost);
 			cost = BigDecimal.valueOf(offeredMigrVal);
 			cost = cost.setScale(2, BigDecimal.ROUND_UP);
-			costSortableMigr = String.format("%08.02f", cost);
+			costSortableMigr = String.format("%09.02f", cost);
 
 			
 			if ( (first_time_thru) && (offeredSvcPrvRegAcct .equals(oldSvcPrvRegAcct)) ) {
