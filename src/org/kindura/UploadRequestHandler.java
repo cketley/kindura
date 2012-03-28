@@ -722,18 +722,50 @@ public class UploadRequestHandler extends HttpServlet {
 							// we have only 255 characters to play with...
 							switch (spCount) 
 							{
-							case 0 : serviceProviderAccount1 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-							case 1 : serviceProviderAccount2 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-							case 2 : serviceProviderAccount3 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-							case 3 : serviceProviderAccount4 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-							case 4 : serviceProviderAccount5 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-							case 5 : serviceProviderAccount6 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+							case 0 : 
+								serviceProviderAccount1 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+								break;
+							case 1 : 
+								serviceProviderAccount2 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+								break;
+							case 2 : 
+								serviceProviderAccount3 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+								break;
+							case 3 : 
+								serviceProviderAccount4 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+								break;
+							case 4 :
+								serviceProviderAccount5 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+								break;
+							case 5 : 
+								serviceProviderAccount6 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
 							}
 							spCount++;
 
-							expiryDate = inputMetadata.get("StorageExpiryDate");
+				    		if ( ! ( inputMetadata.get( "StorageExpiryDate" ) == null) ) {
+				    			if ( ! inputMetadata.get( "StorageExpiryDate" ) .isEmpty()) {
+				    				expiryDate = inputMetadata.get( "StorageExpiryDate" );
+				    			} else {
+				    				expiryDate = "01/01/2012";
+				    			}
+				    		} else {
+				    			expiryDate = "01/01/2012";
+				    		}				
+							
+							// increment the total size of the collection when it already exists
+				    		Double tempCollTotSize = 0.0;
+				    		if ( ! ( inputMetadata.get( "collectionTotSize" ) == null) ) {
+				    			if ( ! inputMetadata.get( "collectionTotSize" ) .isEmpty()) {
+				    				tempCollTotSize = Double.valueOf(inputMetadata.get( "collectionTotSize" ));
+				    			} else {
+				    				tempCollTotSize = 0.0;
+				    			}
+				    		} else {
+				    			tempCollTotSize = 0.0;
+				    		}				
+							tempCollTotSize += storageUsedTot;
 
-							fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedIngestVal, suggestedCurr, serviceProviderAccount1, serviceProviderAccount2, serviceProviderAccount3, serviceProviderAccount4, serviceProviderAccount5, serviceProviderAccount6, storageUsedTot, operationFlag, expiryDate);
+							fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedIngestVal, suggestedCurr, serviceProviderAccount1, serviceProviderAccount2, serviceProviderAccount3, serviceProviderAccount4, serviceProviderAccount5, serviceProviderAccount6, tempCollTotSize, operationFlag, expiryDate);
 
 							HashMap<String, String> parentFolderNameAndPID = fedoraServiceManager.handleFolderObject(projectName, collectionName, collectionPID, fileName, fileOriginalPath);
 

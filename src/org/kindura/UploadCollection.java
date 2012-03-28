@@ -238,6 +238,8 @@ public class UploadCollection
 			childPrcng.setHowLongMonths(numMonths);
 			appraisalDate.add( Calendar.YEAR, numYears );
 			parentMetadata.put("StorageExpiryDate", getAppraisalDateAsString() );
+			// TODO the length of time to charge for is calculated against Now thru StorageExpiryDate
+			// so what we have here is wrong
 		} else {
     		if ( ! ( parentMetadata.get( "StorageExpiryDate" ) == null) ) {
     			if ( ! parentMetadata.get( "StorageExpiryDate" ) .isEmpty()) {

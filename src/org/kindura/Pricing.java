@@ -724,6 +724,7 @@ dtableconfiguration );
 		
 		this.replicas = replicas;
 		
+		// due to a timing problem this can become incorrect in the Totaliser
 		populateTotaliserReplicas(this, this.replicas);
 		iAmBlank = false;
 //		updateCurrentPricerList(myCurrentPositionPricerList, this);

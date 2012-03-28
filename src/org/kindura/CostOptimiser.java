@@ -31,7 +31,7 @@ import java.util.Map;
 public class CostOptimiser
 {
 	private static final boolean debug = false;
-	private static final boolean verbose = false;
+	private static final boolean verbose = true;
 
 	public  CostOptimiser() {
 
@@ -178,7 +178,17 @@ public class CostOptimiser
 		buildCostList(myCollection, sortedIngestList, sortedMigrationList);
 		sortCostList(myCollection, sortedIngestList, sortedMigrationList, conclusionDropList);
 		calcReplicas(myCollection, metadata, sortedIngestList, sortedMigrationList, conclusionIngestList, conclusionMigrationList, conclusionDropList);
-//		decideCostList(myCollection, sortedIngestList, sortedMigrationList);
+		// now we have to list the stuff to be removed on migration
+		if (   ! getOpsFlag() .equals("ingest")) {
+			if (conclusionMigrationList.size() > 0 ) {
+				Boolean sp_found = true;
+				for (Integer dropCount = 0; dropCount < 6 && sp_found ; dropCount++) {
+					sp_found = makeDropList(metadata, dropCount, conclusionDropList);				
+				}
+			}
+		}
+
+		//		decideCostList(myCollection, sortedIngestList, sortedMigrationList);
 		// sort it again just in case
 		// no don't sort it 
 //		sortCostList(myCollection, conclusionIngestList, conclusionMigrationList, conclusionDropList);
@@ -382,6 +392,12 @@ public class CostOptimiser
 					}
 				}
 			}
+			if (verbose) {System.out.println( "[Cost Optimiser]: serviceProviderName : " + txtSP );};
+			if (verbose) {System.out.println( "[Cost Optimiser]: regionName : " + txtReg );};
+			if (verbose) {System.out.println( "[Cost Optimiser]: planType : " + txtPayPlan );};
+			if (verbose) {System.out.println( "[Cost Optimiser]: featureType : " + txtFeature );};
+			if (verbose) {System.out.println( "[Cost Optimiser]: subfeatureType : " + txtSubfeature );};		
+			if (verbose) {System.out.println( "[Cost Optimiser]: replicas : " + txtReplicas );};
 			if (verbose) {System.out.println("[Cost Optimiser]: calcStoragePriceSubtotal is " + calcStoragePriceSubtotal + " for key " + keyPart ); };
 			if (verbose) {System.out.println("[Cost Optimiser]: calcCostPerReplica is " + calcCostPerReplica + " for key " + keyPart ); };
 			if (verbose) {System.out.println("[Cost Optimiser]: calcTransfersPriceSubtotal is " + calcTransfersPriceSubtotal + " for key " + keyPart ); };
@@ -490,6 +506,8 @@ public class CostOptimiser
 				cost = cost.setScale(2, BigDecimal.ROUND_UP);
 				costSortable = String.format("%09.02f", cost);
 
+				if (verbose) {System.out.println("[Cost Optimiser]: frontendTxtSP is " + frontendTxtSP);};
+				if (verbose) {System.out.println("[Cost Optimiser]: backendTxt is " + backendTxt);};
 				if (verbose) {System.out.println("[Cost Optimiser]: calcIngestTotal is " + calcIngestTotal + " for key " + frontendTxtSP);};
 				if (verbose) {System.out.println("[Cost Optimiser]: rounded Cost is " + costSortable );};
 				// store all lines for ingest - decide later which to use
@@ -504,6 +522,8 @@ public class CostOptimiser
 					cost = cost.setScale(2, BigDecimal.ROUND_UP);
 					costSortable = String.format("%09.02f", cost);
 
+					if (verbose) {System.out.println("[Cost Optimiser]: frontendTxtSP is " + frontendTxtSP);};
+					if (verbose) {System.out.println("[Cost Optimiser]: backendTxt is " + backendTxt);};
 					if (verbose) {System.out.println("[Cost Optimiser]: calcMigrationTotal is " + calcMigrationTotal + " for key " + frontendTxtSP);};
 					if (verbose) {System.out.println("[Cost Optimiser]: rounded Cost is " + costSortable );};
 					// store all migrations 
@@ -545,20 +565,13 @@ public class CostOptimiser
 		String offeredReg = "";
 		String offeredPayPlan = "";
 		String offeredReplicas = "";
-		
-		String oldSvcPrvRegAcct = "";
-		String oldSP = "";
-		String oldReg = "";
-		String oldPayPlan = "";
 		String offeredSvcPrvRegAcct = "";
-		
+
 		String frontendTxt1 = "";
 		
 		BigDecimal cost;
 		String costSortableIngest;
 		String costSortableMigr;
-
-		Integer spCount = 0;
 		
 		boolean first_time_thru = true;
 			
@@ -574,56 +587,7 @@ public class CostOptimiser
 			offeredCurr = popString(migrData, 6);
 			// this is how many copies are offered by Service Provider
 			offeredReplicas = popString(migrData, 5);
-
-			// old data refers to data already present in cloud after a previous ingest 
-			if (getOpsFlag() .equals("ingest")) {
-				oldSvcPrvRegAcct = "|||";
-			} else {
-
-				switch (spCount) 
-				{
-				case 0 : 			
-					if ( ! inputMetadata.containsKey("svcPrvAccountDetails1") ) {
-						oldSvcPrvRegAcct = "|||";
-					} else {
-						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails1");			
-					};
-				case 1 : 
-					if ( ! inputMetadata.containsKey("svcPrvAccountDetails2") ) {
-						oldSvcPrvRegAcct = "|||";
-					} else {
-						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails2");			
-					};
-				case 2 : 
-					if ( ! inputMetadata.containsKey("svcPrvAccountDetails3") ) {
-						oldSvcPrvRegAcct = "|||";
-					} else {
-						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails3");			
-					};
-				case 3 : 
-					if ( ! inputMetadata.containsKey("svcPrvAccountDetails4") ) {
-						oldSvcPrvRegAcct = "|||";
-					} else {
-						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails4");			
-					};
-				case 4 : 
-					if ( ! inputMetadata.containsKey("svcPrvAccountDetails5") ) {
-						oldSvcPrvRegAcct = "|||";
-					} else {
-						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails5");			
-					};
-				case 5 : 
-					if ( ! inputMetadata.containsKey("svcPrvAccountDetails6") ) {
-						oldSvcPrvRegAcct = "|||";
-					} else {
-						oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails6");			
-					};
-				}
-
-			}
-			oldSP = popString(oldSvcPrvRegAcct,1);
-			oldReg = popString(oldSvcPrvRegAcct,2);
-			oldPayPlan = popString(oldSvcPrvRegAcct,3);			
+		
 
 			// we have to lookup the full cost to replace the cost per replica
 			frontendTxt1 = offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + offeredReplicas + "|IngestTotal";
@@ -649,45 +613,203 @@ public class CostOptimiser
 			cost = cost.setScale(2, BigDecimal.ROUND_UP);
 			costSortableMigr = String.format("%09.02f", cost);
 
-			
-			if ( (first_time_thru) && (offeredSvcPrvRegAcct .equals(oldSvcPrvRegAcct)) ) {
-				// the original prices are the best - so quit looking
-				break;
-			} else if (offeredSvcPrvRegAcct .equals(oldSvcPrvRegAcct)) {
-				// ignore this item - it is itself
-				continue;
-			} else if ( (offeredSP .equals(oldSP)) && ! (offeredReg .equals(oldReg)) ) {
-				// ignore this item - we can't do regional transfers inside one service provider at the 
-				// moment because it confuses fedora
-				continue;
-			} else if ( (getOpsFlag() .equals("ingest")) && ! (offeredIngestVal > 0.0)) {
-				// ignore items with zero amounts - they must be corrupt
-				continue;
-				// this is for migrations
-			} else if ( ! (getOpsFlag() .equals("ingest")) && ! (offeredMigrVal > 0.0)) {
-				// ignore items with zero amounts - they must be corrupt
-				continue;
+			Boolean ok_to_use = true;
+			for (Integer spCount = 0; spCount < 6 && ok_to_use ; spCount++) {
+				ok_to_use = checkForExclusions(inputMetadata, spCount, first_time_thru, offeredIngestVal, offeredMigrVal, offeredSP, offeredReg, offeredSvcPrvRegAcct);				
 			}
-			if (copiesSoFar > Integer.parseInt(offeredReplicas) ) {
-				// this datacentre does not offer enough replicas to consume all of this SP line so we need another datacentre to store it
-				copiesSoFar -= Integer.parseInt(offeredReplicas);
-				
-			} else {
-				// this datacentre offers more than enough replicas to consume all of this SP line
-				copiesSoFar = 0;
-			};
-			if (getOpsFlag() .equals("ingest")) {
-				conclusionIngestList.add(costSortableIngest + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
-			} else {
-				conclusionMigrationList.add(costSortableMigr + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
-				conclusionDropList.add(costSortableMigr + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
-			};
+			
+			if (ok_to_use) {
+				if (copiesSoFar > Integer.parseInt(offeredReplicas) ) {
+					// this datacentre does not offer enough replicas to consume all of this SP line so we need another datacentre to store it
+					copiesSoFar -= Integer.parseInt(offeredReplicas);
+
+				} else {
+					// this datacentre offers more than enough replicas to consume all of this SP line
+					copiesSoFar = 0;
+				};
+				if (verbose) {System.out.println( "[Cost Optimiser]: offeredSP : " + offeredSP );};
+				if (verbose) {System.out.println( "[Cost Optimiser]: offeredReg : " + offeredReg );};
+				if (verbose) {System.out.println( "[Cost Optimiser]: offeredPayPlan : " + offeredPayPlan );};
+				if (verbose) {System.out.println( "[Cost Optimiser]: offeredReplicas : " + offeredReplicas );};
+
+				if (getOpsFlag() .equals("ingest")) {
+					conclusionIngestList.add(costSortableIngest + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
+				} else {
+					conclusionMigrationList.add(costSortableMigr + "|" + offeredSP + "|" + offeredReg + "|" + offeredPayPlan + "|" + Integer.parseInt(offeredReplicas) + "|" + offeredCurr);
+				};
+			}
 			
 			first_time_thru = false;
 
 		}
 	}
 	
+
+	private Boolean checkForExclusions(Map<String, String> inputMetadata, Integer spCount, Boolean first_time_thru, Double offeredIngestVal, Double offeredMigrVal, String offeredSP, String offeredReg, String offeredSvcPrvRegAcct) {
+		
+		String oldSvcPrvRegAcct = "";
+		String oldSP = "";
+		String oldReg = "";
+		String oldPayPlan = "";
+		// we assume this will be alright to use unless found otherwise
+		Boolean ok_to_use = true;
+		
+		// old data refers to data already present in cloud after a previous ingest 
+		if (getOpsFlag() .equals("ingest")) {
+			oldSvcPrvRegAcct = "|||";
+		} else {
+
+			switch (spCount) 
+			{
+			case 0 : 			
+				if (  ! inputMetadata.containsKey("svcPrvAccountDetails1") ) {
+					oldSvcPrvRegAcct = "|||";
+				} else {
+					oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails1");			
+				};
+				break;
+			case 1 : 
+				if (  ! inputMetadata.containsKey("svcPrvAccountDetails2") ) {
+					oldSvcPrvRegAcct = "|||";
+				} else {
+					oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails2");			
+				};
+				break;
+			case 2 : 
+				if (  ! inputMetadata.containsKey("svcPrvAccountDetails3") ) {
+					oldSvcPrvRegAcct = "|||";
+				} else {
+					oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails3");			
+				};
+				break;
+			case 3 : 
+				if (  ! inputMetadata.containsKey("svcPrvAccountDetails4") ) {
+					oldSvcPrvRegAcct = "|||";
+				} else {
+					oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails4");			
+				};
+				break;
+			case 4 : 
+				if (  ! inputMetadata.containsKey("svcPrvAccountDetails5") ) {
+					oldSvcPrvRegAcct = "|||";
+				} else {
+					oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails5");			
+				};
+				break;
+			case 5 : 
+				if (  ! inputMetadata.containsKey("svcPrvAccountDetails6") ) {
+					oldSvcPrvRegAcct = "|||";
+				} else {
+					oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails6");			
+				};
+				break;
+			}
+			
+		}
+		oldSP = popString(oldSvcPrvRegAcct,1);
+		oldReg = popString(oldSvcPrvRegAcct,2);
+		oldPayPlan = popString(oldSvcPrvRegAcct,3);	
+
+		if ( (first_time_thru) && (offeredSvcPrvRegAcct .equals(oldSvcPrvRegAcct)) ) {
+			// the original prices are the best - so quit looking
+			ok_to_use = false;
+		} else if (offeredSvcPrvRegAcct .equals(oldSvcPrvRegAcct)) {
+			// ignore this item - it is itself
+			ok_to_use = false;
+		} else if ( (offeredSP .equals(oldSP)) &&  ! (offeredReg .equals(oldReg)) ) {
+			// ignore this item - we can't do regional transfers inside one service provider at the 
+			// moment because it confuses fedora
+			ok_to_use = false;
+		} else if ( (getOpsFlag() .equals("ingest")) &&  ! (offeredIngestVal > 0.0)) {
+			// ignore items with zero amounts - they must be corrupt
+			ok_to_use = false;
+			// this is for migrations
+		} else if (  ! (getOpsFlag() .equals("ingest")) &&  ! (offeredMigrVal > 0.0)) {
+			// ignore items with zero amounts - they must be corrupt
+			ok_to_use = false;
+		}
+
+		return ok_to_use;
+		
+	}
+
+
+	private Boolean makeDropList(Map<String, String> inputMetadata, Integer dropseyCount, LinkedList<String> conclusionDropList) {
+
+		String oldSvcPrvRegAcct = "";
+		String oldSP = "";
+		String oldReg = "";
+		String oldPayPlan = "";
+
+		Boolean found_flag = false;
+
+		switch (dropseyCount) 
+		{
+		case 0 : 			
+			if (  ! inputMetadata.containsKey("svcPrvAccountDetails1") ) {
+				oldSvcPrvRegAcct = "|||";
+				found_flag = false;
+			} else {
+				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails1");		
+				found_flag = true;
+			};
+			break;
+		case 1 : 
+			if (  ! inputMetadata.containsKey("svcPrvAccountDetails2") ) {
+				oldSvcPrvRegAcct = "|||";
+				found_flag = false;
+			} else {
+				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails2");			
+				found_flag = true;
+			};
+			break;
+		case 2 : 
+			if (  ! inputMetadata.containsKey("svcPrvAccountDetails3") ) {
+				oldSvcPrvRegAcct = "|||";
+				found_flag = false;
+			} else {
+				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails3");			
+				found_flag = true;
+			};
+			break;
+		case 3 : 
+			if (  ! inputMetadata.containsKey("svcPrvAccountDetails4") ) {
+				oldSvcPrvRegAcct = "|||";
+				found_flag = false;
+			} else {
+				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails4");			
+				found_flag = true;
+			};
+			break;
+		case 4 : 
+			if (  ! inputMetadata.containsKey("svcPrvAccountDetails5") ) {
+				oldSvcPrvRegAcct = "|||";
+				found_flag = false;
+			} else {
+				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails5");			
+				found_flag = true;
+			};
+			break;
+		case 5 : 
+			if (  ! inputMetadata.containsKey("svcPrvAccountDetails6") ) {
+				oldSvcPrvRegAcct = "|||";
+				found_flag = false;
+			} else {
+				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails6");			
+				found_flag = true;
+			};
+			break;
+		}
+		
+		if (found_flag) {
+			oldSP = popString(oldSvcPrvRegAcct,1);
+			oldReg = popString(oldSvcPrvRegAcct,2);
+			oldPayPlan = popString(oldSvcPrvRegAcct,3);	
+			conclusionDropList.add("000000.00" + "|" + oldSP + "|" + oldReg + "|" + oldPayPlan + "|" + 0 + "|" + "US$");			
+		}
+
+		return found_flag;
+	}
 
 	public String popString(String migrData, Integer seq) {
 

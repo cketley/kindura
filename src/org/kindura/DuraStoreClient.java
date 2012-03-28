@@ -383,8 +383,9 @@ public class DuraStoreClient {
     		if (isCloudProviderExisted(newCloudProvider) == true) {
         		System.out.println("[DuraStoreClient] new cloud provider: "+newCloudProvider+" exists.");
         		System.out.println("Data collection "+originalNameSpace+" from "+originalCloudProvider+" will be migrated to the space "+newNameSpace+" of "+newCloudProvider);
-        		JFrame frame = new JFrame();
-        		JOptionPane.showMessageDialog(frame, "Data collection from the space '"+originalNameSpace+"' of '"+originalCloudProvider+"' will be migrated to the space '"+newNameSpace+"' of '"+newCloudProvider+"'.");
+        		// don't display dialogue boxes because migrations are run in batch-job mode
+//        		JFrame frame = new JFrame();
+//        		JOptionPane.showMessageDialog(frame, "Data collection from the space '"+originalNameSpace+"' of '"+originalCloudProvider+"' will be migrated to the space '"+newNameSpace+"' of '"+newCloudProvider+"'.");
         		String fullFileName = null;
         		String baseFileName = null;
         		String fileExtension = null;
@@ -435,6 +436,7 @@ public class DuraStoreClient {
 					//duraStoreClient.downloadFile("root", nameSpaceAndPid[1], revisedFileNameForDownload, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					System.out.println("[duraStoreClient] Start to download file: "+fullFileName);
 					    
+					// TODO we need to delete the files from old ServiceProvider
 					//downloadFile(defaultContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					if (originalCloudProvider.equals("Amazon S3")) {
 						downloadFile(amazonS3ContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
@@ -467,31 +469,31 @@ public class DuraStoreClient {
 					File uploadFile = new File(tempDownloadDirectory + (new File(fullFileName)).getName());
 					
 					uploadFile(defaultContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
-					if (originalCloudProvider.equals("Amazon S3")) {
+					if (newCloudProvider.equals("Amazon S3")) {
 						uploadFile(amazonS3ContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 					}
-					if (originalCloudProvider.equals("Amazon S3 RRS")) {
+					if (newCloudProvider.equals("Amazon S3 RRS")) {
 						uploadFile(amazonS3RRSContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 					}
-	        		if (originalCloudProvider.equals("Rackspace Cloud Files")) {
+	        		if (newCloudProvider.equals("Rackspace Cloud Files")) {
 	        			uploadFile(rackSpaceContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 					}
-					if (originalCloudProvider.equals("RACKSPACE")) {
+					if (newCloudProvider.equals("RACKSPACE")) {
 	        			uploadFile(rackSpaceContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 					}
-//	        		if (originalCloudProvider.equals("iRODS")) {
+//	        		if (newCloudProvider.equals("iRODS")) {
 //	        			uploadFile(iRODSContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 //					}
-//					if (originalCloudProvider.equals("IRODS")) {
+//					if (newCloudProvider.equals("IRODS")) {
 //	        			uploadFile(iRODSContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 //					}
-//	        		if (originalCloudProvider.equals("Google Cloud Storage")) {
+//	        		if (newCloudProvider.equals("Google Cloud Storage")) {
 //	        			uploadFile(googleCloudStorageContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 //					}
-//	        		if (originalCloudProvider.equals("Azure")) {
+//	        		if (newCloudProvider.equals("Azure")) {
 //	        			uploadFile(azureContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 //					}
-//	        		if (originalCloudProvider.equals("SDSC")) {
+//	        		if (newCloudProvider.equals("SDSC")) {
 //	        			uploadFile(sdscContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 //					}
 	        		

@@ -209,13 +209,14 @@ public class MigrateRequestHandler extends HttpServlet {
 						}
 
 					}
-
+					
 					// this retrieves all data about the Project from Fedora
 					ArrayList<DatastreamType> projectMetadata = fedoraServiceManager.getDataStreams(currentProjectPid);
 					if (projectMetadata != null) {
 						// TODO sort out the indexing on projectMetadata.size()
 						// there's something funny about the projectMetadata.size(), so hardcode it as 12
-						for (int i=0;i<12;i++) {
+						for (int i=0;i<projectMetadata.size();i++) {
+//							for (int i=0;i<12;i++) {
 							keyPart = projectMetadata.get(i).getDsid();
 							valPart = projectMetadata.get(i).getLabel();	
 							System.out.println("[MigrateRequestHandler] Project keyPart = " + keyPart);
@@ -246,7 +247,8 @@ public class MigrateRequestHandler extends HttpServlet {
 						if (collectionMetadata != null) {
 							// TODO sort out the indexing on collectionMetadata.size()
 							// there's something funny about the collectionMetadata.size(), so hardcode it as 23
-							for (int i=0;i<23;i++) {
+							for (int i=0;i<collectionMetadata.size();i++) {
+//								for (int i=0;i<23;i++) {
 								keyPart = collectionMetadata.get(i).getDsid();
 								valPart = collectionMetadata.get(i).getLabel();	
 								System.out.println("[MigrateRequestHandler] Collection keyPart = " + keyPart);
@@ -280,7 +282,10 @@ public class MigrateRequestHandler extends HttpServlet {
 							concludedIngestList.clear();
 							concludedMigrationList.clear();
 							concludedDropList.clear();
+							
 							costOpt.suggestService(operationFlag, inputMetadata, concludedIngestList, concludedMigrationList, concludedDropList);
+
+							
 							if (verbose) {
 
 								migrationData = "";
@@ -302,14 +307,14 @@ public class MigrateRequestHandler extends HttpServlet {
 									suggestedPayPlan = costOpt.popString(migrationData, 4);
 									// this is how many copies are offered by Service Provider
 									suggestedReplicas = costOpt.popString(migrationData, 5);
-									System.out.println("[UploadRequestHandler] Migrate to : --------------- " );
+									System.out.println("[MigrateRequestHandler] Migrate to : --------------- " );
 
-									System.out.println("[UploadRequestHandler] suggestedSP = " + suggestedSP );
-									System.out.println("[UploadRequestHandler] suggestedReg = " + suggestedReg );
-									System.out.println("[UploadRequestHandler] suggestedPayPlan = " + suggestedPayPlan );
-									System.out.println("[UploadRequestHandler] suggestedReplicas = " + suggestedReplicas );
-									System.out.println("[UploadRequestHandler] suggestedIngestVal = " + suggestedMigrationVal );
-									System.out.println("[UploadRequestHandler] suggestedCurr = " + suggestedCurr );
+									System.out.println("[MigrateRequestHandler] suggestedSP = " + suggestedSP );
+									System.out.println("[MigrateRequestHandler] suggestedReg = " + suggestedReg );
+									System.out.println("[MigrateRequestHandler] suggestedPayPlan = " + suggestedPayPlan );
+									System.out.println("[MigrateRequestHandler] suggestedReplicas = " + suggestedReplicas );
+									System.out.println("[MigrateRequestHandler] suggestedIngestVal = " + suggestedMigrationVal );
+									System.out.println("[MigrateRequestHandler] suggestedCurr = " + suggestedCurr );
 
 								}							
 
@@ -332,14 +337,14 @@ public class MigrateRequestHandler extends HttpServlet {
 									dropseyPayPlan = costOpt.popString(dropData, 4);
 									// this is how many copies are offered by Service Provider
 									dropseyReplicas = costOpt.popString(dropData, 5);
-									System.out.println("[UploadRequestHandler] Migrate from : --------------- " );
+									System.out.println("[MigrateRequestHandler] Migrate from : --------------- " );
 
-									System.out.println("[UploadRequestHandler] dropseySP = " + dropseySP );
-									System.out.println("[UploadRequestHandler] dropseyReg = " + dropseyReg );
-									System.out.println("[UploadRequestHandler] dropseyPayPlan = " + dropseyPayPlan );
-									System.out.println("[UploadRequestHandler] dropseyReplicas = " + dropseyReplicas );
-									System.out.println("[UploadRequestHandler] dropseyIngestVal = " + dropseyMigrationVal );
-									System.out.println("[UploadRequestHandler] dropseyCurr = " + dropseyCurr );
+									System.out.println("[MigrateRequestHandler] dropseySP = " + dropseySP );
+									System.out.println("[MigrateRequestHandler] dropseyReg = " + dropseyReg );
+									System.out.println("[MigrateRequestHandler] dropseyPayPlan = " + dropseyPayPlan );
+									System.out.println("[MigrateRequestHandler] dropseyReplicas = " + dropseyReplicas );
+									System.out.println("[MigrateRequestHandler] dropseyIngestVal = " + dropseyMigrationVal );
+									System.out.println("[MigrateRequestHandler] dropseyCurr = " + dropseyCurr );
 
 								}		
 
@@ -388,10 +393,18 @@ public class MigrateRequestHandler extends HttpServlet {
 								// this is how many copies are offered by Service Provider
 								suggestedReplicas = costOpt.popString(migrationData, 5);
 
-								dropseyMigrationVal = Double.valueOf(costOpt.popString(dropData, 1));
-								dropseySP = costOpt.popString(dropData, 2);
-								dropseyReg = costOpt.popString(dropData, 3);
-								dropseyPayPlan = costOpt.popString(dropData, 4);
+								if (concludedDropList.size() < 1) {
+									// hopefully the update of dura will be ignored if from equals to SP
+									dropseyMigrationVal = 0.0;
+									dropseySP = suggestedSP;
+									dropseyReg = suggestedReg;
+									dropseyPayPlan = suggestedPayPlan;
+								} else {
+									dropseyMigrationVal = Double.valueOf(costOpt.popString(dropData, 1));
+									dropseySP = costOpt.popString(dropData, 2);
+									dropseyReg = costOpt.popString(dropData, 3);
+									dropseyPayPlan = costOpt.popString(dropData, 4);
+								}
 
 								// this munges the filepath of the file so fedora can handle it correctly
 								filePathOfDuraCloud = duraStoreClient.reviseFilePathForDuracloud(fileOriginalPath);
@@ -487,13 +500,31 @@ public class MigrateRequestHandler extends HttpServlet {
 								// we have only 255 characters to play with...
 								switch (spCount) 
 								{
-								case 0 : serviceProviderAccount1 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-								case 1 : serviceProviderAccount2 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-								case 2 : serviceProviderAccount3 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-								case 3 : serviceProviderAccount4 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-								case 4 : serviceProviderAccount5 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-								case 5 : serviceProviderAccount6 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-								}
+								case 0 : 
+									serviceProviderAccount1 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;
+									break;
+									
+								case 1 : 
+									serviceProviderAccount2 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+									break;
+									
+								case 2 : 
+									
+									serviceProviderAccount3 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+									break;
+									
+								case 3 : 
+									serviceProviderAccount4 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+									break;
+									
+								case 4 : 
+									serviceProviderAccount5 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+									break;
+									
+								case 5 : 
+									serviceProviderAccount6 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+									break;
+																	}
 								spCount++;
 
 								expiryDate = inputMetadata.get("StorageExpiryDate");
@@ -501,7 +532,7 @@ public class MigrateRequestHandler extends HttpServlet {
 								// TODO there doesnt seem to be a way to delete orphaned migrated data left in Fedora
 								fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedMigrationVal, suggestedCurr, serviceProviderAccount1, serviceProviderAccount2, serviceProviderAccount3, serviceProviderAccount4, serviceProviderAccount5, serviceProviderAccount6, storageUsedTot, operationFlag, expiryDate);
 
-								// the files are not altered within Fedora, only Durastore
+								// the data files are not altered within Fedora, only Durastore
 							
 							}
 							//			

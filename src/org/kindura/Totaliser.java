@@ -35,7 +35,7 @@ public class Totaliser {
 
 	
 	private static final boolean debug = false;
-	private static final boolean verbose = false;
+	private static final boolean verbose = true;
 
 	private StatefulKnowledgeSession ourKsession;
 	private UploadCollection grandparentUploadCollection;
@@ -358,6 +358,7 @@ public class Totaliser {
 	public void accumStorageLine(Double price) {
 		// this is for storage calculations
 		Double calcStorage = Double.valueOf(storageUsed);
+		Integer tempReplicas = Integer.valueOf(parentPricing.getReplicas());
 		
 		if (getBandDescription() == "") {
 			bandStart = 0.0;
@@ -389,21 +390,28 @@ public class Totaliser {
 		};
 		
 		storagePriceSubtotal = calcStorage * getHowLongMonths() * price * priceToUsageMultiplier;   
+
+		if (verbose) {System.out.println( "serviceProviderName : " + serviceProviderName );};
+		if (verbose) {System.out.println( "regionName : " + regionName );};
+		if (verbose) {System.out.println( "planType : " + planType );};
+		if (verbose) {System.out.println( "featureType : " + featureType );};
+		if (verbose) {System.out.println( "subfeatureType : " + subfeatureType );};		
 		if (verbose) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
 		if (verbose) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
 		if (verbose) {System.out.println( "Size calcStorage : " + calcStorage );};
-		if (verbose) {System.out.println( "Months() : " + this.getHowLongMonths() );};
+		if (verbose) {System.out.println( "Months : " + this.getHowLongMonths() );};
 		if (verbose) {System.out.println( "price : " + price );};
+		if (verbose) {System.out.println( "replicas : " + tempReplicas );};
 		if (verbose) {System.out.println( "*** storagePriceSubtotal : " + this.storagePriceSubtotal );};
 		     
 		// TODO sometimes we get replicas with zero value coming thru which can't be right in this method
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "storagePriceSubtotal", storagePriceSubtotal);
-		if ( replicas < 1) {
+		if ( tempReplicas < 1) {
 			costPerReplica = storagePriceSubtotal;
 		} else {
-			costPerReplica = storagePriceSubtotal / replicas;
+			costPerReplica = storagePriceSubtotal / tempReplicas;
 		}
-		if (verbose) {System.out.println( "*** costPerReplica : " + this.costPerReplica );};
+		if (verbose) {System.out.println( "*** costPerReplica : " + costPerReplica );};
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
     }
 
@@ -445,6 +453,12 @@ public class Totaliser {
 //			;
 //		} else {
 			transfersPriceSubtotal += calcTransfer * getHowLongMonths() * price * priceToUsageMultiplier;   
+
+			if (verbose) {System.out.println( "serviceProviderName : " + serviceProviderName );};
+			if (verbose) {System.out.println( "regionName : " + regionName );};
+			if (verbose) {System.out.println( "planType : " + planType );};
+			if (verbose) {System.out.println( "featureType : " + featureType );};
+			if (verbose) {System.out.println( "subfeatureType : " + subfeatureType );};		
 			if (verbose) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
 			if (verbose) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
 			if (verbose) {System.out.println( "calcTransfer : " + calcTransfer );};
@@ -452,7 +466,7 @@ public class Totaliser {
 			if (verbose) {System.out.println( "price : " + price );};
 			if (verbose) {System.out.println( "transfersPriceSubtotal : " + this.transfersPriceSubtotal );};
 			addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "transfersPriceSubtotal", transfersPriceSubtotal);
-			//		costPerReplica = transfersPriceSubtotal / replicas;
+			//		costPerReplica = transfersPriceSubtotal / tempReplicas;
 			//		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "transfersCostPerReplica", costPerReplica);				
 //		}
 	}
@@ -491,6 +505,12 @@ public class Totaliser {
 		};
 		
 		storagetransactionsPriceSubtotal = calcStoragetransactions * getHowLongMonths() * price * priceToUsageMultiplier;   
+
+		if (verbose) {System.out.println( "serviceProviderName : " + serviceProviderName );};
+		if (verbose) {System.out.println( "regionName : " + regionName );};
+		if (verbose) {System.out.println( "planType : " + planType );};
+		if (verbose) {System.out.println( "featureType : " + featureType );};
+		if (verbose) {System.out.println( "subfeatureType : " + subfeatureType );};		
 		if (verbose) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
 		if (verbose) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
 		if (verbose) {System.out.println( "calcStoragetransactions : " + calcStoragetransactions );};
@@ -498,7 +518,7 @@ public class Totaliser {
 		if (verbose) {System.out.println( "price : " + price );};
 		if (verbose) {System.out.println( "StoragetransactionsPriceSubtotal : " + this.storagetransactionsPriceSubtotal );};
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "storagetransactionsPriceSubtotal", storagetransactionsPriceSubtotal);
-//		costPerReplica = storagetransactionsPriceSubtotal / replicas;
+//		costPerReplica = storagetransactionsPriceSubtotal / tempReplicas;
 //		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);       
     }
 
@@ -535,6 +555,11 @@ public class Totaliser {
 		};
 		
 		servicebusPriceSubtotal = calcServicebus * getHowLongMonths() * price * priceToUsageMultiplier;   
+		if (verbose) {System.out.println( "serviceProviderName : " + serviceProviderName );};
+		if (verbose) {System.out.println( "regionName : " + regionName );};
+		if (verbose) {System.out.println( "planType : " + planType );};
+		if (verbose) {System.out.println( "featureType : " + featureType );};
+		if (verbose) {System.out.println( "subfeatureType : " + subfeatureType );};		
 		if (verbose) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
 		if (verbose) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
 		if (verbose) {System.out.println( "calcServicebus : " + calcServicebus );};
@@ -542,7 +567,7 @@ public class Totaliser {
 		if (verbose) {System.out.println( "price : " + price );};
  		if (verbose) {System.out.println( "ServicebusPriceSubtotal : " + this.servicebusPriceSubtotal );};
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "servicebusPriceSubtotal", servicebusPriceSubtotal);
-//		costPerReplica = servicebusPriceSubtotal / replicas;
+//		costPerReplica = servicebusPriceSubtotal / tempReplicas;
 //		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
     }
 
@@ -579,6 +604,11 @@ public class Totaliser {
 		};
 		
 		requestsPriceSubtotal = calcRequests * getHowLongMonths() * price * priceToUsageMultiplier;   
+		if (verbose) {System.out.println( "serviceProviderName : " + serviceProviderName );};
+		if (verbose) {System.out.println( "regionName : " + regionName );};
+		if (verbose) {System.out.println( "planType : " + planType );};
+		if (verbose) {System.out.println( "featureType : " + featureType );};
+		if (verbose) {System.out.println( "subfeatureType : " + subfeatureType );};		
 		if (verbose) {System.out.println( "bandToUsageMultiplier : " + bandToUsageMultiplier );};
 		if (verbose) {System.out.println( "priceToUsageMultiplier : " + priceToUsageMultiplier );};
 		if (verbose) {System.out.println( "calcRequests : " + calcRequests );};
@@ -586,7 +616,7 @@ public class Totaliser {
 		if (verbose) {System.out.println( "price : " + price );};
 		if (verbose) {System.out.println( "requestsPriceSubtotal : " + this.requestsPriceSubtotal );};
 		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "requestsPriceSubtotal", requestsPriceSubtotal);
-//		costPerReplica = requestsPriceSubtotal / replicas;
+//		costPerReplica = requestsPriceSubtotal / tempReplicas;
 //		addLineItem(greatgrandparentCostOpt.getRollupTotaliserHashMap(), "costPerReplica", costPerReplica);
     }
 
@@ -866,12 +896,15 @@ public class Totaliser {
         if (debug) {System.out.println("[Totaliser]: SubfeatureType is " + subfeatureType);};
     }
     public Integer getReplicas() {
+    	// TODO this value is unreliable - use the value in Pricing instead
         return replicas;
     }
     public void setReplicas(Integer replicas) {
     	// TODO the value of this field is not usually returned by the spreadsheet
     	// soon enough for all Totaliser lines for the same key to pick it up, 
     	// meaning that incorrect values can get propagated through.
+    	// So we pull in the replicas from Pricing because value held in Totaliser
+    	// is unreliable
         this.replicas = replicas;
         iAmBlank = false;
         if (debug) {System.out.println("[Totaliser]: Replicas is " + replicas);};
@@ -975,7 +1008,16 @@ public class Totaliser {
         
         // clear down the replicas count because it can propagate the wrong answer
         // due to a timing problem
-        setReplicas(0);
+		if ( parentPricing.getReplicas() == "not relevant") {
+			replicas = 0;
+		} else {
+			if ( parentPricing.getReplicas() == "") {
+				replicas = 0;
+			} else {
+				replicas = Integer.valueOf(parentPricing.getReplicas());
+			}
+		};
+//        setReplicas(0);
         
         totaliserItem.grandparentUploadCollection = this.grandparentUploadCollection;
         totaliserItem.greatgrandparentCostOpt = this.grandparentUploadCollection.getParentCostOpt();
@@ -1054,7 +1096,8 @@ public class Totaliser {
 	}
 
 	private boolean addLineItem(HashMap<String,String> totaliserData, String keyText, Double valNumber) {
-		String keyVal = serviceProviderName + "|" + regionName + "|" + planType + "|" + featureType + "|" + subfeatureType + "|" + String.valueOf(replicas) + "|" + flags + "|" + keyText;
+		Integer tempReplicas = Integer.valueOf(parentPricing.getReplicas());
+		String keyVal = serviceProviderName + "|" + regionName + "|" + planType + "|" + featureType + "|" + subfeatureType + "|" + String.valueOf(tempReplicas) + "|" + flags + "|" + keyText;
 		if (debug) {System.out.println("[Totaliser]: keyVal is " + keyVal);};
 		Double calcNewVal = 0.0;
 		String valText = "";

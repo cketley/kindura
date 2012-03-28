@@ -152,6 +152,18 @@ then
     //update ($collection)
 end
 
+rule "Catch-all funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection:   UploadCollection(   ! (project.funder == "Other"  || project.funder == "Institutional" || project.funder  == "AHRC" || project.funder  == "ESRC" || project.funder  == "EC" || project.funder  == "EPSRC" || project.funder  == "Combination" || project.funder  == "MRC" || project.funder  == "NERC" || project.funder  == "Unfunded" ) )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing Catch-all funder appraisal period -> 10 years");
+    //update ($collection)
+end
+
 ///////////////////////////////////////////////////////////////////////////
 // Now a set of rules for specifying appraisal period on a $collection basis
 // These must overrule the project defaults, hence the lower salience
@@ -240,6 +252,19 @@ then
     //update ($collection)
 end
 
+rule "Catch-all accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+//    $collection:   UploadCollection(  ! ( funder == "AHRC" || funder == "ESRC" || funder == "EC" || funder == "EPSRC" || funder == "Combination" || funder == "Unfunded" || funder == "Other" ) )
+	$collection:   UploadCollection ( funder == "" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing Catch-all accession appraisal period -> 10 years");
+    //update ($collection)
+end
+
 ///////////////////////////////////////////////////////////////
 // Version checks
 // These define the required number of copies of the data which must be stored
@@ -264,7 +289,7 @@ when
     $collection:   UploadCollection( version == "Milestone version" )
 then
     $collection.setMinCopies(3);
-    System.err.println("firing Milestone version -> 3 copies");
+    System.err.println("firing Milestone version for version -> 3 copies");
     //update ($collection)
 end
 
@@ -276,7 +301,7 @@ when
     $collection:   UploadCollection( version == "Publisher submitted version" )
 then
     $collection.setMinCopies(3);
-    System.err.println("firing Publisher submitted version -> 3 copies");
+    System.err.println("firing Publisher submitted version for version -> 3 copies");
     //update ($collection)
 end
 
@@ -288,7 +313,7 @@ when
     $collection:   UploadCollection( version == "Publisher's proof" )
 then
     $collection.setMinCopies(3);
-    System.err.println("firing Publisher's proof -> 3 copies");
+    System.err.println("firing Publisher's proof for version -> 3 copies");
     //update ($collection)
 end
 
@@ -300,7 +325,7 @@ when
     $collection:   UploadCollection( version == "Work in progress" )
 then
     $collection.setMinCopies(2);
-    System.err.println("firing Work in progress -> 2 copies");
+    System.err.println("firing Work in progress for version -> 2 copies");
     //update ($collection)
 end
 
@@ -312,7 +337,7 @@ when
     $collection:   UploadCollection( version == "Source data" )
 then
     $collection.setMinCopies(2);
-    System.err.println("firing Source data -> 2 copies");
+    System.err.println("firing Source data for version -> 2 copies");
     //update ($collection)
 end
 
@@ -336,7 +361,7 @@ when
     $collection:   UploadCollection( version == "Reformatted content" )
 then
     $collection.setMinCopies(2);
-    System.err.println("firing Reformatted content -> 2 copies");
+    System.err.println("firing Reformatted content for version-> 2 copies");
     //update ($collection)
 end
 
@@ -472,6 +497,45 @@ then
     //update ($collection)
 end
 
+rule "Confidential sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection:   UploadCollection( sensitivity == "Confidential" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EU" );
+    $collection.setRegionCode ("EU");
+    System.err.println("firing Confidential sensitivity -> EU");
+    //update ($collection)
+end
+
+rule "Internal sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection:   UploadCollection( sensitivity == "Internal" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "Local" );
+    $collection.setRegionCode ("Local");
+    System.err.println("firing Internal sensitivity -> Local");
+    //update ($collection)
+end
+
+rule "Public sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection:   UploadCollection( sensitivity == "Public" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "WORLD" );
+    $collection.setRegionCode ("WORLD");
+    System.err.println("firing Public sensitivity -> WORLD");
+    //update ($collection)
+end
+
 rule "Other sensitivity"
 //ruleflow-group "filter"
 salience 100
@@ -491,7 +555,7 @@ rule "Neither sensitivity"
 salience 100
 no-loop
 when
-    $collection:   UploadCollection(  ! (sensitivity == "Other" || sensitivity == "Licensed(Public)" || sensitivity == "Licensed(Restricted)" || sensitivity == "Unlicensed" || sensitivity == "Employment details" || sensitivity == "Financial" || sensitivity == "Medical" || type == "Research" || type == "Corporate"))
+    $collection:   UploadCollection(  ! (sensitivity == "Other" || sensitivity == "Licensed(Public)" || sensitivity == "Licensed(Restricted)" || sensitivity == "Unlicensed" || sensitivity == "Employment details" || sensitivity == "Financial" || sensitivity == "Medical" || sensitivity == "Confidential" || sensitivity == "Internal" || sensitivity == "Public" || type == "Research" || type == "Corporate"))
 then
     $collection.limitStorage( StorageProviderConstraintEnum.REGION, "WORLD" );
     $collection.setRegionCode ("WORLD");
