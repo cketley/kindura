@@ -742,9 +742,9 @@ public class UploadRequestHandler extends HttpServlet {
 							}
 							spCount++;
 
-				    		if ( ! ( inputMetadata.get( "StorageExpiryDate" ) == null) ) {
-				    			if ( ! inputMetadata.get( "StorageExpiryDate" ) .isEmpty()) {
-				    				expiryDate = inputMetadata.get( "StorageExpiryDate" );
+				    		if ( ! ( inputMetadata.get( "collectionStgExpiryDate" ) == null) ) {
+				    			if ( ! inputMetadata.get( "collectionStgExpiryDate" ) .isEmpty()) {
+				    				expiryDate = inputMetadata.get( "collectionStgExpiryDate" );
 				    			} else {
 				    				expiryDate = "01/01/2012";
 				    			}
@@ -756,7 +756,8 @@ public class UploadRequestHandler extends HttpServlet {
 				    		Double tempCollTotSize = 0.0;
 				    		if ( ! ( inputMetadata.get( "collectionTotSize" ) == null) ) {
 				    			if ( ! inputMetadata.get( "collectionTotSize" ) .isEmpty()) {
-				    				tempCollTotSize = Double.valueOf(inputMetadata.get( "collectionTotSize" ));
+				    				// convert to TB from Bytes
+				    				tempCollTotSize = Double.valueOf(inputMetadata.get( "collectionTotSize" )) / 1000000000000.0;
 				    			} else {
 				    				tempCollTotSize = 0.0;
 				    			}
@@ -764,6 +765,9 @@ public class UploadRequestHandler extends HttpServlet {
 				    			tempCollTotSize = 0.0;
 				    		}				
 							tempCollTotSize += storageUsedTot;
+							// convert to Bytes from TB - precision errors are likely
+							// TODO need better way to handle precision
+							tempCollTotSize *= 1000000000000.0;
 
 							fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedIngestVal, suggestedCurr, serviceProviderAccount1, serviceProviderAccount2, serviceProviderAccount3, serviceProviderAccount4, serviceProviderAccount5, serviceProviderAccount6, tempCollTotSize, operationFlag, expiryDate);
 

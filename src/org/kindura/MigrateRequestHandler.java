@@ -79,7 +79,7 @@ public class MigrateRequestHandler extends HttpServlet {
 		String userName = null;
 		//This String is used to store the value of parameter 'pathinfo0' sent by MigrateRequestHandler.java.
 		String projectName = null;
-		
+
 		String collectionName = null;
 		String collectionDescription = null;
 		//String actionRequired = null;
@@ -209,348 +209,349 @@ public class MigrateRequestHandler extends HttpServlet {
 						}
 
 					}
-					
+
 					// this retrieves all data about the Project from Fedora
 					ArrayList<DatastreamType> projectMetadata = fedoraServiceManager.getDataStreams(currentProjectPid);
 					if (projectMetadata != null) {
 						// TODO sort out the indexing on projectMetadata.size()
 						// there's something funny about the projectMetadata.size(), so hardcode it as 12
 						for (int i=0;i<projectMetadata.size();i++) {
-//							for (int i=0;i<12;i++) {
+							//							for (int i=0;i<12;i++) {
 							keyPart = projectMetadata.get(i).getDsid();
 							valPart = projectMetadata.get(i).getLabel();	
 							System.out.println("[MigrateRequestHandler] Project keyPart = " + keyPart);
 							System.out.println("[MigrateRequestHandler] Project valPart = " + valPart);
 							inputMetadata.put(keyPart, valPart);									
 						}
+						// retrieve all Collection PIDS for the Project
+						List<String> collectionPids = fedoraServiceManager.getCollectionObjectPIDs(currentProjectPid);
+						Iterator<String> lookup = collectionPids.iterator();
+						String currentCollectionPid = "";
+						String currentCollectionPidValue = "";
+						while (lookup.hasNext()) {
+							currentCollectionPid = (String)lookup.next();
+							System.out.println("[MigrateRequestHandler]currentCollectionPid = " + currentCollectionPid);
+
+							extractTxtPosition = currentCollectionPid.indexOf(":") + 1;
+							System.out.println("[MigrateRequestHandler]extractTxtPosition = " + extractTxtPosition);
+							currentCollectionPidValue = currentCollectionPid.substring(extractTxtPosition, currentCollectionPid.length());
+							System.out.println("[MigrateRequestHandler]currentCollectionPidValue = " + currentCollectionPidValue);
+
+							String collectionPID = currentCollectionPid;
+							collectionName = currentCollectionPidValue;
+
+							// this retrieves all data about the Collection from Fedora
+							ArrayList<DatastreamType> collectionMetadata = fedoraServiceManager.getDataStreams(collectionPID);
+							if (collectionMetadata != null) {
+								// TODO sort out the indexing on collectionMetadata.size()
+								// there's something funny about the collectionMetadata.size(), so hardcode it as 23
+								for (int i=0;i<collectionMetadata.size();i++) {
+									//								for (int i=0;i<23;i++) {
+									keyPart = collectionMetadata.get(i).getDsid();
+									valPart = collectionMetadata.get(i).getLabel();	
+									System.out.println("[MigrateRequestHandler] Collection keyPart = " + keyPart);
+									System.out.println("[MigrateRequestHandler] Collection valPart = " + valPart);
+									inputMetadata.put(keyPart, valPart);									
+								}
+
+								if ( ! ( inputMetadata.get( "collectionTotSize" ) == null) ) {
+									if ( ! inputMetadata.get( "collectionTotSize" ) .isEmpty()) {
+										storageUsedTot = Double.valueOf(inputMetadata.get( "collectionTotSize" ).toString())  / 1000000000000.0;
+									} else {
+										storageUsedTot = 0.0;
+									}
+								} else {
+									storageUsedTot = 0.0;
+								}				
+								inputMetadata.put("storageUsed", String.valueOf(storageUsedTot));
+								// requests are inferred from accessFrequency
+								// transfers are not munged with accessFrequency because makes
+								// no difference to the decision on which SP to use
+
+
+								if ( operationFlag .equals("ingest") ) {
+									// ingest means take in new data
+									// shouldn't be here
+									break;
+								} else if (operationFlag .equals("migrate-across") ) {
+									// migrate-across means remove from one and upload to a cheaper location
+									inputMetadata.put("transfersUsed", String.valueOf(storageUsedTot));
+									concludedIngestList.clear();
+									concludedMigrationList.clear();
+									concludedDropList.clear();
+
+									costOpt.suggestService(operationFlag, inputMetadata, concludedIngestList, concludedMigrationList, concludedDropList);
+
+
+									if (verbose) {
+
+										migrationData = "";
+										suggestedMigrationVal = 0.0;
+										suggestedCurr = "";
+										suggestedSP = "";
+										suggestedReg = "";
+										suggestedPayPlan = "";
+										suggestedReplicas = "";
+
+										Iterator wrigglelator = concludedMigrationList.iterator();
+										while (wrigglelator.hasNext()) {
+
+											migrationData = (String)wrigglelator.next();
+											suggestedMigrationVal = Double.valueOf(costOpt.popString(migrationData, 1));
+											suggestedCurr = costOpt.popString(migrationData, 6);
+											suggestedSP = costOpt.popString(migrationData, 2);
+											suggestedReg = costOpt.popString(migrationData, 3);
+											suggestedPayPlan = costOpt.popString(migrationData, 4);
+											// this is how many copies are offered by Service Provider
+											suggestedReplicas = costOpt.popString(migrationData, 5);
+											System.out.println("[MigrateRequestHandler] Migrate to : --------------- " );
+
+											System.out.println("[MigrateRequestHandler] suggestedSP = " + suggestedSP );
+											System.out.println("[MigrateRequestHandler] suggestedReg = " + suggestedReg );
+											System.out.println("[MigrateRequestHandler] suggestedPayPlan = " + suggestedPayPlan );
+											System.out.println("[MigrateRequestHandler] suggestedReplicas = " + suggestedReplicas );
+											System.out.println("[MigrateRequestHandler] suggestedIngestVal = " + suggestedMigrationVal );
+											System.out.println("[MigrateRequestHandler] suggestedCurr = " + suggestedCurr );
+
+										}							
+
+										dropData = "";
+										dropseyMigrationVal = 0.0;
+										dropseyCurr = "";
+										dropseySP = "";
+										dropseyReg = "";
+										dropseyPayPlan = "";
+										dropseyReplicas = "";
+
+										Iterator wrigglism = concludedDropList.iterator();
+										while (wrigglism.hasNext()) {
+
+											dropData = (String)wrigglism.next();
+											dropseyMigrationVal = Double.valueOf(costOpt.popString(dropData, 1));
+											dropseyCurr = costOpt.popString(dropData, 6);
+											dropseySP = costOpt.popString(dropData, 2);
+											dropseyReg = costOpt.popString(dropData, 3);
+											dropseyPayPlan = costOpt.popString(dropData, 4);
+											// this is how many copies are offered by Service Provider
+											dropseyReplicas = costOpt.popString(dropData, 5);
+											System.out.println("[MigrateRequestHandler] Migrate from : --------------- " );
+
+											System.out.println("[MigrateRequestHandler] dropseySP = " + dropseySP );
+											System.out.println("[MigrateRequestHandler] dropseyReg = " + dropseyReg );
+											System.out.println("[MigrateRequestHandler] dropseyPayPlan = " + dropseyPayPlan );
+											System.out.println("[MigrateRequestHandler] dropseyReplicas = " + dropseyReplicas );
+											System.out.println("[MigrateRequestHandler] dropseyIngestVal = " + dropseyMigrationVal );
+											System.out.println("[MigrateRequestHandler] dropseyCurr = " + dropseyCurr );
+
+										}		
+
+									}
+
+									///////////////////////////////////////////////////////////////////////////////////////////////////////
+									//DuraCloud operations.
+									//
+
+									nameSpace = inputMetadata.get("collectionName");
+
+									migrationData = "";
+									suggestedMigrationVal = 0.0;
+									suggestedCurr = "";
+									suggestedSP = "";
+									suggestedReg = "";
+									suggestedPayPlan = "";
+									suggestedReplicas = "";
+									dropData = "";
+									dropseyMigrationVal = 0.0;
+									dropseyCurr = "";
+									dropseySP = "";
+									dropseyReg = "";
+									dropseyPayPlan = "";
+									dropseyReplicas = "";
+
+									Iterator wandalita = concludedDropList.iterator();
+									Iterator wanderator = concludedMigrationList.iterator();
+									while (wanderator.hasNext()) {
+
+										migrationData = (String)wanderator.next();
+										if (wandalita.hasNext()) {
+											// TODO allow many-to-many drops versus adds.
+											// Some eagle-eyed observers will have noticed that if we are dropping more than we are adding then some old
+											// data will remain in Fedora because the loop is driven by the adds. We really ought to fix this sometime.
+											dropData = (String)wandalita.next();
+										}
+
+										//String hexString = Hex.encodeHexString(myString.getBytes(/* charset */));
+
+										suggestedMigrationVal = Double.valueOf(costOpt.popString(migrationData, 1));
+										suggestedCurr = costOpt.popString(migrationData, 6);
+										suggestedSP = costOpt.popString(migrationData, 2);
+										suggestedReg = costOpt.popString(migrationData, 3);
+										suggestedPayPlan = costOpt.popString(migrationData, 4);
+										// this is how many copies are offered by Service Provider
+										suggestedReplicas = costOpt.popString(migrationData, 5);
+
+										if (concludedDropList.size() < 1) {
+											// hopefully the update of dura will be ignored if from equals to SP
+											dropseyMigrationVal = 0.0;
+											dropseySP = suggestedSP;
+											dropseyReg = suggestedReg;
+											dropseyPayPlan = suggestedPayPlan;
+										} else {
+											dropseyMigrationVal = Double.valueOf(costOpt.popString(dropData, 1));
+											dropseySP = costOpt.popString(dropData, 2);
+											dropseyReg = costOpt.popString(dropData, 3);
+											dropseyPayPlan = costOpt.popString(dropData, 4);
+										}
+
+										// this munges the filepath of the file so fedora can handle it correctly
+										// but we don't use it at the moment because we don't have a way to remove files
+// 											filePathOfDuraCloud = duraStoreClient.reviseFilePathForDuracloud(fileOriginalPath);
+										//Create a new namespace if the namespace does not exist.
+										// The nameSpace variable passed across is actually the collection name.
+										Map<String, String> spaceMetadata = new HashMap<String, String>();
+										if ( (suggestedSP .equals("Amazon S3")) && (suggestedPayPlan .equals("Pay as you go - reduced redundancy")) ) {
+											if (duraStoreClient.isNameSpaceExisted("Amazon S3 RRS", nameSpace) == false) {
+												duraStoreClient.createNamespace("Amazon S3 RRS", nameSpace, spaceMetadata);								
+											}
+											// TODO we don't have any way to delete from a service provider at the moment
+											//									duraStoreClient.removeFile(duraStoreClient.amazonS3RRSContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+										}
+										if ( (suggestedSP .equals("Amazon S3")) &&  ! (suggestedPayPlan .equals("Pay as you go - reduced redundancy"))  ) {
+											if (duraStoreClient.isNameSpaceExisted("Amazon S3", nameSpace) == false) {
+												duraStoreClient.createNamespace("Amazon S3", nameSpace, spaceMetadata);
+											}
+											//									duraStoreClient.removeFile(duraStoreClient.amazonS3ContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+										}
+										if ( (suggestedSP .equals("Rackspace Cloud Files")) ) {
+											if (duraStoreClient.isNameSpaceExisted("Rackspace Cloud Files", nameSpace) == false) {
+												duraStoreClient.createNamespace("Rackspace Cloud Files", nameSpace, spaceMetadata);									
+											}
+											//									duraStoreClient.removeFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+										}
+										if ( (suggestedSP .equals("iRODS")) ) {
+											if (duraStoreClient.isNameSpaceExisted("iRODS", nameSpace) == false) {
+												duraStoreClient.createNamespace("iRODS", nameSpace, spaceMetadata);									
+											}
+											//									duraStoreClient.removeFile(duraStoreClient.iRODSContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+										}
+										if ( (suggestedSP .equals("Google Cloud Storage")) ) {
+											if (duraStoreClient.isNameSpaceExisted("Google Cloud Storage", nameSpace) == false) {
+												duraStoreClient.createNamespace("Google Cloud Storage", nameSpace, spaceMetadata);
+											}
+											//									duraStoreClient.removeFile(duraStoreClient.googleCloudStorageContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+										}
+										if ( (suggestedSP .equals("Azure")) ) {
+											if (duraStoreClient.isNameSpaceExisted("Azure", nameSpace) == false) {
+												duraStoreClient.createNamespace("Azure", nameSpace, spaceMetadata);									
+											}
+											//									duraStoreClient.removeFile(duraStoreClient.azureContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+										}
+										if ( (suggestedSP .equals("SDSC")) ) {
+											if (duraStoreClient.isNameSpaceExisted("SDSC", nameSpace) == false) {
+												duraStoreClient.createNamespace("SDSC", nameSpace, spaceMetadata);
+											}
+											//									duraStoreClient.removeFile(duraStoreClient.sdscContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
+										}
+
+										// migrate all files for the collection
+										duraStoreClient.migrateDataCollection( dropseySP, nameSpace, suggestedSP, nameSpace);
+
+
+									}
+									//
+									// End of DuraCloud operations.
+									///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+									///////////////////////////////////////////////////////////////////////////////////////////////////////
+									//Fedora operations.
+									//
+
+									migrationData = "";
+									suggestedMigrationVal = 0.0;
+									suggestedCurr = "";
+									suggestedSP = "";
+									suggestedReg = "";
+									suggestedPayPlan = "";
+									suggestedReplicas = "";
+									serviceProviderAccount1 = "";
+									serviceProviderAccount2 = "";
+									serviceProviderAccount3 = "";
+									serviceProviderAccount4 = "";
+									serviceProviderAccount5 = "";
+									serviceProviderAccount6 = "";
+
+									Integer spCount = 0;
+									Iterator wanderise = concludedMigrationList.iterator();
+									while (wanderise.hasNext()) {
+
+										migrationData = (String)wanderise.next();
+
+										suggestedMigrationVal = Double.valueOf(costOpt.popString(migrationData, 1));
+										suggestedCurr = costOpt.popString(migrationData, 6);
+										suggestedSP = costOpt.popString(migrationData, 2);
+										suggestedReg = costOpt.popString(migrationData, 3);
+										suggestedPayPlan = costOpt.popString(migrationData, 4);
+										// this is how many copies are offered by Service Provider
+										suggestedReplicas = costOpt.popString(migrationData, 5);
+
+										// we have only 255 characters to play with...
+										switch (spCount) 
+										{
+										case 0 : 
+											serviceProviderAccount1 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;
+											break;
+
+										case 1 : 
+											serviceProviderAccount2 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+											break;
+
+										case 2 : 
+
+											serviceProviderAccount3 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+											break;
+
+										case 3 : 
+											serviceProviderAccount4 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+											break;
+
+										case 4 : 
+											serviceProviderAccount5 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+											break;
+
+										case 5 : 
+											serviceProviderAccount6 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
+											break;
+										}
+										spCount++;
+
+										expiryDate = inputMetadata.get("collectionStgExpiryDate");
+
+										// TODO there doesnt seem to be a way to delete orphaned migrated data left in Fedora
+										fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedMigrationVal, suggestedCurr, serviceProviderAccount1, serviceProviderAccount2, serviceProviderAccount3, serviceProviderAccount4, serviceProviderAccount5, serviceProviderAccount6, storageUsedTot, operationFlag, expiryDate);
+
+										// the data files are not altered within Fedora, only Durastore
+
+									}
+									//			
+									// End of Fedora operations.
+									//////////////////////////////////////////////////////////////////////////////////////
+
+								} else if (operationFlag .equals("migrate-down") ) {	
+									// migrate-down means data is no longer in active use
+									// so we would use the collectionStgExpiryDate from Fedora to locate and remove it
+								} else if (operationFlag .equals("migrate-up") ) {	
+									// migrate-up means data was inactive but is now active, or error recovery
+								} else if (operationFlag .equals("retrieval") ) {
+									// retrieval means data to be copied down to local disk
+
+									// shouldn't be here
+									break;
+								} 
+							} 
+						}
 					}
 
-					// retrieve all Collection PIDS for the Project
-					List<String> collectionPids = fedoraServiceManager.getCollectionObjectPIDs(currentProjectPid);
-					Iterator<String> lookup = collectionPids.iterator();
-					String currentCollectionPid = "";
-					String currentCollectionPidValue = "";
-					while (lookup.hasNext()) {
-						currentCollectionPid = (String)lookup.next();
-						System.out.println("[MigrateRequestHandler]currentCollectionPid = " + currentCollectionPid);
-
-						extractTxtPosition = currentCollectionPid.indexOf(":") + 1;
-						System.out.println("[MigrateRequestHandler]extractTxtPosition = " + extractTxtPosition);
-						currentCollectionPidValue = currentCollectionPid.substring(extractTxtPosition, currentCollectionPid.length());
-						System.out.println("[MigrateRequestHandler]currentCollectionPidValue = " + currentCollectionPidValue);
-
-						String collectionPID = currentCollectionPid;
-						collectionName = currentCollectionPidValue;
-
-						// this retrieves all data about the Collection from Fedora
-						ArrayList<DatastreamType> collectionMetadata = fedoraServiceManager.getDataStreams(collectionPID);
-						if (collectionMetadata != null) {
-							// TODO sort out the indexing on collectionMetadata.size()
-							// there's something funny about the collectionMetadata.size(), so hardcode it as 23
-							for (int i=0;i<collectionMetadata.size();i++) {
-//								for (int i=0;i<23;i++) {
-								keyPart = collectionMetadata.get(i).getDsid();
-								valPart = collectionMetadata.get(i).getLabel();	
-								System.out.println("[MigrateRequestHandler] Collection keyPart = " + keyPart);
-								System.out.println("[MigrateRequestHandler] Collection valPart = " + valPart);
-								inputMetadata.put(keyPart, valPart);									
-							}
-						}
-
-						if ( ! ( inputMetadata.get( "collectionTotSize" ) == null) ) {
-							if ( ! inputMetadata.get( "collectionTotSize" ) .isEmpty()) {
-								storageUsedTot = Double.valueOf(inputMetadata.get( "collectionTotSize" ).toString());
-							} else {
-								storageUsedTot = 0.0;
-							}
-						} else {
-							storageUsedTot = 0.0;
-						}				
-						inputMetadata.put("storageUsed", String.valueOf(storageUsedTot));
-						// requests are inferred from accessFrequency
-						// transfers are not munged with accessFrequency because makes
-						// no difference to the decision on which SP to use
-
-
-						if ( operationFlag .equals("ingest") ) {
-							// ingest means take in new data
-							// shouldn't be here
-							break;
-						} else if (operationFlag .equals("migrate-across") ) {
-							// migrate-across means remove from one and upload to a cheaper location
-							inputMetadata.put("transfersUsed", String.valueOf(storageUsedTot));
-							concludedIngestList.clear();
-							concludedMigrationList.clear();
-							concludedDropList.clear();
-							
-							costOpt.suggestService(operationFlag, inputMetadata, concludedIngestList, concludedMigrationList, concludedDropList);
-
-							
-							if (verbose) {
-
-								migrationData = "";
-								suggestedMigrationVal = 0.0;
-								suggestedCurr = "";
-								suggestedSP = "";
-								suggestedReg = "";
-								suggestedPayPlan = "";
-								suggestedReplicas = "";
-
-								Iterator wrigglelator = concludedMigrationList.iterator();
-								while (wrigglelator.hasNext()) {
-
-									migrationData = (String)wrigglelator.next();
-									suggestedMigrationVal = Double.valueOf(costOpt.popString(migrationData, 1));
-									suggestedCurr = costOpt.popString(migrationData, 6);
-									suggestedSP = costOpt.popString(migrationData, 2);
-									suggestedReg = costOpt.popString(migrationData, 3);
-									suggestedPayPlan = costOpt.popString(migrationData, 4);
-									// this is how many copies are offered by Service Provider
-									suggestedReplicas = costOpt.popString(migrationData, 5);
-									System.out.println("[MigrateRequestHandler] Migrate to : --------------- " );
-
-									System.out.println("[MigrateRequestHandler] suggestedSP = " + suggestedSP );
-									System.out.println("[MigrateRequestHandler] suggestedReg = " + suggestedReg );
-									System.out.println("[MigrateRequestHandler] suggestedPayPlan = " + suggestedPayPlan );
-									System.out.println("[MigrateRequestHandler] suggestedReplicas = " + suggestedReplicas );
-									System.out.println("[MigrateRequestHandler] suggestedIngestVal = " + suggestedMigrationVal );
-									System.out.println("[MigrateRequestHandler] suggestedCurr = " + suggestedCurr );
-
-								}							
-
-								dropData = "";
-								dropseyMigrationVal = 0.0;
-								dropseyCurr = "";
-								dropseySP = "";
-								dropseyReg = "";
-								dropseyPayPlan = "";
-								dropseyReplicas = "";
-
-								Iterator wrigglism = concludedDropList.iterator();
-								while (wrigglism.hasNext()) {
-
-									dropData = (String)wrigglism.next();
-									dropseyMigrationVal = Double.valueOf(costOpt.popString(dropData, 1));
-									dropseyCurr = costOpt.popString(dropData, 6);
-									dropseySP = costOpt.popString(dropData, 2);
-									dropseyReg = costOpt.popString(dropData, 3);
-									dropseyPayPlan = costOpt.popString(dropData, 4);
-									// this is how many copies are offered by Service Provider
-									dropseyReplicas = costOpt.popString(dropData, 5);
-									System.out.println("[MigrateRequestHandler] Migrate from : --------------- " );
-
-									System.out.println("[MigrateRequestHandler] dropseySP = " + dropseySP );
-									System.out.println("[MigrateRequestHandler] dropseyReg = " + dropseyReg );
-									System.out.println("[MigrateRequestHandler] dropseyPayPlan = " + dropseyPayPlan );
-									System.out.println("[MigrateRequestHandler] dropseyReplicas = " + dropseyReplicas );
-									System.out.println("[MigrateRequestHandler] dropseyIngestVal = " + dropseyMigrationVal );
-									System.out.println("[MigrateRequestHandler] dropseyCurr = " + dropseyCurr );
-
-								}		
-
-							}
-
-							///////////////////////////////////////////////////////////////////////////////////////////////////////
-							//DuraCloud operations.
-							//
-
-							nameSpace = inputMetadata.get("collectionName");
-
-							migrationData = "";
-							suggestedMigrationVal = 0.0;
-							suggestedCurr = "";
-							suggestedSP = "";
-							suggestedReg = "";
-							suggestedPayPlan = "";
-							suggestedReplicas = "";
-							dropData = "";
-							dropseyMigrationVal = 0.0;
-							dropseyCurr = "";
-							dropseySP = "";
-							dropseyReg = "";
-							dropseyPayPlan = "";
-							dropseyReplicas = "";
-
-							Iterator wandalita = concludedDropList.iterator();
-							Iterator wanderator = concludedMigrationList.iterator();
-							while (wanderator.hasNext()) {
-
-								migrationData = (String)wanderator.next();
-								if (wandalita.hasNext()) {
-									// TODO allow many-to-many drops versus adds.
-									// Some eagle-eyed observers will have noticed that if we are dropping more than we are adding then some old
-									// data will remain in Fedora because the loop is driven by the adds. We really ought to fix this sometime.
-									dropData = (String)wandalita.next();
-								}
-
-								//String hexString = Hex.encodeHexString(myString.getBytes(/* charset */));
-
-								suggestedMigrationVal = Double.valueOf(costOpt.popString(migrationData, 1));
-								suggestedCurr = costOpt.popString(migrationData, 6);
-								suggestedSP = costOpt.popString(migrationData, 2);
-								suggestedReg = costOpt.popString(migrationData, 3);
-								suggestedPayPlan = costOpt.popString(migrationData, 4);
-								// this is how many copies are offered by Service Provider
-								suggestedReplicas = costOpt.popString(migrationData, 5);
-
-								if (concludedDropList.size() < 1) {
-									// hopefully the update of dura will be ignored if from equals to SP
-									dropseyMigrationVal = 0.0;
-									dropseySP = suggestedSP;
-									dropseyReg = suggestedReg;
-									dropseyPayPlan = suggestedPayPlan;
-								} else {
-									dropseyMigrationVal = Double.valueOf(costOpt.popString(dropData, 1));
-									dropseySP = costOpt.popString(dropData, 2);
-									dropseyReg = costOpt.popString(dropData, 3);
-									dropseyPayPlan = costOpt.popString(dropData, 4);
-								}
-
-								// this munges the filepath of the file so fedora can handle it correctly
-								filePathOfDuraCloud = duraStoreClient.reviseFilePathForDuracloud(fileOriginalPath);
-								//Create a new namespace if the namespace does not exist.
-								// The nameSpace variable passed across is actually the collection name.
-								Map<String, String> spaceMetadata = new HashMap<String, String>();
-								if ( (suggestedSP .equals("Amazon S3")) && (suggestedPayPlan .equals("Pay as you go - reduced redundancy")) ) {
-									if (duraStoreClient.isNameSpaceExisted("Amazon S3 RRS", nameSpace) == false) {
-										duraStoreClient.createNamespace("Amazon S3 RRS", nameSpace, spaceMetadata);								
-									}
-									// TODO we don't have any way to delete from a service provider at the moment
-									//									duraStoreClient.removeFile(duraStoreClient.amazonS3RRSContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
-								}
-								if ( (suggestedSP .equals("Amazon S3")) &&  ! (suggestedPayPlan .equals("Pay as you go - reduced redundancy"))  ) {
-									if (duraStoreClient.isNameSpaceExisted("Amazon S3", nameSpace) == false) {
-										duraStoreClient.createNamespace("Amazon S3", nameSpace, spaceMetadata);
-									}
-									//									duraStoreClient.removeFile(duraStoreClient.amazonS3ContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
-								}
-								if ( (suggestedSP .equals("Rackspace Cloud Files")) ) {
-									if (duraStoreClient.isNameSpaceExisted("Rackspace Cloud Files", nameSpace) == false) {
-										duraStoreClient.createNamespace("Rackspace Cloud Files", nameSpace, spaceMetadata);									
-									}
-									//									duraStoreClient.removeFile(duraStoreClient.rackSpaceContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
-								}
-								if ( (suggestedSP .equals("iRODS")) ) {
-									if (duraStoreClient.isNameSpaceExisted("iRODS", nameSpace) == false) {
-										duraStoreClient.createNamespace("iRODS", nameSpace, spaceMetadata);									
-									}
-									//									duraStoreClient.removeFile(duraStoreClient.iRODSContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
-								}
-								if ( (suggestedSP .equals("Google Cloud Storage")) ) {
-									if (duraStoreClient.isNameSpaceExisted("Google Cloud Storage", nameSpace) == false) {
-										duraStoreClient.createNamespace("Google Cloud Storage", nameSpace, spaceMetadata);
-									}
-									//									duraStoreClient.removeFile(duraStoreClient.googleCloudStorageContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
-								}
-								if ( (suggestedSP .equals("Azure")) ) {
-									if (duraStoreClient.isNameSpaceExisted("Azure", nameSpace) == false) {
-										duraStoreClient.createNamespace("Azure", nameSpace, spaceMetadata);									
-									}
-									//									duraStoreClient.removeFile(duraStoreClient.azureContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
-								}
-								if ( (suggestedSP .equals("SDSC")) ) {
-									if (duraStoreClient.isNameSpaceExisted("SDSC", nameSpace) == false) {
-										duraStoreClient.createNamespace("SDSC", nameSpace, spaceMetadata);
-									}
-									//									duraStoreClient.removeFile(duraStoreClient.sdscContentStore, nameSpace, filePathOfDuraCloud+"/"+fileName, uploadFile, fileItem.getSize(), fileItem.getContentType());
-								}
-
-								// migrate all files for the collection
-								duraStoreClient.migrateDataCollection( dropseySP, nameSpace, suggestedSP, nameSpace);
-
-
-							}
-							//
-							// End of DuraCloud operations.
-							///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-							///////////////////////////////////////////////////////////////////////////////////////////////////////
-							//Fedora operations.
-							//
-
-							migrationData = "";
-							suggestedMigrationVal = 0.0;
-							suggestedCurr = "";
-							suggestedSP = "";
-							suggestedReg = "";
-							suggestedPayPlan = "";
-							suggestedReplicas = "";
-							serviceProviderAccount1 = "";
-							serviceProviderAccount2 = "";
-							serviceProviderAccount3 = "";
-							serviceProviderAccount4 = "";
-							serviceProviderAccount5 = "";
-							serviceProviderAccount6 = "";
-
-							Integer spCount = 0;
-							Iterator wanderise = concludedMigrationList.iterator();
-							while (wanderise.hasNext()) {
-
-								migrationData = (String)wanderise.next();
-
-								suggestedMigrationVal = Double.valueOf(costOpt.popString(migrationData, 1));
-								suggestedCurr = costOpt.popString(migrationData, 6);
-								suggestedSP = costOpt.popString(migrationData, 2);
-								suggestedReg = costOpt.popString(migrationData, 3);
-								suggestedPayPlan = costOpt.popString(migrationData, 4);
-								// this is how many copies are offered by Service Provider
-								suggestedReplicas = costOpt.popString(migrationData, 5);
-
-								// we have only 255 characters to play with...
-								switch (spCount) 
-								{
-								case 0 : 
-									serviceProviderAccount1 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;
-									break;
-									
-								case 1 : 
-									serviceProviderAccount2 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-									break;
-									
-								case 2 : 
-									
-									serviceProviderAccount3 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-									break;
-									
-								case 3 : 
-									serviceProviderAccount4 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-									break;
-									
-								case 4 : 
-									serviceProviderAccount5 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-									break;
-									
-								case 5 : 
-									serviceProviderAccount6 = suggestedSP + "|" + suggestedReg + "|" + suggestedPayPlan;		
-									break;
-																	}
-								spCount++;
-
-								expiryDate = inputMetadata.get("StorageExpiryDate");
-
-								// TODO there doesnt seem to be a way to delete orphaned migrated data left in Fedora
-								fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedMigrationVal, suggestedCurr, serviceProviderAccount1, serviceProviderAccount2, serviceProviderAccount3, serviceProviderAccount4, serviceProviderAccount5, serviceProviderAccount6, storageUsedTot, operationFlag, expiryDate);
-
-								// the data files are not altered within Fedora, only Durastore
-							
-							}
-							//			
-							// End of Fedora operations.
-							//////////////////////////////////////////////////////////////////////////////////////
-
-						} else if (operationFlag .equals("migrate-down") ) {	
-							// migrate-down means data is no longer in active use
-							// so we would use the StorageExpiryDate from Fedora to locate and remove it
-						} else if (operationFlag .equals("migrate-up") ) {	
-							// migrate-up means data was inactive but is now active, or error recovery
-						} else if (operationFlag .equals("retrieval") ) {
-							// retrieval means data to be copied down to local disk
-
-							// shouldn't be here
-							break;
-						} 
-					} 
 				}
 			}
 
@@ -569,47 +570,7 @@ public class MigrateRequestHandler extends HttpServlet {
 		}
 	}
 
-	/*public boolean isFileConverted(ContentStore contentStore, String collectionName, boolean bmpToJPG, boolean tiffToJPG) {
-    	try {
-			FedoraServiceManager fedoraServiceManager = new FedoraServiceManager();
-    		Iterator<String> iterator = contentStore.getSpaceContents(collectionName);
-    		List<String> originalFiles = new ArrayList<String>();
-			List<String> convertedFiles = new ArrayList<String>();
-			while (iterator.hasNext()) {
-				String originalFileName = iterator.next();
-				String convertedFileName = null;
-				if ((bmpToJPG == true) && (originalFileName.substring(originalFileName.lastIndexOf(".")+1).equals("bmp"))) {
-					convertedFileName = originalFileName.substring(0, originalFileName.indexOf("."))+".jpg";
-					if (convertedFiles.contains(convertedFileName)) {
-						return true;
-					} else {
-						originalFiles.add(originalFileName);
-					}
-				}
-				if ((tiffToJPG == true) && (originalFileName.substring(originalFileName.lastIndexOf(".")+1).equals("tiff"))) {
-					convertedFileName = originalFileName.substring(0, originalFileName.indexOf("."))+".jpg";
-					if (convertedFiles.contains(convertedFileName)) {
-						return true;
-					} else {
-						originalFiles.add(originalFileName);
-					}
-				}
-				if (originalFileName.substring(originalFileName.lastIndexOf(".")+1).equals("jpg")) {
-					convertedFileName = originalFileName;
-					originalFileName = originalFileName.substring(0, originalFileName.indexOf("."))+".jpg";
-					if (convertedFiles.contains(convertedFileName)) {
-						return true;
-					} else {
-						convertedFiles.add(originalFileName);
-					}
-				}
-			}
-		} catch (ContentStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return false;
-    }*/
+
 	public boolean isFileConverted(ContentStore contentStore, String collectionName, String originalFileName) {
 		String convertedFileName = originalFileName.substring(0, originalFileName.lastIndexOf("."))+".jpg";
 		System.out.println("[MigrateRequestHandler] converted file name: "+convertedFileName);

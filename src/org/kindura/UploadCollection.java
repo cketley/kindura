@@ -229,36 +229,41 @@ public class UploadCollection
 		
 		// this is called from within KinduraRules.drl
 		
-		// Add the specified number of years to the upload date to give the appraisal date	
+		// Add the specified number of years to the project end date to give the appraisal date	
 		appraisalDate = (Calendar) this.projEndDate.clone();	
 		
 		if ( parentCostOpt.getOpsFlag().equals("ingest") ) {
-			Integer numMonths = numYears * 12;
-			howLongMonths = numMonths;
-			childPrcng.setHowLongMonths(numMonths);
+//			Integer numMonths = numYears * 12;
 			appraisalDate.add( Calendar.YEAR, numYears );
-			parentMetadata.put("StorageExpiryDate", getAppraisalDateAsString() );
-			// TODO the length of time to charge for is calculated against Now thru StorageExpiryDate
-			// so what we have here is wrong
+			// save the date we will delete the storage
+			parentMetadata.put("collectionStgExpiryDate", getAppraisalDateAsString() );
+			// calc the billing period from upload date (now) to storage deletion date
+			howLongMonths = getMonthsDifference(nowDate, appraisalDate);
+			if (howLongMonths < 1) {
+				// might get negative numbers if we used past dates or very short project lifetime
+				howLongMonths = 0;
+			}
+			// tell the Pricing instance what we know
+			childPrcng.setHowLongMonths(howLongMonths);
 		} else {
-    		if ( ! ( parentMetadata.get( "StorageExpiryDate" ) == null) ) {
-    			if ( ! parentMetadata.get( "StorageExpiryDate" ) .isEmpty()) {
-    				appraisalDate = uploadDateFromString( parentMetadata.get( "StorageExpiryDate" ).toString());
+    		if ( ! ( parentMetadata.get( "collectionStgExpiryDate" ) == null) ) {
+    			if ( ! parentMetadata.get( "collectionStgExpiryDate" ) .isEmpty()) {
+    				appraisalDate = uploadDateFromString( parentMetadata.get( "collectionStgExpiryDate" ).toString());
     			} else {
-    				// StorageExpiryDate might be missing so use project endDate instead
+    				// collectionStgExpiryDate might be missing so use project endDate instead
     				appraisalDate = uploadDateFromString(parentMetadata.get( "endDate" ).toString());
     			}
     		} else {
     			appraisalDate = uploadDateFromString(parentMetadata.get( "endDate" ).toString());
     		}				
+			// calc the billing period from now to storage deletion date or project end
 			howLongMonths = getMonthsDifference(nowDate, appraisalDate);
 			if (howLongMonths < 1) {
 				// might get negative numbers if we used project endDate
 				howLongMonths = 0;
 			}
+			// tell the Pricing instance what we know
 			childPrcng.setHowLongMonths(howLongMonths);
-//			appraisalDate.add( Calendar.MONTH, howLongMonths );
-//			parentMetadata.put("StorageExpiryDate", getAppraisalDateAsString() );
 		};
 		
 	}

@@ -750,8 +750,12 @@ public class CostOptimiser
 				oldSvcPrvRegAcct = "|||";
 				found_flag = false;
 			} else {
-				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails1");		
-				found_flag = true;
+				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails1");
+				if (oldSvcPrvRegAcct .equals("") ) {
+					found_flag = false;					
+				} else {					
+					found_flag = true;
+				}
 			};
 			break;
 		case 1 : 
@@ -760,7 +764,11 @@ public class CostOptimiser
 				found_flag = false;
 			} else {
 				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails2");			
-				found_flag = true;
+				if (oldSvcPrvRegAcct .equals("") ) {
+					found_flag = false;					
+				} else {					
+					found_flag = true;
+				}
 			};
 			break;
 		case 2 : 
@@ -769,7 +777,11 @@ public class CostOptimiser
 				found_flag = false;
 			} else {
 				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails3");			
-				found_flag = true;
+				if (oldSvcPrvRegAcct .equals("") ) {
+					found_flag = false;					
+				} else {					
+					found_flag = true;
+				}
 			};
 			break;
 		case 3 : 
@@ -778,7 +790,11 @@ public class CostOptimiser
 				found_flag = false;
 			} else {
 				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails4");			
-				found_flag = true;
+				if (oldSvcPrvRegAcct .equals("") ) {
+					found_flag = false;					
+				} else {					
+					found_flag = true;
+				}
 			};
 			break;
 		case 4 : 
@@ -787,7 +803,11 @@ public class CostOptimiser
 				found_flag = false;
 			} else {
 				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails5");			
-				found_flag = true;
+				if (oldSvcPrvRegAcct .equals("") ) {
+					found_flag = false;					
+				} else {					
+					found_flag = true;
+				}
 			};
 			break;
 		case 5 : 
@@ -796,7 +816,11 @@ public class CostOptimiser
 				found_flag = false;
 			} else {
 				oldSvcPrvRegAcct = inputMetadata.get("svcPrvAccountDetails6");			
-				found_flag = true;
+				if (oldSvcPrvRegAcct .equals("") ) {
+					found_flag = false;					
+				} else {					
+					found_flag = true;
+				}
 			};
 			break;
 		}

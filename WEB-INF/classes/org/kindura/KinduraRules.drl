@@ -1,0 +1,416 @@
+package org.kindura;
+
+import org.kindura.UploadCollection;
+import org.kindura.StorageProvider;
+import org.kindura.StorageProviderConstraint;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
+
+////////////////////////////////////////////////////////////////
+// Define the appraisal periods for different funding situations
+// First set of rules defines periods for project funding
+rule "Institutional funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "Institutional" )
+then
+    $collection.setAppraisalDate( 6 );
+        System.err.println("firing");
+    //update ($collection)    
+end
+
+rule "AHRC funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "AHRC" )
+then
+    $collection.setAppraisalDate( 3 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "ESRC funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "ESRC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+
+rule "EPSRC funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "EPSRC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+
+rule "Combination funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "Combination" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Unfunded funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "Unfunded" )
+then
+    $collection.setAppraisalDate( 5 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Other funder appraisal period"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( project.funder == "Other" )
+then
+    $collection.setAppraisalDate( 3 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+///////////////////////////////////////////////////////////////////////////
+// Now a set of rules for specifying appraisal period on a $collection basis
+// These must overrule the project defaults, hence the lower salience
+rule "AHRC accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "AHRC" )
+then
+    $collection.setAppraisalDate( 3 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "ESRC accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "ESRC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "EPSRC accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "EPSRC" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Combination accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "Combination" )
+then
+    $collection.setAppraisalDate( 10 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Unfunded accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "Unfunded" )
+then
+    $collection.setAppraisalDate( 3 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Other accession appraisal period"
+//ruleflow-group "filter"
+salience 50
+no-loop
+when
+    $collection: UploadCollection( funder == "Other" )
+then
+    $collection.setAppraisalDate( 3 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+///////////////////////////////////////////////////////////////
+// Version checks
+// These define the required number of copies of the data which must be stored
+
+rule "First version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "First version" )
+then
+    $collection.setMinCopies(4);
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Milestone version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Milestone version" )
+then
+    $collection.setMinCopies(3);
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Publisher submitted version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Publisher submitted version" )
+then
+    $collection.setMinCopies(3);
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Publisher's proof"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Publisher's proof" )
+then
+    $collection.setMinCopies(3);
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Work in progress"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Work in progress" )
+then
+    $collection.setMinCopies(2);
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Derived data"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Derived data" )
+then
+    $collection.setMinCopies(2);
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Final version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version == "Final version" )
+then
+    $collection.setMinCopies(4);
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Catch-all version"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( version != "Final version" && version != "Derived data" && version != "Work in progress" && version != "Publisher's proof" && version != "Publisher submitted version" && version != "Milestone version" && version != "First version")
+then
+    $collection.setMinCopies(4);
+    System.err.println("firing");
+    //update ($collection)
+end
+
+//////////////////////////////////////////////////////////////
+// Data type checks
+// These rules remove potential storage providers from the list
+// in response to the type of data in the $collection
+rule "Research type"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( type != "Research" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "Local" );
+    $collection.setRegionCode ("Local");
+    System.err.println("firing Local");
+    //update ($collection)
+end
+
+////////////////////////////////////////////////////////////
+// Data sensitivity checks
+// These rules specify geograhpical constraints on storage
+rule "Medical sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Medical" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EU" );
+    $collection.setRegionCode ("EU");
+    System.err.println("firing Medical");
+    //update ($collection)
+end
+
+rule "Financial sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Financial" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EEC" );
+    $collection.setRegionCode ("EEC");
+    System.err.println("firing Financial");
+    //update ($collection)
+end
+
+rule "Employment details sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Employment details" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EEC" );
+    $collection.setRegionCode ("EEC");
+    System.err.println("firing Employment details");
+    //update ($collection)
+end
+
+rule "Other sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity == "Other" )
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "EEC" );
+    $collection.setRegionCode ("EEC");
+    System.err.println("firing Other");
+//    insert ( new UploadCollection () );
+    //update ($collection)
+end
+
+rule "Neither sensitivity"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( sensitivity != "Other" && sensitivity != "Employment details" && sensitivity != "EFinancial" && sensitivity != "Medical" || type == "Research")
+then
+    $collection.limitStorage( StorageProviderConstraintEnum.REGION, "WORLD" );
+    $collection.setRegionCode ("WORLD");
+    System.err.println("firing Neither sensitivity");
+//    insert ( new UploadCollection () );
+    //update ($collection)
+end
+
+
+/////////////////////////////////////////////////////////
+// Access frequency rules
+// These choose appropriate storage tiers
+rule "Daily access"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( frequency == "Daily" )
+then
+    $collection.addTier( StorageProviderTier.TIER1 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "More than weekly access"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( frequency == "Weekly plus" )
+then
+    $collection.addTier( StorageProviderTier.TIER1 );
+    $collection.addTier( StorageProviderTier.TIER2 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Monthly access"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( frequency == "Monthly" )
+then
+    $collection.addTier( StorageProviderTier.TIER3 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+rule "Infrequent access"
+//ruleflow-group "filter"
+salience 100
+no-loop
+when
+    $collection: UploadCollection( frequency == "Infrequent" )
+then
+    $collection.addTier( StorageProviderTier.TIER4 );
+    System.err.println("firing");
+    //update ($collection)
+end
+
+/////////////////////////////////////////////////////////
+
