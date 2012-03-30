@@ -28,7 +28,6 @@ public class AddProjectRequestHandler extends HttpServlet {
 		String root = "root";
 		String rootPID = "fedora:root";
 		
-		// TODO the cost, cloud provider and storage type are unknown at this stage of input
 		BigDecimal projectCost;
 		projectCost = BigDecimal.valueOf(Double.parseDouble("0.0"));
 		// amounts are rounded up so that very tiny fractions of one penny appear as at
@@ -39,42 +38,6 @@ public class AddProjectRequestHandler extends HttpServlet {
 		String storageType = "";
 		String actionRequired = "unknown";
 		String cloudProvider = "unknown";
-		
-		
-//		BigDecimal projectCost = new BigDecimal(Math.random());
-//		BigDecimal factor = new BigDecimal(100);
-//		projectCost = projectCost.multiply(factor);
-//		projectCost = projectCost.setScale(2, BigDecimal.ROUND_UP);
-//		
-//		//Generate a random storage type based on the cost.
-//		double storage = Math.random();
-//		if (storage > 0.66) {
-//			storageType = "Fast";
-//		} else if (storage > 0.33) {
-//			storageType = "Medium";
-//		} else {
-//			storageType = "Slow";
-//		}
-//		
-//		String actionRequired = null;
-//		double migration = Math.random();
-//		if (migration > 0.5) {
-//			actionRequired = "Migrate";
-//		} else {
-//			actionRequired = "None";
-//		}
-//		
-//		String cloudProvider = null;
-//		double provider = Math.random();
-//		if (provider > 0.75) {
-//			cloudProvider = "Amazon S3";
-//		} else if (provider > 0.5) {
-//			cloudProvider = "Amazon Reduced Redundency";
-//		} else if (provider > 0.25) {
-//			cloudProvider = "Rackspace";
-//		} else {
-//			cloudProvider = "Windows Azure";
-//		} 
 		
 		System.out.println("[AddProjectRequesthandler] User Name: "+userName);
 		System.out.println("[AddProjectRequesthandler] Project Name: "+projectName);

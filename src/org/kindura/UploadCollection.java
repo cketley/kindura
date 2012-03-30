@@ -593,22 +593,7 @@ public class UploadCollection
 		this.iAmBlank = iAmEmpty;
 	}
 	
-	// TODO sort out this 
-//	public void walkMap () {
-//		// For both the keys and values of a map
-//		for (Iterator it=map.entrySet().iterator(); it.hasNext(); ) {
-//			Map.Entry entry = (Map.Entry)it.next();
-//			Object key = entry.getKey();
-//			Object value = entry.getValue();
-//
-//		}
-//    myTotaliser.calcTotalCost();
-//    if (debug) {System.out.println( "after makeTotaliser" );};
-//
-//
-//    if (debug) {System.out.println( "Service Total: " + myTotaliser.getServiceTotal() );};
-//
-//	}
+
 
 	/**
 	 * @return the childPrcng

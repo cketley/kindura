@@ -498,7 +498,7 @@ dtableconfiguration );
 			currentPrcng.grandparentCostOpt = this.grandparentCostOpt;
 			currentPrcng.myTotaliser = this.myTotaliser;
 			// tell the new Pricing the amounts to be used
-			// TODO other amounts need to be added in
+			// TODO other amounts need to be added in - i.e. requests/servicebus/stgtrans
 			currentPrcng.setStorageUsed(storageUsed);
 			// tell the new Pricing the number of months to calculate against
 			currentPrcng.setHowLongMonths(howLongMonths);
@@ -579,7 +579,7 @@ dtableconfiguration );
 			currentPrcng.myKsession = this.myKsession;
 			currentPrcng.myLogger = this.myLogger;
 			// tell the new Pricing the amounts to be used
-			// TODO other amounts need to be added in
+			// TODO other amounts need to be added in - i.e. requests/servicebus/stgtrans
 			currentPrcng.setStorageUsed(storageUsed);
 			// tell the new Pricing the number of months to calculate against
 			currentPrcng.setHowLongMonths(howLongMonths);
@@ -863,7 +863,6 @@ dtableconfiguration );
 	
 
 	public Double applyFrequencyOfAccess(Double serviceSubtot, UploadCollection childCollection) {
-		// TODO look up how to do Jens's integrals
 		
 		// TODO tweak these usage multipliers
 		

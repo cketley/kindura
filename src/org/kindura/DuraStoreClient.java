@@ -69,7 +69,6 @@ public class DuraStoreClient {
         contentStoreManager.login(duracloudCredential);
         defaultContentStore = contentStoreManager.getPrimaryContentStore();
 
-        // TODO check contentStore numbering
         amazonS3ContentStore = contentStoreManager.getContentStore("0");
         rackSpaceContentStore = contentStoreManager.getContentStore("1");
         iRODSContentStore = contentStoreManager.getContentStore("2");
@@ -140,7 +139,6 @@ public class DuraStoreClient {
 	    	System.out.println("space "+nameSpace+" does not exist");
 	    	return false;
 		} catch (ContentStoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 	
 		return false;
@@ -150,7 +148,6 @@ public class DuraStoreClient {
     	int cloudProviderID;
     	System.out.println("[DuraStoreClient] cloud provider name: "+cloudProviderName);
     	if (duracloud_host.equals("localhost") || duracloud_host.equals("127.0.0.1") || duracloud_host.equals("137.73.172.82")) {
-    		// TODO check cloudProviderID numbering
     		if (cloudProviderName.equals("Amazon S3")) {
     			cloudProviderID = 0;
     			return String.valueOf(cloudProviderID);
@@ -188,7 +185,6 @@ public class DuraStoreClient {
 //    			return String.valueOf(cloudProviderID);
 //    		}
     	} else if (duracloud_host.equals("kindura.duracloud.org")) {
-    		// TODO check cloudProviderID numbering
     		if (cloudProviderName.equals("Amazon S3")) {
     			cloudProviderID = 32;
     			return String.valueOf(cloudProviderID);
@@ -242,7 +238,6 @@ public class DuraStoreClient {
 			contentStore = contentStoreManager.getContentStore(cloudProviderID);
 			return contentStore;
 		} catch (ContentStoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -284,7 +279,6 @@ public class DuraStoreClient {
 			}
 			//rackSpaceContentStore.createSpace(nameSpace, spaceMetadata);
 		} catch (ContentStoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
@@ -300,11 +294,9 @@ public class DuraStoreClient {
 			
 		}
 		catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		catch (ContentStoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		contentStoreManager.logout();
@@ -335,11 +327,9 @@ public class DuraStoreClient {
 			return true;
 		}
     	catch (ContentStoreException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
     	catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
@@ -371,7 +361,6 @@ public class DuraStoreClient {
 			}*/
 			return spaceContents;
 		} catch (ContentStoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -388,6 +377,7 @@ public class DuraStoreClient {
 //        		JOptionPane.showMessageDialog(frame, "Data collection from the space '"+originalNameSpace+"' of '"+originalCloudProvider+"' will be migrated to the space '"+newNameSpace+"' of '"+newCloudProvider+"'.");
         		String fullFileName = null;
         		String baseFileName = null;
+        		String workingFileName = null;
         		String fileExtension = null;
         		//Iterator spaceContents = getFileNames(defaultContentStore, originalNameSpace);
         		Iterator spaceContents = null;
@@ -427,48 +417,50 @@ public class DuraStoreClient {
 				while (spaceContents.hasNext()) {
 					fullFileName = (String)spaceContents.next();
 					if (fullFileName.contains(".")) {
-						baseFileName = fullFileName.substring(0, fullFileName.indexOf("."));
-						fileExtension = fullFileName.substring(fullFileName.indexOf(".")+1);
+						baseFileName = fullFileName.substring(0, fullFileName.lastIndexOf("."));
+						fileExtension = fullFileName.substring(fullFileName.lastIndexOf(".")+1);
 					} else {
 						baseFileName = fullFileName;
 						fileExtension = "";
 					}
+					
+					workingFileName = removeIllegalCharacters(baseFileName);
 					//duraStoreClient.downloadFile("root", nameSpaceAndPid[1], revisedFileNameForDownload, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					System.out.println("[duraStoreClient] Start to download file: "+fullFileName);
 					    
-					// TODO we need to delete the files from old ServiceProvider
-					//downloadFile(defaultContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+		
 					if (originalCloudProvider.equals("Amazon S3")) {
-						downloadFile(amazonS3ContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+						downloadFile(amazonS3ContentStore, originalNameSpace, baseFileName, workingFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					}
 					if (originalCloudProvider.equals("Amazon S3 RRS")) {
-						downloadFile(amazonS3RRSContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+						downloadFile(amazonS3RRSContentStore, originalNameSpace, baseFileName, workingFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					}
 	        		if (originalCloudProvider.equals("Rackspace Cloud Files")) {
-	        			downloadFile(rackSpaceContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+	        			downloadFile(rackSpaceContentStore, originalNameSpace, baseFileName, workingFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					}
 					if (originalCloudProvider.equals("RACKSPACE")) {
-	        			downloadFile(rackSpaceContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+	        			downloadFile(rackSpaceContentStore, originalNameSpace, baseFileName, workingFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					}
 	        		if (originalCloudProvider.equals("iRODS")) {
-	        			downloadFile(iRODSContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+	        			downloadFile(iRODSContentStore, originalNameSpace, baseFileName, workingFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					}
 					if (originalCloudProvider.equals("IRODS")) {
-	        			downloadFile(iRODSContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+	        			downloadFile(iRODSContentStore, originalNameSpace, baseFileName, workingFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 					}
 //	        		if (originalCloudProvider.equals("Google Cloud Storage")) {
-//	        			downloadFile(googleCloudStorageContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+//	        			downloadFile(googleCloudStorageContentStore, originalNameSpace, baseFileName, workingFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 //					}
 //	        		if (originalCloudProvider.equals("Azure")) {
-//	        			downloadFile(azureContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+//	        			downloadFile(azureContentStore, originalNameSpace, baseFileName, workingFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 //					}
 //	        		if (originalCloudProvider.equals("SDSC")) {
-//	        			downloadFile(sdscContentStore, originalNameSpace, baseFileName, baseFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
+//	        			downloadFile(sdscContentStore, originalNameSpace, baseFileName, workingFileName, tempDownloadDirectory, fileExtension, Integer.valueOf(configurationFileParser.getKinduraParameters().get("NumberOfBytes")));
 //					}
 					
-					File uploadFile = new File(tempDownloadDirectory + (new File(fullFileName)).getName());
+					File uploadFile = new File(tempDownloadDirectory + (new File(workingFileName + "." + fileExtension)).getName());
+//					File uploadFile = new File(tempDownloadDirectory + (new File(fullFileName)).getName());
 					
-					uploadFile(defaultContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
+//					uploadFile(defaultContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 					if (newCloudProvider.equals("Amazon S3")) {
 						uploadFile(amazonS3ContentStore, newNameSpace, fullFileName, uploadFile, uploadFile.length(), "text/plain");
 					}
@@ -498,9 +490,6 @@ public class DuraStoreClient {
 //					}
 	        		
 				}
-				
-				
-				
     		} else {
         		System.out.println("[DuraStoreClient] new cloud provider: "+newCloudProvider+" does NOT exist");
         	}
@@ -508,4 +497,45 @@ public class DuraStoreClient {
     		System.out.println("[DuraStoreClient] original cloud provider: "+originalCloudProvider+" does NOT exist");
     	}
     }
+
+	private String removeIllegalCharacters(String wkgFileName) {
+		// replaceAll uses regexes so characters have to be escaped.
+		// but java bytecode intercepts them so they have to be double-escaped.
+		
+		// for windows these are the illegal characters
+		//\/:*?"<>|
+		wkgFileName = wkgFileName.replaceAll("\\/", "-");
+		wkgFileName = wkgFileName.replaceAll("\\\\", "-");
+		wkgFileName = wkgFileName.replaceAll("\\:", "-");
+		wkgFileName = wkgFileName.replaceAll("\\?", "-");
+		wkgFileName = wkgFileName.replaceAll("\\<", "-");
+		wkgFileName = wkgFileName.replaceAll("\\>", "-");
+		wkgFileName = wkgFileName.replaceAll("\\|", "-");
+		wkgFileName = wkgFileName.replaceAll("\\*", "-");
+		// for linux and unix these are illegal
+		//~#"!@$&*()?:[]"<>'`|={}\/,;%^+
+		// some of the linux list appear in the windows list above
+		wkgFileName = wkgFileName.replaceAll("\\~", "-");
+		wkgFileName = wkgFileName.replaceAll("\\#", "-");
+		wkgFileName = wkgFileName.replaceAll("\\!", "-");
+		wkgFileName = wkgFileName.replaceAll("\\@", "-");
+		wkgFileName = wkgFileName.replaceAll("\\$", "-");
+		wkgFileName = wkgFileName.replaceAll("\\&", "-");
+		wkgFileName = wkgFileName.replaceAll("\\(", "-");
+		wkgFileName = wkgFileName.replaceAll("\\)", "-");
+		wkgFileName = wkgFileName.replaceAll("\\[", "-");
+		wkgFileName = wkgFileName.replaceAll("\\]", "-");
+		wkgFileName = wkgFileName.replaceAll("\\'", "-");
+		wkgFileName = wkgFileName.replaceAll("\\`", "-");
+		wkgFileName = wkgFileName.replaceAll("\\=", "-");
+		wkgFileName = wkgFileName.replaceAll("\\{", "-");
+		wkgFileName = wkgFileName.replaceAll("\\}", "-");
+		wkgFileName = wkgFileName.replaceAll("\\,", "-");
+		wkgFileName = wkgFileName.replaceAll("\\;", "-");
+		wkgFileName = wkgFileName.replaceAll("\\%", "-");
+		wkgFileName = wkgFileName.replaceAll("\\^", "-");
+		wkgFileName = wkgFileName.replaceAll("\\+", "-");
+		
+		return wkgFileName;
+	}
 }

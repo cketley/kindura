@@ -213,7 +213,6 @@ public class MigrateRequestHandler extends HttpServlet {
 					// this retrieves all data about the Project from Fedora
 					ArrayList<DatastreamType> projectMetadata = fedoraServiceManager.getDataStreams(currentProjectPid);
 					if (projectMetadata != null) {
-						// TODO sort out the indexing on projectMetadata.size()
 						// there's something funny about the projectMetadata.size(), so hardcode it as 12
 						for (int i=0;i<projectMetadata.size();i++) {
 							//							for (int i=0;i<12;i++) {
@@ -243,7 +242,6 @@ public class MigrateRequestHandler extends HttpServlet {
 							// this retrieves all data about the Collection from Fedora
 							ArrayList<DatastreamType> collectionMetadata = fedoraServiceManager.getDataStreams(collectionPID);
 							if (collectionMetadata != null) {
-								// TODO sort out the indexing on collectionMetadata.size()
 								// there's something funny about the collectionMetadata.size(), so hardcode it as 23
 								for (int i=0;i<collectionMetadata.size();i++) {
 									//								for (int i=0;i<23;i++) {
@@ -256,6 +254,7 @@ public class MigrateRequestHandler extends HttpServlet {
 
 								if ( ! ( inputMetadata.get( "collectionTotSize" ) == null) ) {
 									if ( ! inputMetadata.get( "collectionTotSize" ) .isEmpty()) {
+										// convert from Bytes to TB
 										storageUsedTot = Double.valueOf(inputMetadata.get( "collectionTotSize" ).toString())  / 1000000000000.0;
 									} else {
 										storageUsedTot = 0.0;
@@ -525,10 +524,17 @@ public class MigrateRequestHandler extends HttpServlet {
 										}
 										spCount++;
 
+										// TODO hardcoded username during testing
+										userName = "root";
+										projectName = nextprojectName;
 										expiryDate = inputMetadata.get("collectionStgExpiryDate");
-
+										estimatedaccessFrequency = inputMetadata.get("estimatedaccessFrequency");
+										collectionDescription = inputMetadata.get("collectionDescription");
+										protectiveMarking = inputMetadata.get("protectiveMarking");
+										version = inputMetadata.get("version");
+										timeStamp = inputMetadata.get("timeStamp");
 										// TODO there doesnt seem to be a way to delete orphaned migrated data left in Fedora
-										fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedMigrationVal, suggestedCurr, serviceProviderAccount1, serviceProviderAccount2, serviceProviderAccount3, serviceProviderAccount4, serviceProviderAccount5, serviceProviderAccount6, storageUsedTot, operationFlag, expiryDate);
+										fedoraServiceManager.handleCollectionObject(userName, projectName, collectionName, collectionPID, estimatedaccessFrequency, collectionDescription, protectiveMarking, version, timeStamp, suggestedSP, suggestedMigrationVal, suggestedCurr, serviceProviderAccount1, serviceProviderAccount2, serviceProviderAccount3, serviceProviderAccount4, serviceProviderAccount5, serviceProviderAccount6, Double.valueOf(inputMetadata.get("collectionTotSize")), operationFlag, expiryDate);
 
 										// the data files are not altered within Fedora, only Durastore
 

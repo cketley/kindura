@@ -523,8 +523,6 @@ public class FedoraServiceManager {
 			
 			FedoraClient.addDatastream(pid, "fedoraObjectType").controlGroup("R").dsLabel("project").dsLocation(url).mimeType(mimeType).execute(fedoraClient);
 			
-			// TODO we need to store the service provider and account details don't we?
-			
 			FedoraClient.addRelationship(pid).subject(pid).predicate(pid+"/isAChildOf").object("fedora:"+root).execute(fedoraClient);
 			FedoraClient.addRelationship("fedora:"+root).subject("fedora:"+root).predicate("fedora:"+root+"/isParentOf").object(pid).execute(fedoraClient);
 			
@@ -686,7 +684,6 @@ public class FedoraServiceManager {
 
 		// TODO don't know where this info comes from
 		String storageType = "fast";
-		// TODO migration is not yet implemented
 		String actionRequired = opsFlag;
 		// convert TB to Bytes
 		// there might be some precision errors creeping in here
@@ -824,9 +821,6 @@ public class FedoraServiceManager {
 			do {
 				System.out.println("isFedoraObjectExisted for tempFolderPID is " + isFedoraObjectExisted(tempFolderPID));
 				if (isFedoraObjectExisted(tempFolderPID) == true) {
-// TODO problems with nulls here
-					System.out.println("getADataStream for tempFolderPID " + collectionName + "is " + getADataStream(tempFolderPID, "collectionName"));
-					System.out.println("getADataStream for tempFolderPID " + projectName + "is " + getADataStream(tempFolderPID, "projectName"));
 					if (getADataStream(tempFolderPID, "collectionName") == null) {
 						// maybe this is the end condition?
 						checkNextFolderPID = false;

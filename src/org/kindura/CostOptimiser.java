@@ -909,10 +909,4 @@ public class CostOptimiser
 
 	}
 
-//	private void decideCostList(UploadCollection myCollection, LinkedList<String> sortedIngestList, LinkedList<String> sortedMigrationList) {
-//		// TODO Auto-generated method stub
-//		
-//	}
-
-
 }
