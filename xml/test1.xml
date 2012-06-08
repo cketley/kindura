@@ -1,0 +1,20 @@
+
+<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">  
+  <dc:title>Informal control in open source projects: an empirical assessment</dc:title>  
+  <dc:creator>Basnet, Prajwal</dc:creator>  
+  <dc:creator>Lane, Michael S.</dc:creator>  
+  <dc:subject>280302 Software Engineering</dc:subject>  
+  <dc:description>[Abstract]: Control of open source projects is problematic because of the very nature and ideology of the open source paradigm. In contrast to commercial software projects, there are no formal control mechanisms in place and participation is generally voluntary in open source projects. However, despite this apparent lack of control of the project, open source software development has become a viable and cost effective way of developing high quality software. This paper reports on a quantitative study which tested the impact of informal control on the effectiveness of the core group of software developers in open source projects. The findings indicate that clan control and self control impact positively on the various dimensions of the group effectiveness of the core group of software developers in open source projects.</dc:description>  
+  <dc:publisher>Australasian Chapter of the Association for Information Systems</dc:publisher>  
+  <dc:contributor>Campbell, Bruce</dc:contributor>  
+  <dc:contributor>Underwood, Jim</dc:contributor>  
+  <dc:contributor>Bunker, Deborah</dc:contributor>  
+  <dc:date>2005-11</dc:date>  
+  <dc:type>Conference or Workshop Item (Commonwealth Reporting Category E)</dc:type>  
+  <dc:type>PeerReviewed</dc:type>  
+  <dc:format>application/pdf</dc:format>  
+  <dc:relation>http://eprints.usq.edu.au/401/1/Basnet_Lane_Publ._copyright_restrictions_(Conference_paper).pdf</dc:relation>  
+  <dc:relation>http://depts.it.uts.edu.au/is/ACIS2005/</dc:relation>  
+  <dc:identifier>Basnet, Prajwal and Lane, Michael S. (2005) Informal control in open source projects: an empirical assessment. In: ACIS 2005 16th Australasian Conference on Information Systems: Socialising IT - Thinking About The People, 30 Nov - 02 Dec 2005, Manly, Australia.</dc:identifier>  
+  <dc:identifier>http://eprints.usq.edu.au/401/</dc:identifier>
+</oai_dc:dc>

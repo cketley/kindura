@@ -1,0 +1,23 @@
+package uk.ac.kcl.kindura;
+
+import drools.Message;
+
+rule "Hello World"
+dialect "mvel"
+when
+m : Message( status == Message.HELLO, message : message )
+then
+
+modify ( m ) { message = "Goodbye cruel world",
+status = Message.GOODBYE };
+System.out.println( message );
+end
+
+rule "Good Bye"
+dialect "java"
+when
+Message( status == Message.GOODBYE, message : message )
+then
+System.out.println( message );
+
+end

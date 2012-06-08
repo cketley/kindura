@@ -1,0 +1,1660 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CloudProvider ID="AWS" Name="Amazon Web Services" xmlns="http://www.cs.virginia.edu/~ar5je/StorageCapabilitiesSchema.xsd">
+  <StorageServices>
+    <StorageService>
+      <StorageAbstraction ID="AWS_S3" Name="Simple Storage Service" Description="Amazon S3 has a simple web services interface that can be used to store and retrieve any amount of
+data, at any time, from anywhere on the web. It gives any developer access to the same highly scalable,
+reliable, fast, inexpensive data storage infrastructure that Amazon uses to run its own global network of
+web sites. The service aims to maximize benefits of scale and to pass those benefits to developers." 
+                          Availability="99.99" Durability="99.999999999" ServiceLevelAgreement="http://aws.amazon.com/s3-sla/" MaxNumberContainers="100">
+        <TransferProtocols>REST;SOAP;Bittorrent</TransferProtocols>
+        <Security>
+          <NetworkSecurity>SSL</NetworkSecurity>
+          <Authentication>AWS Account</Authentication>
+          <Authentication>Open</Authentication>
+          <Authentication>DevProduct ID</Authentication>
+        </Security>
+        <Replication Supported="true" MaxNumberOfReplicas="3" DefaultNumberOfReplicas="3" />
+        <Interface>
+          <CustomInterface>
+            <List>GET Service</List>
+          </CustomInterface>
+        </Interface>
+        <Logging Supported="true" Optional="true" Extensible="true">
+          <Detail>ContainerOwner</Detail>
+          <Detail>Container</Detail>
+          <Detail>Time</Detail>
+          <Detail>RemoteIP</Detail>
+          <Detail>Requester</Detail>
+          <Detail>RequestID</Detail>
+          <Detail>Operation</Detail>
+          <Detail>Key</Detail>
+          <Detail>RequestURI</Detail>
+          <Detail>HTTPStatus</Detail>
+          <Detail>ErrorCode</Detail>
+          <Detail>BytesSent</Detail>
+          <Detail>ObjectSize</Detail>
+          <Detail>TotalTime</Detail>
+          <Detail>TurnAroundTime</Detail>
+          <Detail>Referrer</Detail>
+          <Detail>UserAgent</Detail>
+          <Detail>VersionId</Detail>
+        </Logging>
+        <Versioning Supported="true" Optional="true">
+          <VersioningInterface>
+            <CustomInterface>
+              <Upload>PUT</Upload>
+              <Download>GET</Download>
+            </CustomInterface>
+          </VersioningInterface>
+        </Versioning>
+        <Container ID="AWS_S3_BUCKET" Name="Amazon S3 Bucket" Description="Every object stored in Amazon S3 is contained in a bucket. Buckets partition the namespace of objects
+stored in Amazon S3 at the top level. Within a bucket, you can use any names for your objects, but bucket names must be unique across all of Amazon S3." 
+                   Recursive="false" NamingRegularExpression="^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?&lt;!-)$" RegionChoice="true" RegionIDChoices="US;US_CA;EU;APAC" RegionDefaultID="US" ContainerRequestPayment="true" CreationDateSupport="true" ModificationDateSupport="true">
+          <Notifications Supported="true" Optional="true">
+            <Event>s3:ReducedRedundancyLostObject</Event>
+            <NotificationInterface>
+              <CustomInterface>
+                <Upload>PUT Bucket Notification</Upload>
+                <Download>GET Bucket Notification</Download>
+              </CustomInterface>
+            </NotificationInterface>
+          </Notifications>
+          <Interface>
+            <StandardInterface>
+              <Delete>DELETE Bucket</Delete>
+              <Download>GET Bucket</Download>
+              <Upload>PUT Bucket</Upload>
+            </StandardInterface>
+          </Interface>
+          <AcccessControl>
+           <AccessControlList ID="AWS_S3_ACL" Name="Amazon S3 Access Control Lists" Description="An ACL can contain up to 100 grants. If no ACL is provided when a bucket is created or an object written, a default ACL is created. The default ACL consists of a single grant that gives the owner (i.e., the creator) the FULL_CONTROL permission" 
+                              MaxSize="100" PolicyLanguage="AmazonS3ACL">
+              <AccessControlListInterface>
+                <CustomInterface>
+                  <Upload>PUT Bucket ACL</Upload>
+                  <Download>GET Bucket ACL</Download>
+                </CustomInterface>
+              </AccessControlListInterface>
+             <Grant>
+               <Grantee>USER</Grantee>
+               <Grantee>GROUP</Grantee>
+               <Permission>READ</Permission>
+               <Permission>FULL_CONTROL</Permission>
+               <Permission>READ_ACP</Permission>
+               <Permission>WRITE_ACP</Permission>
+               <Permission>WRITE</Permission>
+             </Grant>
+            </AccessControlList>
+            <AccessPolicy ID="AWS_JSON_BUCKET_POLICY" Name="Amazon S3 JSON Policy Language" Description="Bucket policies provide access control management at the bucket level for both a bucket and the objects
+in it. Bucket policies are a collection of JSON statements written in the access policy language. The
+policies provide a fine granularity of access control for Amazon S3 resources. The policies also allow you
+to set permissions for a large number of objects with one statement"
+                          PolicyLanguage="JSON">
+              <AccessPolicyInterface>
+                <CustomInterface>
+                  <Delete>DELETE Bucket Policy</Delete>
+                  <Upload>PUT Bucket Policy</Upload>
+                  <Download>GET Bucket Policy</Download>
+                </CustomInterface>
+              </AccessPolicyInterface>
+              <Keys>s3:x-amz-acl;s3:LocationConstraint;s3:prefix;s3:delimiter;s3:max-keys;s3:x-amz-acl;s3:x-amz-copy-source;s3:x-amz-metadata-directive;s3:VersionId</Keys>
+              <Actions>s3:CreateBucket;s3:DeleteBucket;s3:ListBucket;s3:ListBucketVersions;s3:ListAllMyBuckets;s3:ListBucketMultipartUploads;s3:GetBucketAcl;s3:PutBucketAcl;s3:GetBucketVersioning;s3:PutBucketVersioning;s3:GetBucketRequesterPays;s3:PutBucketRequesterPays;s3:GetBucketLocation;s3:PutBucketPolicy;s3:GetBucketPolicy;s3:PutBucketNotification;s3:GetBucketNotification;s3:GetObject;s3:GetObjectVersion;s3:PutObject;s3:GetObjectAcl;s3:GetObjectVersionAcl;s3:PutObjectAcl;s3:PutObjectAclVersion;s3:DeleteObject;s3:DeleteObjectVersion;s3:ListMultipartUploadParts;s3:AbortMultipartUpload</Actions>
+              <Principals>AWSAccountID;CanonicalUserID</Principals>
+              <Resources>S3buckets;S3objects</Resources>
+            </AccessPolicy>
+          </AcccessControl>
+          <Objects>
+          <Object ID="AWS_S3_OBJECT" Name="Amazon S3 Object" Description="Amazon S3 is designed to store objects. All objects are stored in buckets and consist of a:
+• Value—Is the content that you are storing
+• Key—Is the handle that you assign to an object that allows you retrieve it later
+• Metadata—Is a set of key-value pairs with which you can store information regarding the object
+• Access Control Policy—Is the access control policy controls access to the object
+• Version ID—Is a string generated by Amazon S3 when you add an object to a bucket" 
+                  NamingRegularExpression="^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?&lt;!-)$" CreationDate="true" ModificationDate="true" MaxSizeKB="5497558138880" ConcurrentAccessSupport="true">
+            <AcccessControl>
+              <AccessControlList ID="AWS_S3_ACL" Name="Amazon S3 Access Control Lists" Description="An ACL can contain up to 100 grants. If no ACL is provided when a bucket is created or an object written, a default ACL is created. The default ACL consists of a single grant that gives the owner (i.e., the creator) the FULL_CONTROL permission"
+                              MaxSize="100" PolicyLanguage="AmazonS3ACL">
+                <AccessControlListInterface>
+                  <CustomInterface>
+                    <Upload>PUT Object ACL</Upload>
+                    <Download>GET Object ACL</Download>
+                  </CustomInterface>
+                </AccessControlListInterface>
+                <Grant>
+                  <Grantee>USER</Grantee>
+                  <Grantee>GROUP</Grantee>
+                  <Permission>READ</Permission>
+                  <Permission>FULL_CONTROL</Permission>
+                  <Permission>READ_ACP</Permission>
+                  <Permission>WRITE_ACP</Permission>
+                  <Permission>WRITE</Permission>
+                </Grant>
+              </AccessControlList>
+            </AcccessControl>
+            <Interface>
+              <BlobInterface>
+                <Delete>DELETE Object</Delete>
+                <Copy>PUT Object</Copy>
+                <Download>GET Object; GET Object torrent</Download>
+                <Upload>PUT Object;POST Object</Upload>
+                <CompleteUploadPart></CompleteUploadPart>
+                <InitiateUploadPart></InitiateUploadPart>
+                <ListParts></ListParts>
+                <UploadPart></UploadPart>
+              </BlobInterface>
+            </Interface>
+            <Metadata MaxSize="8096">
+              <MetadataInterface>
+                <CustomInterface>
+                  <Download>HEAD Object</Download>
+                </CustomInterface>
+              </MetadataInterface>
+              <MetadataSet type="SystemMetadata" abstraction="ValuePair"/>
+              <MetadataSet type="UserMetadata" abstraction="ValuePair"/>
+            </Metadata>
+            <Data DaysToExpiration="0" Formats="binary;text" ReadOnly="false">
+              <RandomAccess/>
+            </Data>
+          </Object>
+          </Objects>
+        </Container>
+      </StorageAbstraction>
+      <Regions>
+        <Region ID="AWS_S3_US" Name="US Standard" Location="Location1">
+          <Revenue Supported="true">
+            <RevenueOption>OneTime</RevenueOption>
+            <RevenueOption>Monthly</RevenueOption>
+            <RevenueOption>Usage</RevenueOption>
+          </Revenue>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.140"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <StorageCost CostPerGB="0.125"   MinimumGBStorage="1024" MaximumGBStorage="51200" />
+            <StorageCost CostPerGB="0.110"   MinimumGBStorage="51200" MaximumGBStorage="512000" />
+            <StorageCost CostPerGB="0.095"   MinimumGBStorage="512000" MaximumGBStorage="1024000" />
+            <StorageCost CostPerGB="0.080"   MinimumGBStorage="1024000" MaximumGBStorage="5120000" />
+            <StorageCost CostPerGB="0.055"   MinimumGBStorage="5120000" />
+            
+            <DataTransferCost CostPerGBIn="0.100"   />
+            <DataTransferCost CostPerGBOut="0.000"   MinimumGBTransfer="0" MaximumGBTransfer="1" />
+            <DataTransferCost CostPerGBOut="0.150"   MinimumGBTransfer="1" MaximumGBTransfer="10240" />
+            <DataTransferCost CostPerGBOut="0.110"   MinimumGBTransfer="10240" MaximumGBTransfer="51200" />
+            <DataTransferCost CostPerGBOut="0.090"   MinimumGBTransfer="51200" MaximumGBTransfer="153600" />
+            <DataTransferCost CostPerGBOut="0.080"   MinimumGBTransfer="153600" />
+            
+            <RequestCost   NumberOfRequests="1000" RequestName="PUT" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="COPY" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="POST" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="LIST" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="GET" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="ANY" RequestType="Any" Cost="0.01" />
+
+            <OffNetworkDataTransferCost Import="true" CostHourly="2.49" CostHandling="80"   />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="117.6"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="125"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="23.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="8.9"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="205">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="205">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="3.17">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="3.17">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+
+          </Performance>
+        </Region>
+        <Region ID="AWS_S3_US_CA" Name="US Northern California" Location="Location1">
+          <Revenue Supported="true">
+            <RevenueOption>OneTime</RevenueOption>
+            <RevenueOption>Monthly</RevenueOption>
+            <RevenueOption>Usage</RevenueOption>
+          </Revenue>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.154"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <StorageCost CostPerGB="0.139"   MinimumGBStorage="1024" MaximumGBStorage="51200" />
+            <StorageCost CostPerGB="0.124"   MinimumGBStorage="51200" MaximumGBStorage="512000" />
+            <StorageCost CostPerGB="0.109"   MinimumGBStorage="512000" MaximumGBStorage="1024000" />
+            <StorageCost CostPerGB="0.095"   MinimumGBStorage="1024000" MaximumGBStorage="5120000" />
+            <StorageCost CostPerGB="0.070"   MinimumGBStorage="5120000" />
+
+            <DataTransferCost CostPerGBIn="0.100"   />
+            <DataTransferCost CostPerGBOut="0.000"   MinimumGBTransfer="0" MaximumGBTransfer="1" />
+            <DataTransferCost CostPerGBOut="0.150"   MinimumGBTransfer="1" MaximumGBTransfer="10240" />
+            <DataTransferCost CostPerGBOut="0.110"   MinimumGBTransfer="10240" MaximumGBTransfer="51200" />
+            <DataTransferCost CostPerGBOut="0.090"   MinimumGBTransfer="51200" MaximumGBTransfer="153600" />
+            <DataTransferCost CostPerGBOut="0.080"   MinimumGBTransfer="153600" />
+
+            <RequestCost   NumberOfRequests="1000" RequestName="PUT" RequestType="Upload" Cost="0.011" />
+            <RequestCost   NumberOfRequests="1000" RequestName="COPY" RequestType="Upload" Cost="0.011" />
+            <RequestCost   NumberOfRequests="1000" RequestName="POST" RequestType="Upload" Cost="0.011" />
+            <RequestCost   NumberOfRequests="1000" RequestName="LIST" RequestType="Download" Cost="0.011" />
+            <RequestCost   NumberOfRequests="1000" RequestName="GET" RequestType="Download" Cost="0.011" />
+            <RequestCost   NumberOfRequests="1000" RequestName="ANY" RequestType="Any" Cost="0.011" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="117.6"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="125"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="23.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="8.9"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="205">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="205">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="3.17">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="3.17">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+
+          </Performance>
+        </Region>
+        <Region ID="AWS_S3_EU" Name="European Union Ireland" Location="Location1">
+          <Revenue Supported="true">
+            <RevenueOption>OneTime</RevenueOption>
+            <RevenueOption>Monthly</RevenueOption>
+            <RevenueOption>Usage</RevenueOption>
+          </Revenue>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.140"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <StorageCost CostPerGB="0.125"   MinimumGBStorage="1024" MaximumGBStorage="51200" />
+            <StorageCost CostPerGB="0.110"   MinimumGBStorage="51200" MaximumGBStorage="512000" />
+            <StorageCost CostPerGB="0.095"   MinimumGBStorage="512000" MaximumGBStorage="1024000" />
+            <StorageCost CostPerGB="0.080"   MinimumGBStorage="1024000" MaximumGBStorage="5120000" />
+            <StorageCost CostPerGB="0.055"   MinimumGBStorage="5120000" />
+
+            <DataTransferCost CostPerGBIn="0.100"   />
+            <DataTransferCost CostPerGBOut="0.000"   MinimumGBTransfer="0" MaximumGBTransfer="1" />
+            <DataTransferCost CostPerGBOut="0.150"   MinimumGBTransfer="1" MaximumGBTransfer="10240" />
+            <DataTransferCost CostPerGBOut="0.110"   MinimumGBTransfer="10240" MaximumGBTransfer="51200" />
+            <DataTransferCost CostPerGBOut="0.090"   MinimumGBTransfer="51200" MaximumGBTransfer="153600" />
+            <DataTransferCost CostPerGBOut="0.080"   MinimumGBTransfer="153600" />
+
+            <RequestCost   NumberOfRequests="1000" RequestName="PUT" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="COPY" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="POST" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="LIST" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="GET" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="ANY" RequestType="Any" Cost="0.01" />
+
+            <OffNetworkDataTransferCost Import="true" CostHourly="2.49" CostHandling="80"   />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="117.6"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="125"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="23.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="8.9"/>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_S3_APAC" Name="APAC Singapore" Location="Location1">
+          <Revenue Supported="true">
+            <RevenueOption>OneTime</RevenueOption>
+            <RevenueOption>Monthly</RevenueOption>
+            <RevenueOption>Usage</RevenueOption>
+          </Revenue>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.140"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <StorageCost CostPerGB="0.125"   MinimumGBStorage="1024" MaximumGBStorage="51200" />
+            <StorageCost CostPerGB="0.110"   MinimumGBStorage="51200" MaximumGBStorage="512000" />
+            <StorageCost CostPerGB="0.095"   MinimumGBStorage="512000" MaximumGBStorage="1024000" />
+            <StorageCost CostPerGB="0.080"   MinimumGBStorage="1024000" MaximumGBStorage="5120000" />
+            <StorageCost CostPerGB="0.055"   MinimumGBStorage="5120000" />
+
+            <DataTransferCost CostPerGBIn="0.100"   />
+            <DataTransferCost CostPerGBOut="0.000"   MinimumGBTransfer="0" MaximumGBTransfer="1" />
+            <DataTransferCost CostPerGBOut="0.150"   MinimumGBTransfer="1" MaximumGBTransfer="10240" />
+            <DataTransferCost CostPerGBOut="0.110"   MinimumGBTransfer="10240" MaximumGBTransfer="51200" />
+            <DataTransferCost CostPerGBOut="0.090"   MinimumGBTransfer="51200" MaximumGBTransfer="153600" />
+            <DataTransferCost CostPerGBOut="0.080"   MinimumGBTransfer="153600" />
+
+            <RequestCost   NumberOfRequests="1000" RequestName="PUT" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="COPY" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="POST" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="LIST" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="GET" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="ANY" RequestType="Any" Cost="0.01" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="117.6"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="125"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="23.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="8.9"/>
+            </Measurement>
+          </Performance>
+        </Region>
+      </Regions>
+    </StorageService>
+
+    <StorageService>
+      <StorageAbstraction ID="AWS_S3_RRS" Name="Simple Storage Service Reduced Redundancy Storage" Description="Amazon S3 has a simple web services interface that can be used to store and retrieve any amount of
+data, at any time, from anywhere on the web. It gives any developer access to the same highly scalable,
+reliable, fast, inexpensive data storage infrastructure that Amazon uses to run its own global network of
+web sites. The service aims to maximize benefits of scale and to pass those benefits to developers."
+                          Availability="99.99" Durability="99.99" ServiceLevelAgreement="http://aws.amazon.com/s3-sla/" MaxNumberContainers="100">
+        <TransferProtocols>REST;SOAP;Bittorrent</TransferProtocols>
+        <Security>
+          <NetworkSecurity>SSL</NetworkSecurity>
+          <Authentication>AWS Account</Authentication>
+          <Authentication>Open</Authentication>
+          <Authentication>DevProduct ID</Authentication>
+        </Security>
+        <Replication Supported="true" MaxNumberOfReplicas="2" DefaultNumberOfReplicas="2" />
+        <Interface>
+          <CustomInterface>
+            <List>GET Service</List>
+          </CustomInterface>
+        </Interface>
+        <Logging Supported="true" Optional="true" Extensible="true">
+          <Detail>ContainerOwner</Detail>
+          <Detail>Container</Detail>
+          <Detail>Time</Detail>
+          <Detail>RemoteIP</Detail>
+          <Detail>Requester</Detail>
+          <Detail>RequestID</Detail>
+          <Detail>Operation</Detail>
+          <Detail>Key</Detail>
+          <Detail>RequestURI</Detail>
+          <Detail>HTTPStatus</Detail>
+          <Detail>ErrorCode</Detail>
+          <Detail>BytesSent</Detail>
+          <Detail>ObjectSize</Detail>
+          <Detail>TotalTime</Detail>
+          <Detail>TurnAroundTime</Detail>
+          <Detail>Referrer</Detail>
+          <Detail>UserAgent</Detail>
+          <Detail>VersionId</Detail>
+        </Logging>
+        <Versioning Supported="true" Optional="true">
+          <VersioningInterface>
+            <CustomInterface>
+              <Upload>PUT</Upload>
+              <Download>GET</Download>
+            </CustomInterface>
+          </VersioningInterface>
+        </Versioning>
+        <Container ID="AWS_S3_BUCKET" Name="Amazon S3 Bucket" Description="Every object stored in Amazon S3 is contained in a bucket. Buckets partition the namespace of objects
+stored in Amazon S3 at the top level. Within a bucket, you can use any names for your objects, but bucket names must be unique across all of Amazon S3."
+                   Recursive="false" NamingRegularExpression="^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?&lt;!-)$" RegionChoice="true" RegionIDChoices="US;US_CA;EU;APAC" RegionDefaultID="US" ContainerRequestPayment="true" CreationDateSupport="true" ModificationDateSupport="true">
+          <Notifications Supported="true" Optional="true">
+            <Event>s3:ReducedRedundancyLostObject</Event>
+            <NotificationInterface>
+              <CustomInterface>
+                <Upload>PUT Bucket Notification</Upload>
+                <Download>GET Bucket Notification</Download>
+              </CustomInterface>
+            </NotificationInterface>
+          </Notifications>
+          <Interface>
+            <StandardInterface>
+              <Delete>DELETE Bucket</Delete>
+              <Download>GET Bucket</Download>
+              <Upload>PUT Bucket</Upload>
+            </StandardInterface>
+          </Interface>
+          <AcccessControl>
+            <AccessControlList ID="AWS_S3_ACL" Name="Amazon S3 Access Control Lists" Description="An ACL can contain up to 100 grants. If no ACL is provided when a bucket is created or an object written, a default ACL is created. The default ACL consists of a single grant that gives the owner (i.e., the creator) the FULL_CONTROL permission"
+                               MaxSize="100" PolicyLanguage="AmazonS3ACL">
+              <AccessControlListInterface>
+                <CustomInterface>
+                  <Upload>PUT Bucket ACL</Upload>
+                  <Download>GET Bucket ACL</Download>
+                </CustomInterface>
+              </AccessControlListInterface>
+              <Grant>
+                <Grantee>USER</Grantee>
+                <Grantee>GROUP</Grantee>
+                <Permission>READ</Permission>
+                <Permission>FULL_CONTROL</Permission>
+                <Permission>READ_ACP</Permission>
+                <Permission>WRITE_ACP</Permission>
+                <Permission>WRITE</Permission>
+              </Grant>
+            </AccessControlList>
+            <AccessPolicy ID="AWS_JSON_BUCKET_POLICY" Name="Amazon S3 JSON Policy Language" Description="Bucket policies provide access control management at the bucket level for both a bucket and the objects
+in it. Bucket policies are a collection of JSON statements written in the access policy language. The
+policies provide a fine granularity of access control for Amazon S3 resources. The policies also allow you
+to set permissions for a large number of objects with one statement"
+                          PolicyLanguage="JSON">
+              <AccessPolicyInterface>
+                <CustomInterface>
+                  <Delete>DELETE Bucket Policy</Delete>
+                  <Upload>PUT Bucket Policy</Upload>
+                  <Download>GET Bucket Policy</Download>
+                </CustomInterface>
+              </AccessPolicyInterface>
+              <Keys>s3:x-amz-acl;s3:LocationConstraint;s3:prefix;s3:delimiter;s3:max-keys;s3:x-amz-acl;s3:x-amz-copy-source;s3:x-amz-metadata-directive;s3:VersionId</Keys>
+              <Actions>s3:CreateBucket;s3:DeleteBucket;s3:ListBucket;s3:ListBucketVersions;s3:ListAllMyBuckets;s3:ListBucketMultipartUploads;s3:GetBucketAcl;s3:PutBucketAcl;s3:GetBucketVersioning;s3:PutBucketVersioning;s3:GetBucketRequesterPays;s3:PutBucketRequesterPays;s3:GetBucketLocation;s3:PutBucketPolicy;s3:GetBucketPolicy;s3:PutBucketNotification;s3:GetBucketNotification;s3:GetObject;s3:GetObjectVersion;s3:PutObject;s3:GetObjectAcl;s3:GetObjectVersionAcl;s3:PutObjectAcl;s3:PutObjectAclVersion;s3:DeleteObject;s3:DeleteObjectVersion;s3:ListMultipartUploadParts;s3:AbortMultipartUpload</Actions>
+              <Principals>AWSAccountID;CanonicalUserID</Principals>
+              <Resources>S3buckets;S3objects</Resources>
+            </AccessPolicy>
+          </AcccessControl>
+          <Objects>
+          <Object ID="AWS_S3_OBJECT_RRS" Name="Amazon S3 Object RRS" Description="Amazon S3 is designed to store objects. All objects are stored in buckets and consist of a:
+• Value—Is the content that you are storing
+• Key—Is the handle that you assign to an object that allows you retrieve it later
+• Metadata—Is a set of key-value pairs with which you can store information regarding the object
+• Access Control Policy—Is the access control policy controls access to the object
+• Version ID—Is a string generated by Amazon S3 when you add an object to a bucket"
+                  NamingRegularExpression="^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?&lt;!-)$" CreationDate="true" ModificationDate="true" MaxSizeKB="5497558138880" ConcurrentAccessSupport="true">
+            <AcccessControl>
+              <AccessControlList ID="AWS_S3_ACL" Name="Amazon S3 Access Control Lists" Description="An ACL can contain up to 100 grants. If no ACL is provided when a bucket is created or an object written, a default ACL is created. The default ACL consists of a single grant that gives the owner (i.e., the creator) the FULL_CONTROL permission"
+                              MaxSize="100" PolicyLanguage="AmazonS3ACL">
+                <AccessControlListInterface>
+                  <CustomInterface>
+                    <Upload>PUT Object ACL</Upload>
+                    <Download>GET Object ACL</Download>
+                  </CustomInterface>
+                </AccessControlListInterface>
+                <Grant>
+                  <Grantee>USER</Grantee>
+                  <Grantee>GROUP</Grantee>
+                  <Permission>READ</Permission>
+                  <Permission>FULL_CONTROL</Permission>
+                  <Permission>READ_ACP</Permission>
+                  <Permission>WRITE_ACP</Permission>
+                  <Permission>WRITE</Permission>
+                </Grant>
+              </AccessControlList>
+            </AcccessControl>
+            <Interface>
+              <BlobInterface>
+                <Delete>DELETE Object</Delete>
+                <Copy>PUT Object</Copy>
+                <Download>GET Object; GET Object torrent</Download>
+                <Upload>PUT Object;POST Object</Upload>
+                <CompleteUploadPart></CompleteUploadPart>
+                <InitiateUploadPart></InitiateUploadPart>
+                <ListParts></ListParts>
+                <UploadPart></UploadPart>
+              </BlobInterface>
+            </Interface>
+            <Metadata MaxSize="8096">
+              <MetadataInterface>
+                <CustomInterface>
+                  <Download>HEAD Object</Download>
+                </CustomInterface>
+              </MetadataInterface>
+              <MetadataSet type="SystemMetadata" abstraction="AttributeValuePair"/>
+              <MetadataSet type="UserMetadata" abstraction="AttributeValuePair"/>
+            </Metadata>
+            <Data DaysToExpiration="0" Formats="binary;text" ReadOnly="false">
+              <RandomAccess/>
+            </Data>
+          </Object>
+          </Objects>
+        </Container>
+      </StorageAbstraction>
+      <Regions>
+        <Region ID="AWS_S3_US" Name="US Standard" Location="Location1">
+          <Revenue Supported="true">
+            <RevenueOption>OneTime</RevenueOption>
+            <RevenueOption>Monthly</RevenueOption>
+            <RevenueOption>Usage</RevenueOption>
+          </Revenue>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.093"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <StorageCost CostPerGB="0.083"   MinimumGBStorage="1024" MaximumGBStorage="51200" />
+            <StorageCost CostPerGB="0.073"   MinimumGBStorage="51200" MaximumGBStorage="512000" />
+            <StorageCost CostPerGB="0.063"   MinimumGBStorage="512000" MaximumGBStorage="1024000" />
+            <StorageCost CostPerGB="0.053"   MinimumGBStorage="1024000" MaximumGBStorage="5120000" />
+            <StorageCost CostPerGB="0.037"   MinimumGBStorage="5120000" />
+
+            <DataTransferCost CostPerGBIn="0.100"   />
+            <DataTransferCost CostPerGBOut="0.000"   MinimumGBTransfer="0" MaximumGBTransfer="1" />
+            <DataTransferCost CostPerGBOut="0.150"   MinimumGBTransfer="1" MaximumGBTransfer="10240" />
+            <DataTransferCost CostPerGBOut="0.110"   MinimumGBTransfer="10240" MaximumGBTransfer="51200" />
+            <DataTransferCost CostPerGBOut="0.090"   MinimumGBTransfer="51200" MaximumGBTransfer="153600" />
+            <DataTransferCost CostPerGBOut="0.080"   MinimumGBTransfer="153600" />
+
+            <RequestCost   NumberOfRequests="1000" RequestName="PUT" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="COPY" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="POST" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="LIST" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="GET" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="ANY" RequestType="Any" Cost="0.01" />
+
+            <OffNetworkDataTransferCost Import="true" CostHourly="2.49" CostHandling="80"   />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="117.6"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="125"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="23.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="8.9"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="205">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="205">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="3.17">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="3.17">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+
+          </Performance>
+        </Region>
+        <Region ID="AWS_S3_US_CA" Name="US Northern California" Location="Location1">
+          <Revenue Supported="true">
+            <RevenueOption>OneTime</RevenueOption>
+            <RevenueOption>Monthly</RevenueOption>
+            <RevenueOption>Usage</RevenueOption>
+          </Revenue>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.103"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <StorageCost CostPerGB="0.093"   MinimumGBStorage="1024" MaximumGBStorage="51200" />
+            <StorageCost CostPerGB="0.083"   MinimumGBStorage="51200" MaximumGBStorage="512000" />
+            <StorageCost CostPerGB="0.073"   MinimumGBStorage="512000" MaximumGBStorage="1024000" />
+            <StorageCost CostPerGB="0.063"   MinimumGBStorage="1024000" MaximumGBStorage="5120000" />
+            <StorageCost CostPerGB="0.047"   MinimumGBStorage="5120000" />
+
+            <DataTransferCost CostPerGBIn="0.100"   />
+            <DataTransferCost CostPerGBOut="0.000"   MinimumGBTransfer="0" MaximumGBTransfer="1" />
+            <DataTransferCost CostPerGBOut="0.150"   MinimumGBTransfer="1" MaximumGBTransfer="10240" />
+            <DataTransferCost CostPerGBOut="0.110"   MinimumGBTransfer="10240" MaximumGBTransfer="51200" />
+            <DataTransferCost CostPerGBOut="0.090"   MinimumGBTransfer="51200" MaximumGBTransfer="153600" />
+            <DataTransferCost CostPerGBOut="0.080"   MinimumGBTransfer="153600" />
+
+            <RequestCost   NumberOfRequests="1000" RequestName="PUT" RequestType="Upload" Cost="0.011" />
+            <RequestCost   NumberOfRequests="1000" RequestName="COPY" RequestType="Upload" Cost="0.011" />
+            <RequestCost   NumberOfRequests="1000" RequestName="POST" RequestType="Upload" Cost="0.011" />
+            <RequestCost   NumberOfRequests="1000" RequestName="LIST" RequestType="Download" Cost="0.011" />
+            <RequestCost   NumberOfRequests="1000" RequestName="GET" RequestType="Download" Cost="0.011" />
+            <RequestCost   NumberOfRequests="1000" RequestName="ANY" RequestType="Any" Cost="0.011" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="117.6"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="125"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="23.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="8.9"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="205">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="205">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="3.17">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="3.17">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+
+          </Performance>
+        </Region>
+        <Region ID="AWS_S3_EU" Name="European Union Ireland" Location="Location1">
+          <Revenue Supported="true">
+            <RevenueOption>OneTime</RevenueOption>
+            <RevenueOption>Monthly</RevenueOption>
+            <RevenueOption>Usage</RevenueOption>
+          </Revenue>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.093"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <StorageCost CostPerGB="0.083"   MinimumGBStorage="1024" MaximumGBStorage="51200" />
+            <StorageCost CostPerGB="0.073"   MinimumGBStorage="51200" MaximumGBStorage="512000" />
+            <StorageCost CostPerGB="0.063"   MinimumGBStorage="512000" MaximumGBStorage="1024000" />
+            <StorageCost CostPerGB="0.053"   MinimumGBStorage="1024000" MaximumGBStorage="5120000" />
+            <StorageCost CostPerGB="0.037"   MinimumGBStorage="5120000" />
+
+            <DataTransferCost CostPerGBIn="0.100"   />
+            <DataTransferCost CostPerGBOut="0.000"   MinimumGBTransfer="0" MaximumGBTransfer="1" />
+            <DataTransferCost CostPerGBOut="0.150"   MinimumGBTransfer="1" MaximumGBTransfer="10240" />
+            <DataTransferCost CostPerGBOut="0.110"   MinimumGBTransfer="10240" MaximumGBTransfer="51200" />
+            <DataTransferCost CostPerGBOut="0.090"   MinimumGBTransfer="51200" MaximumGBTransfer="153600" />
+            <DataTransferCost CostPerGBOut="0.080"   MinimumGBTransfer="153600" />
+
+            <RequestCost   NumberOfRequests="1000" RequestName="PUT" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="COPY" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="POST" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="LIST" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="GET" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="ANY" RequestType="Any" Cost="0.01" />
+
+            <OffNetworkDataTransferCost Import="true" CostHourly="2.49" CostHandling="80"   />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="117.6"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="125"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="23.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="8.9"/>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_S3_APAC" Name="APAC Singapore" Location="Location1">
+          <Revenue Supported="true">
+            <RevenueOption>OneTime</RevenueOption>
+            <RevenueOption>Monthly</RevenueOption>
+            <RevenueOption>Usage</RevenueOption>
+          </Revenue>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.093"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <StorageCost CostPerGB="0.083"   MinimumGBStorage="1024" MaximumGBStorage="51200" />
+            <StorageCost CostPerGB="0.073"   MinimumGBStorage="51200" MaximumGBStorage="512000" />
+            <StorageCost CostPerGB="0.063"   MinimumGBStorage="512000" MaximumGBStorage="1024000" />
+            <StorageCost CostPerGB="0.053"   MinimumGBStorage="1024000" MaximumGBStorage="5120000" />
+            <StorageCost CostPerGB="0.037"   MinimumGBStorage="5120000" />
+
+            <DataTransferCost CostPerGBIn="0.100"   />
+            <DataTransferCost CostPerGBOut="0.000"   MinimumGBTransfer="0" MaximumGBTransfer="1" />
+            <DataTransferCost CostPerGBOut="0.150"   MinimumGBTransfer="1" MaximumGBTransfer="10240" />
+            <DataTransferCost CostPerGBOut="0.110"   MinimumGBTransfer="10240" MaximumGBTransfer="51200" />
+            <DataTransferCost CostPerGBOut="0.090"   MinimumGBTransfer="51200" MaximumGBTransfer="153600" />
+            <DataTransferCost CostPerGBOut="0.080"   MinimumGBTransfer="153600" />
+
+            <RequestCost   NumberOfRequests="1000" RequestName="PUT" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="COPY" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="POST" RequestType="Upload" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="LIST" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="GET" RequestType="Download" Cost="0.01" />
+            <RequestCost   NumberOfRequests="1000" RequestName="ANY" RequestType="Any" Cost="0.01" />
+          </Cost>
+          <Performance>
+
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="117.6"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="125"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="23.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="8.9"/>
+            </Measurement>
+          </Performance>
+        </Region>
+      </Regions>
+    </StorageService>
+
+
+    <StorageService>
+      <StorageAbstraction ID="AWS_EBS" Name="Elastic Block Storage" Description=""
+                          Availability="99.99" Durability="99.5" ServiceLevelAgreement="http://aws.amazon.com/ec2-sla/" MaxNumberContainers="100">
+        <TransferProtocols>Device</TransferProtocols>
+        <Security>
+          <Authentication>AWS Account</Authentication>
+        </Security>
+        <Replication Supported="false"/>
+        <Interface>
+          <CustomInterface>
+            <List>DescribeVolumes</List>
+          </CustomInterface>
+        </Interface>
+        <Logging Supported="false"/>
+        <Versioning Supported="false"/>
+        <Container ID="AWS_EBS_VOL" Name="Amazon Elastic Block Storage Volume" Description="Amazon Elastic Block Store (EBS) provides block level storage volumes for use with Amazon EC2 instances. Amazon EBS volumes are off-instance storage that persists independently from the life of an instance. Amazon Elastic Block Store provides highly available, highly reliable storage volumes that can be attached to a running Amazon EC2 instance and exposed as a device within the instance. Amazon EBS is particularly suited for applications that require a database, file system, or access to raw block level storage."
+                   Recursive="false" NamingRegularExpression="^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?&lt;!-)$" RegionChoice="true" RegionIDChoices="US;US_CA;EU;APAC" RegionDefaultID="US" CreationDateSupport="true" ModificationDateSupport="true" StatusSupported="true" SnapshotSupported="true" MaxSizeGB="1024" >
+          <Notifications Supported="false"/>
+          <Metadata MaxElements="10" MaxSize="3840">
+            <MetadataInterface>
+              <CustomInterface>
+                <Create>CreateTags</Create>
+                <Delete>DeleteTags</Delete>
+                <Upload>CreateTags</Upload>
+                <Download>DescribeTags</Download>
+              </CustomInterface>
+            </MetadataInterface>
+            <MetadataSet abstraction="AttributeValuePair"/>
+          </Metadata>
+          <Interface>
+            <BlockDeviceInterface>
+              <Create>CreateVolume</Create>
+              <Delete>DeleteVolume</Delete>
+              <Attach>AttachVolume</Attach>
+              <Detach>DetachVolume</Detach>
+              <CreateSnapshot>CreateSnapshot</CreateSnapshot>
+              <DeleteSnapshot>DeleteSnapshot</DeleteSnapshot>
+              <ListSnapshot>DescribeSnapshots</ListSnapshot>
+              <List>DescribeVolumes</List>
+              <UploadSnapshotAttribute>ModifySnapshotAttribute</UploadSnapshotAttribute>
+              <DownloadSnapshotAttribute>DescribeSnapshotAttribute</DownloadSnapshotAttribute>
+            </BlockDeviceInterface>
+          </Interface>
+          <AcccessControl>
+            <AccessControlList ID="AWS_EBS_ACL" Name="Amazon EBS Access" Description="Owner has full control">
+              <Grant>
+                <Grantee>USER</Grantee>
+                <Permission>FULL_CONTROL</Permission>
+              </Grant>
+            </AccessControlList>
+          </AcccessControl>
+          <Objects>
+          <Object ID="AWS_EBS_BLOCK" Name="Amazon Elastic Block Storage Block" Description="Amazon EBS volumes are created in a particular Availability Zone and can be from 1 GB to 1 TB in size. Once a volume is created, it can be attached to any Amazon EC2 instance in the same Availability Zone. Once attached, it will appear as a mounted device similar to any hard drive or other block device. At that point, the instance can interact with the volume just as it would with a local drive, formatting it with a file system or installing applications on it directly." ConcurrentAccessSupport="false">
+            <AcccessControl>
+              <AccessControlList ID="AWS_EBS_ACL" Name="Amazon EBS Access" Description="Owner has full control">
+                <Grant>
+                  <Grantee>USER</Grantee>
+                  <Permission>FULL_CONTROL</Permission>
+                </Grant>
+              </AccessControlList>
+            </AcccessControl>
+            <Interface>
+              <BlockInterface>FileSystem</BlockInterface>
+            </Interface>
+            <Data DaysToExpiration="0" Formats="binary" ReadOnly="false">
+              <RandomAccess/>
+            </Data>
+          </Object>
+          </Objects>
+        </Container>
+      </StorageAbstraction>
+      <Regions>
+        <Region ID="AWS_S3_US" Name="US Standard" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.100"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <RequestCost   NumberOfRequests="1000000" RequestName="ANY" RequestType="Any" Cost="0.1" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="48"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="3.61"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="5.21"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="69.25"/>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_S3_US_CA" Name="US Northern California" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.100"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <RequestCost   NumberOfRequests="1000000" RequestName="ANY" RequestType="Any" Cost="0.1" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="48"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="3.61"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="5.21"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="69.25"/>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_S3_EU" Name="European Union Ireland" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.100"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <RequestCost   NumberOfRequests="1000000" RequestName="ANY" RequestType="Any" Cost="0.1" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="48"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="3.61"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="5.21"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="69.25"/>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_S3_APAC" Name="APAC Singapore" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost CostPerGB="0.100"   MinimumGBStorage="0" MaximumGBStorage="1024" />
+            <RequestCost   NumberOfRequests="1000000" RequestName="ANY" RequestType="Any" Cost="0.1" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="48"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="3.61"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="5.21"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="MB/sec" Variable="Throughput">
+              <Scalar Value="69.25"/>
+            </Measurement>
+          </Performance>
+        </Region>
+      </Regions>
+    </StorageService>
+
+    <StorageService>
+      <StorageAbstraction ID="AWS_SIMPLE_DB" Name="Amazon SimpleDB" Description="Amazon SimpleDB is a highly available, scalable, and flexible non-relational data store that offloads the work of database administration. Developers simply store and query data items via web services requests, and Amazon SimpleDB does the rest."
+                          Availability="99.99" Durability="99.5" ServiceLevelAgreement="http://aws.amazon.com/agreement/" MaxNumberContainers="100">
+        <TransferProtocols>REST;SOAP</TransferProtocols>
+        <Security>
+          <Authentication>AWS Account</Authentication>
+        </Security>
+        <Replication Supported="false"/>
+        <Interface>
+          <CustomInterface>
+            <List>ListDomains</List>
+          </CustomInterface>
+        </Interface>
+        <Logging Supported="false"/>
+        <Versioning Supported="false"/>
+        <Container ID="AWS_SIMPLE_DB_DOMAIN" Name="Amazon SimpleDB Domain" Description="The data model used by Amazon SimpleDB makes it easy to store, manage and query your structured data. Developers organize their data-set into domains and can run queries across all of the data stored in a particular domain. Domains are collections of items that are described by attribute-value pairs"
+                   Recursive="false" NamingRegularExpression="^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?&lt;!-)$" RegionChoice="true" RegionIDChoices="US;US_CA;EU;APAC" RegionDefaultID="US" MaxSizeGB="10" MaxSizeObjects="1000000000">
+          <Notifications Supported="false"/>
+          <Metadata>
+            <MetadataInterface>
+              <CustomInterface>
+                <Download>DomainMetadata</Download>
+              </CustomInterface>
+            </MetadataInterface>
+            <MetadataSet abstraction="AttributeValuePair"/>
+          </Metadata>
+          <Interface>
+            <CustomInterface>
+              <Create>CreateDomain</Create>
+              <Delete>DeleteDomain</Delete>
+              <List>ListDomains</List>
+              <Query>Select</Query>
+              <UploadAttributes>PutAttributes</UploadAttributes>
+              <DownloadAttributes>GetAttributes</DownloadAttributes>
+              <Consistency>
+                <ReadConsistency></ReadConsistency>
+                <EventualConsistency></EventualConsistency>
+              </Consistency>
+              <Transaction>
+                <ConditionalUpload>PutAttributes</ConditionalUpload>
+                <ConditionalDownload>GetAttributes</ConditionalDownload>
+              </Transaction>
+              
+            </CustomInterface>
+          </Interface>
+          <AcccessControl>
+            <AccessPolicy ID="AWS_IAM" Name="Amazon Identity and Access Management" Description="WS Identity and Access Management (IAM) enables you to create and manage Users under the umbrella of your AWS Account. You use IAM in conjunction with other AWS products to control access to the AWS resources in your AWS Account. You can get started with IAM by following the tasks shown in the following diagram. For the purposes of this guide, you'll primarily use the IAM command line interface (CLI)."
+                          PolicyLanguage="JSON">
+              <AccessPolicyInterface>
+                <CustomInterface>
+                  <Create>CreateUser;CreateAccessKey;CreateGroup;AddUserToGroup</Create>
+                  <Delete>RemoveUserFromGroup</Delete>
+                  <Upload>PutUserPolicy;PutGroupPolicy</Upload>
+                  <Download></Download>
+                </CustomInterface>
+              </AccessPolicyInterface>
+              <Keys></Keys>
+              <Actions></Actions>
+              <Principals>AWSAccountID;CanonicalUserID</Principals>
+              <Resources>SimpleDBDomain</Resources>
+            </AccessPolicy>
+          </AcccessControl>
+          <Objects>
+          <Object ID="AWS_SIMPLE_DB_ITEM" Name="Amazon SimpleDB Item" Description="The data model used by Amazon SimpleDB makes it easy to store, manage and query your structured data. Developers organize their data-set into domains and can run queries across all of the data stored in a particular domain. Domains are collections of items that are described by attribute-value pairs"
+                  MaxSizeNumber="256" ConcurrentAccessSupport="true">
+            <Interface>
+              <CustomInterface>
+                <Delete>DeleteAttributes</Delete>
+                <Upload>PutAttributes</Upload>
+                <Download>GetAttributes</Download>
+              </CustomInterface>
+            </Interface>
+            <Data Formats="AttributeValue">
+              <AttributeValue AttributeNameLength="1024" AttributeValueLength="1024"/>
+            </Data>
+          </Object>
+          </Objects>
+        </Container>
+      </StorageAbstraction>
+      <Regions>
+        <Region ID="AWS_SIMPLE_DB_US" Name="US Standard" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.25"/>
+            <QueryProcessingCost   CostHourly="0.14" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="24.86"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="119"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="40"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="8.4"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="35.46">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="55">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="28">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="21">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+
+          </Performance>
+        </Region>
+        <Region ID="AWS_SIMPLE_DB_US_CA" Name="US Northern California" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.275"/>
+            <QueryProcessingCost   CostHourly="0.154" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="24.86"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="119"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="40"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="8.4"/>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_SIMPLE_DB_EU" Name="European Union Ireland" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.275"/>
+            <QueryProcessingCost   CostHourly="0.154" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="24.86"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="119"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="40"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="8.4"/>
+            </Measurement>
+            
+          </Performance>
+        </Region>
+        <Region ID="AWS_SIMPLE_DB_APAC" Name="APAC Singapore" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.275"/>
+            <QueryProcessingCost   CostHourly="0.154" />
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="24.86"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="119"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="40"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="8.4"/>
+            </Measurement>
+          </Performance>
+        </Region>
+      </Regions>
+    </StorageService>
+
+    <StorageService>
+      <StorageAbstraction ID="AWS_RDS" Name="Amazon Relational Database Service" Description="Amazon Relational Database Service (Amazon RDS) is a web service that makes it easy to set up, operate, and scale a relational database in the cloud. It provides cost-efficient and resizable capacity while managing time-consuming database administration tasks, freeing you up to focus on your applications and business."
+                          Availability="99.99" Durability="99.5" ServiceLevelAgreement="http://aws.amazon.com/agreement/" MaxNumberContainers="100">
+        <TransferProtocols>REST;SOAP</TransferProtocols>
+        <Security>
+          <NetworkSecurity>SSL</NetworkSecurity>
+          <Authentication>AWS Account</Authentication>
+        </Security>
+        <Replication Supported="true" DefaultNumberOfReplicas="1" MaxNumberOfReplicas="5" MultiRegionReplica="false" SameRegionReplica="true"/>
+        <Interface>
+          <CustomInterface>
+            <Create>CreateDBInstace</Create>
+            <Delete>DeleteDBInstace</Delete>
+            <Upload>ModifyDBInstace</Upload>
+            <CreateSnapshot>CreateDBSnapshot</CreateSnapshot>
+            <RestoreSnapshot>RestoreDBInstanceToPointInTime</RestoreSnapshot>
+          </CustomInterface>
+        </Interface>
+        <Logging Supported="true">
+          <LoggingInterface>
+            <CustomInterface>
+              <List>DescribeEvents</List>
+            </CustomInterface>
+          </LoggingInterface>
+        </Logging>
+          
+        <Versioning Supported="false"/>
+        <Container ID="AWS_RDS_DB" Name="Amazon RDS Database" Description="Amazon RDS gives you access to the full capabilities of a familiar MySQL database. This means the code, applications, and tools you already use today with your existing MySQL databases work seamlessly with Amazon RDS. Amazon RDS automatically patches the database software and backs up your database, storing the backups for a user-defined retention period and enabling point-in-time recovery. You benefit from the flexibility of being able to scale the compute resources or storage capacity associated with your relational database instance via a single API call. In addition, Amazon RDS makes it easy to use replication to enhance availability and reliability for production databases and to scale out beyond the capacity of a single database deployment for read-heavy database workloads. As with all Amazon Web Services, there are no up-front investments required, and you pay only for the resources you use."
+                   Recursive="false" NamingRegularExpression="^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?&lt;!-)$" RegionChoice="true" RegionIDChoices="US;US_CA;EU;APAC" RegionDefaultID="US" MaxSizeGB="1024" AutomaticBackups="true">
+          <Notifications Supported="false"/>
+          <Interface>
+            <SQLInterface>MySQL</SQLInterface>
+          </Interface>
+          <AcccessControl>
+            <AccessPolicy ID="AWS_IAM" Name="Amazon Identity and Access Management" Description="WS Identity and Access Management (IAM) enables you to create and manage Users under the umbrella of your AWS Account. You use IAM in conjunction with other AWS products to control access to the AWS resources in your AWS Account. You can get started with IAM by following the tasks shown in the following diagram. For the purposes of this guide, you'll primarily use the IAM command line interface (CLI)."
+                          PolicyLanguage="JSON">
+              <AccessPolicyInterface>
+                <CustomInterface>
+                  <Create>CreateUser;CreateAccessKey;CreateGroup;AddUserToGroup</Create>
+                  <Delete>RemoveUserFromGroup</Delete>
+                  <Upload>PutUserPolicy;PutGroupPolicy</Upload>
+                  <Download></Download>
+                </CustomInterface>
+              </AccessPolicyInterface>
+              <Keys></Keys>
+              <Actions></Actions>
+              <Principals>AWSAccountID;CanonicalUserID</Principals>
+              <Resources>DBInstance</Resources>
+            </AccessPolicy>
+          </AcccessControl>
+          <Objects>
+          <Object ID="AWS_RDS_TABLE" Name="Amazon RDS Table" ConcurrentAccessSupport="true">
+            <Interface>
+              <SQLInterface/>
+            </Interface>
+            <Data DaysToExpiration="0" Formats="binary;text" ReadOnly="false">
+              <AttributeValue/>
+            </Data>
+          </Object>
+          </Objects>
+        </Container>
+      </StorageAbstraction>
+      <Regions>
+        <Region ID="AWS_RDS_US" Name="US Standard" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.10"/>
+            <DataTransferCost CostPerGBIn="0.10"/>
+            <DataTransferCost CostPerGBOut="0" MinimumGBTransfer="0" MaximumGBTransfer="1"/>
+            <DataTransferCost CostPerGBOut="0.15" MinimumGBTransfer="0" MaximumGBTransfer="15360"/>
+            <DataTransferCost CostPerGBOut="0.11" MinimumGBTransfer="15360" MaximumGBTransfer="56320"/>
+            <DataTransferCost CostPerGBOut="0.09" MinimumGBTransfer="56320" MaximumGBTransfer="153600"/>
+            <DataTransferCost CostPerGBOut="0.08" MinimumGBTransfer="153600"/>
+
+            <RequestCost Cost="0.10"   NumberOfRequests="1000000" RequestType="IO"/>
+            <HourlyCost CostPerHour="0.11"   ObjectReserved="Small"/>
+            <HourlyCost CostPerHour="0.44"   ObjectReserved="Large"/>
+            <HourlyCost CostPerHour="0.88"   ObjectReserved="ExtraLarge"/>
+            <HourlyCost CostPerHour="1.30"   ObjectReserved="DoubleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="2.60"   ObjectReserved="QuadrupleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="0.65"   ObjectReserved="ExtraLargeHighMemory"/>
+
+            <ReservationCost   CostPerTerm="227.50" ObjectReserved="Small" TermYears="1" UsageRate="0.046"/>
+            <ReservationCost   CostPerTerm="350" ObjectReserved="Small" TermYears="3" UsageRate="0.046"/>
+            <ReservationCost   CostPerTerm="910" ObjectReserved="Large" TermYears="1" UsageRate="0.184"/>
+            <ReservationCost   CostPerTerm="1400" ObjectReserved="Large" TermYears="3" UsageRate="0.184"/>
+            <ReservationCost   CostPerTerm="1820" ObjectReserved="ExtraLarge" TermYears="1" UsageRate="0.368"/>
+            <ReservationCost   CostPerTerm="2800" ObjectReserved="ExtraLarge" TermYears="3" UsageRate="0.368"/>
+            <ReservationCost   CostPerTerm="1325" ObjectReserved="ExtraLargeHighMemory" TermYears="1" UsageRate="0.262"/>
+            <ReservationCost   CostPerTerm="2000" ObjectReserved="ExtraLargeHighMemory" TermYears="3" UsageRate="0.262"/>
+            <ReservationCost   CostPerTerm="2650" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="1" UsageRate="0.524"/>
+            <ReservationCost   CostPerTerm="4000" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="3" UsageRate="0.524"/>
+            <ReservationCost   CostPerTerm="5300" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="1" UsageRate="1.048"/>
+            <ReservationCost   CostPerTerm="8000" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="3" UsageRate="1.048"/>
+            
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="3.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="27"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="287"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="37"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="300">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="350">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="20">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="20">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_RDS_US_CA" Name="US Northern California" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.11"/>
+            <DataTransferCost CostPerGBIn="0.10"/>
+            <DataTransferCost CostPerGBOut="0" MinimumGBTransfer="0" MaximumGBTransfer="1"/>
+            <DataTransferCost CostPerGBOut="0.15" MinimumGBTransfer="0" MaximumGBTransfer="15360"/>
+            <DataTransferCost CostPerGBOut="0.11" MinimumGBTransfer="15360" MaximumGBTransfer="56320"/>
+            <DataTransferCost CostPerGBOut="0.09" MinimumGBTransfer="56320" MaximumGBTransfer="153600"/>
+            <DataTransferCost CostPerGBOut="0.08" MinimumGBTransfer="153600"/>
+            <RequestCost Cost="0.11"   NumberOfRequests="1000000" RequestType="IO"/>
+            <HourlyCost CostPerHour="0.12"   ObjectReserved="Small"/>
+            <HourlyCost CostPerHour="0.48"   ObjectReserved="Large"/>
+            <HourlyCost CostPerHour="0.97"   ObjectReserved="ExtraLarge"/>
+            <HourlyCost CostPerHour="1.48"   ObjectReserved="DoubleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="2.96"   ObjectReserved="QuadrupleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="0.74"   ObjectReserved="ExtraLargeHighMemory"/>
+
+            <ReservationCost   CostPerTerm="227.50" ObjectReserved="Small" TermYears="1" UsageRate="0.059"/>
+            <ReservationCost   CostPerTerm="350" ObjectReserved="Small" TermYears="3" UsageRate="0.059"/>
+            <ReservationCost   CostPerTerm="910" ObjectReserved="Large" TermYears="1" UsageRate="0.235"/>
+            <ReservationCost   CostPerTerm="1400" ObjectReserved="Large" TermYears="3" UsageRate="0.235"/>
+            <ReservationCost   CostPerTerm="1820" ObjectReserved="ExtraLarge" TermYears="1" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="2800" ObjectReserved="ExtraLarge" TermYears="3" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="1325" ObjectReserved="ExtraLargeHighMemory" TermYears="1" UsageRate="0.352"/>
+            <ReservationCost   CostPerTerm="2000" ObjectReserved="ExtraLargeHighMemory" TermYears="3" UsageRate="0.352"/>
+            <ReservationCost   CostPerTerm="2650" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="1" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="4000" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="3" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="5300" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="1" UsageRate="1.408"/>
+            <ReservationCost   CostPerTerm="8000" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="3" UsageRate="1.408"/>
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="3.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="27"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="287"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="37"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="300">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="350">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="20">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="20">
+                <FixedVariable VariableName="ClientLocation" Value="Local"/>
+              </Scalar>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_RDS_EU" Name="European Union Ireland" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.11"/>
+            <DataTransferCost CostPerGBIn="0.10"/>
+            <DataTransferCost CostPerGBOut="0" MinimumGBTransfer="0" MaximumGBTransfer="1"/>
+            <DataTransferCost CostPerGBOut="0.15" MinimumGBTransfer="0" MaximumGBTransfer="15360"/>
+            <DataTransferCost CostPerGBOut="0.11" MinimumGBTransfer="15360" MaximumGBTransfer="56320"/>
+            <DataTransferCost CostPerGBOut="0.09" MinimumGBTransfer="56320" MaximumGBTransfer="153600"/>
+            <DataTransferCost CostPerGBOut="0.08" MinimumGBTransfer="153600"/>
+            <RequestCost Cost="0.11"   NumberOfRequests="1000000" RequestType="IO"/>
+            <HourlyCost CostPerHour="0.12"   ObjectReserved="Small"/>
+            <HourlyCost CostPerHour="0.48"   ObjectReserved="Large"/>
+            <HourlyCost CostPerHour="0.97"   ObjectReserved="ExtraLarge"/>
+            <HourlyCost CostPerHour="1.48"   ObjectReserved="DoubleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="2.96"   ObjectReserved="QuadrupleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="0.74"   ObjectReserved="ExtraLargeHighMemory"/>
+
+            <ReservationCost   CostPerTerm="227.50" ObjectReserved="Small" TermYears="1" UsageRate="0.059"/>
+            <ReservationCost   CostPerTerm="350" ObjectReserved="Small" TermYears="3" UsageRate="0.059"/>
+            <ReservationCost   CostPerTerm="910" ObjectReserved="Large" TermYears="1" UsageRate="0.235"/>
+            <ReservationCost   CostPerTerm="1400" ObjectReserved="Large" TermYears="3" UsageRate="0.235"/>
+            <ReservationCost   CostPerTerm="1820" ObjectReserved="ExtraLarge" TermYears="1" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="2800" ObjectReserved="ExtraLarge" TermYears="3" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="1325" ObjectReserved="ExtraLargeHighMemory" TermYears="1" UsageRate="0.352"/>
+            <ReservationCost   CostPerTerm="2000" ObjectReserved="ExtraLargeHighMemory" TermYears="3" UsageRate="0.352"/>
+            <ReservationCost   CostPerTerm="2650" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="1" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="4000" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="3" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="5300" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="1" UsageRate="1.408"/>
+            <ReservationCost   CostPerTerm="8000" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="3" UsageRate="1.408"/>
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="3.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="27"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="287"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="37"/>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_RDS_APAC" Name="APAC Singapore" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.11"/>
+            <DataTransferCost CostPerGBIn="0.10"/>
+            <DataTransferCost CostPerGBOut="0" MinimumGBTransfer="0" MaximumGBTransfer="1"/>
+            <DataTransferCost CostPerGBOut="0.19" MinimumGBTransfer="0" MaximumGBTransfer="15360"/>
+            <DataTransferCost CostPerGBOut="0.15" MinimumGBTransfer="15360" MaximumGBTransfer="56320"/>
+            <DataTransferCost CostPerGBOut="0.13" MinimumGBTransfer="56320" MaximumGBTransfer="153600"/>
+            <DataTransferCost CostPerGBOut="0.12" MinimumGBTransfer="153600"/>
+            <RequestCost Cost="0.11"   NumberOfRequests="1000000" RequestType="IO"/>
+            <HourlyCost CostPerHour="0.12"   ObjectReserved="Small"/>
+            <HourlyCost CostPerHour="0.48"   ObjectReserved="Large"/>
+            <HourlyCost CostPerHour="0.97"   ObjectReserved="ExtraLarge"/>
+            <HourlyCost CostPerHour="1.48"   ObjectReserved="DoubleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="2.96"   ObjectReserved="QuadrupleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="0.74"   ObjectReserved="ExtraLargeHighMemory"/>
+
+            <ReservationCost   CostPerTerm="227.50" ObjectReserved="Small" TermYears="1" UsageRate="0.059"/>
+            <ReservationCost   CostPerTerm="350" ObjectReserved="Small" TermYears="3" UsageRate="0.059"/>
+            <ReservationCost   CostPerTerm="910" ObjectReserved="Large" TermYears="1" UsageRate="0.235"/>
+            <ReservationCost   CostPerTerm="1400" ObjectReserved="Large" TermYears="3" UsageRate="0.235"/>
+            <ReservationCost   CostPerTerm="1820" ObjectReserved="ExtraLarge" TermYears="1" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="2800" ObjectReserved="ExtraLarge" TermYears="3" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="1325" ObjectReserved="ExtraLargeHighMemory" TermYears="1" UsageRate="0.352"/>
+            <ReservationCost   CostPerTerm="2000" ObjectReserved="ExtraLargeHighMemory" TermYears="3" UsageRate="0.352"/>
+            <ReservationCost   CostPerTerm="2650" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="1" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="4000" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="3" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="5300" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="1" UsageRate="1.408"/>
+            <ReservationCost   CostPerTerm="8000" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="3" UsageRate="1.408"/>
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="3.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="27"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="287"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="37"/>
+            </Measurement>
+          </Performance>
+        </Region>
+      </Regions>
+    </StorageService>
+
+    <StorageService>
+      <StorageAbstraction ID="AWS_RDS_MULTI_AZ" Name="Amazon Relational Database Service" Description="Amazon Relational Database Service (Amazon RDS) is a web service that makes it easy to set up, operate, and scale a relational database in the cloud. It provides cost-efficient and resizable capacity while managing time-consuming database administration tasks, freeing you up to focus on your applications and business."
+                          Availability="99.99" Durability="99.5" ServiceLevelAgreement="http://aws.amazon.com/agreement/" MaxNumberContainers="100">
+        <TransferProtocols>REST;SOAP</TransferProtocols>
+        <Security>
+          <NetworkSecurity>SSL</NetworkSecurity>
+          <Authentication>AWS Account</Authentication>
+        </Security>
+        <Replication Supported="true" DefaultNumberOfReplicas="1" MaxNumberOfReplicas="5" MultiRegionReplica="true" SameRegionReplica="true"/>
+        <Interface>
+          <CustomInterface>
+            <Create>CreateDBInstace</Create>
+            <Delete>DeleteDBInstace</Delete>
+            <Upload>ModifyDBInstace</Upload>
+            <CreateSnapshot>CreateDBSnapshot</CreateSnapshot>
+            <RestoreSnapshot>RestoreDBInstanceToPointInTime</RestoreSnapshot>
+          </CustomInterface>
+        </Interface>
+        <Logging Supported="true">
+          <LoggingInterface>
+            <CustomInterface>
+              <List>DescribeEvents</List>
+            </CustomInterface>
+          </LoggingInterface>
+        </Logging>
+
+        <Versioning Supported="false"/>
+        <Container ID="AWS_RDS_DB" Name="Amazon RDS Database" Description="Amazon RDS gives you access to the full capabilities of a familiar MySQL database. This means the code, applications, and tools you already use today with your existing MySQL databases work seamlessly with Amazon RDS. Amazon RDS automatically patches the database software and backs up your database, storing the backups for a user-defined retention period and enabling point-in-time recovery. You benefit from the flexibility of being able to scale the compute resources or storage capacity associated with your relational database instance via a single API call. In addition, Amazon RDS makes it easy to use replication to enhance availability and reliability for production databases and to scale out beyond the capacity of a single database deployment for read-heavy database workloads. As with all Amazon Web Services, there are no up-front investments required, and you pay only for the resources you use."
+                   Recursive="false" NamingRegularExpression="^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?&lt;!-)$" RegionChoice="true" RegionIDChoices="US;US_CA;EU;APAC" RegionDefaultID="US" MaxSizeGB="1024" AutomaticBackups="true">
+          <Notifications Supported="false"/>
+          <Interface>
+            <SQLInterface>MySQL</SQLInterface>
+          </Interface>
+          <AcccessControl>
+            <AccessPolicy ID="AWS_IAM" Name="Amazon Identity and Access Management" Description="WS Identity and Access Management (IAM) enables you to create and manage Users under the umbrella of your AWS Account. You use IAM in conjunction with other AWS products to control access to the AWS resources in your AWS Account. You can get started with IAM by following the tasks shown in the following diagram. For the purposes of this guide, you'll primarily use the IAM command line interface (CLI)."
+                          PolicyLanguage="JSON">
+              <AccessPolicyInterface>
+                <CustomInterface>
+                  <Create>CreateUser;CreateAccessKey;CreateGroup;AddUserToGroup</Create>
+                  <Delete>RemoveUserFromGroup</Delete>
+                  <Upload>PutUserPolicy;PutGroupPolicy</Upload>
+                  <Download></Download>
+                </CustomInterface>
+              </AccessPolicyInterface>
+              <Keys></Keys>
+              <Actions></Actions>
+              <Principals>AWSAccountID;CanonicalUserID</Principals>
+              <Resources>DBInstance</Resources>
+            </AccessPolicy>
+          </AcccessControl>
+          <Objects>
+          <Object ID="AWS_RDS_TABLE" Name="Amazon RDS Table" ConcurrentAccessSupport="true">
+            <Interface>
+              <SQLInterface/>
+            </Interface>
+            <Data DaysToExpiration="0" Formats="binary;text" ReadOnly="false">
+              <AttributeValue/>
+            </Data>
+          </Object>
+          </Objects>
+        </Container>
+      </StorageAbstraction>
+      <Regions>
+        <Region ID="AWS_RDS_MULTI_AZ_US" Name="US Standard" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.20"/>
+            <DataTransferCost CostPerGBIn="0.10"/>
+            <DataTransferCost CostPerGBOut="0" MinimumGBTransfer="0" MaximumGBTransfer="1"/>
+            <DataTransferCost CostPerGBOut="0.15" MinimumGBTransfer="0" MaximumGBTransfer="15360"/>
+            <DataTransferCost CostPerGBOut="0.11" MinimumGBTransfer="15360" MaximumGBTransfer="56320"/>
+            <DataTransferCost CostPerGBOut="0.09" MinimumGBTransfer="56320" MaximumGBTransfer="153600"/>
+            <DataTransferCost CostPerGBOut="0.08" MinimumGBTransfer="153600"/>
+            <RequestCost Cost="0.10"   NumberOfRequests="1000000" RequestType="IO"/>
+            <HourlyCost CostPerHour="0.22"   ObjectReserved="Small"/>
+            <HourlyCost CostPerHour="0.88"   ObjectReserved="Large"/>
+            <HourlyCost CostPerHour="1.66"   ObjectReserved="ExtraLarge"/>
+            <HourlyCost CostPerHour="2.60"   ObjectReserved="DoubleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="5.20"   ObjectReserved="QuadrupleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="1.30"   ObjectReserved="ExtraLargeHighMemory"/>
+
+            <ReservationCost   CostPerTerm="455" ObjectReserved="Small" TermYears="1" UsageRate="0.092"/>
+            <ReservationCost   CostPerTerm="700" ObjectReserved="Small" TermYears="3" UsageRate="0.092"/>
+            <ReservationCost   CostPerTerm="1820" ObjectReserved="Large" TermYears="1" UsageRate="0.368"/>
+            <ReservationCost   CostPerTerm="2800" ObjectReserved="Large" TermYears="3" UsageRate="0.368"/>
+            <ReservationCost   CostPerTerm="3640" ObjectReserved="ExtraLarge" TermYears="1" UsageRate="0.736"/>
+            <ReservationCost   CostPerTerm="5600" ObjectReserved="ExtraLarge" TermYears="3" UsageRate="0.736"/>
+            <ReservationCost   CostPerTerm="2650" ObjectReserved="ExtraLargeHighMemory" TermYears="1" UsageRate="0.524"/>
+            <ReservationCost   CostPerTerm="4000" ObjectReserved="ExtraLargeHighMemory" TermYears="3" UsageRate="0.524"/>
+            <ReservationCost   CostPerTerm="5300" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="1" UsageRate="1.048"/>
+            <ReservationCost   CostPerTerm="8000" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="3" UsageRate="1.048"/>
+            <ReservationCost   CostPerTerm="10600" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="1" UsageRate="2.096"/>
+            <ReservationCost   CostPerTerm="16000" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="3" UsageRate="2.096"/>
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="3.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="27"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="287"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="37"/>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_RDS_MULTI_AZ_US_CA" Name="US Northern California" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.22"/>
+            <DataTransferCost CostPerGBIn="0.10"/>
+            <DataTransferCost CostPerGBOut="0" MinimumGBTransfer="0" MaximumGBTransfer="1"/>
+            <DataTransferCost CostPerGBOut="0.15" MinimumGBTransfer="0" MaximumGBTransfer="15360"/>
+            <DataTransferCost CostPerGBOut="0.11" MinimumGBTransfer="15360" MaximumGBTransfer="56320"/>
+            <DataTransferCost CostPerGBOut="0.09" MinimumGBTransfer="56320" MaximumGBTransfer="153600"/>
+            <DataTransferCost CostPerGBOut="0.08" MinimumGBTransfer="153600"/>
+            <RequestCost Cost="0.11"   NumberOfRequests="1000000" RequestType="IO"/>
+            <HourlyCost CostPerHour="0.24"   ObjectReserved="Small"/>
+            <HourlyCost CostPerHour="0.96"   ObjectReserved="Large"/>
+            <HourlyCost CostPerHour="0.97"   ObjectReserved="ExtraLarge"/>
+            <HourlyCost CostPerHour="2.96"   ObjectReserved="DoubleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="5.92"   ObjectReserved="QuadrupleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="1.94"   ObjectReserved="ExtraLargeHighMemory"/>
+
+            <ReservationCost   CostPerTerm="455" ObjectReserved="Small" TermYears="1" UsageRate="0.118"/>
+            <ReservationCost   CostPerTerm="700" ObjectReserved="Small" TermYears="3" UsageRate="0.118"/>
+            <ReservationCost   CostPerTerm="1820" ObjectReserved="Large" TermYears="1" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="2800" ObjectReserved="Large" TermYears="3" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="3640" ObjectReserved="ExtraLarge" TermYears="1" UsageRate="0.942"/>
+            <ReservationCost   CostPerTerm="5600" ObjectReserved="ExtraLarge" TermYears="3" UsageRate="0.942"/>
+            <ReservationCost   CostPerTerm="2650" ObjectReserved="ExtraLargeHighMemory" TermYears="1" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="4000" ObjectReserved="ExtraLargeHighMemory" TermYears="3" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="5300" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="1" UsageRate="1.408"/>
+            <ReservationCost   CostPerTerm="8000" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="3" UsageRate="1.408"/>
+            <ReservationCost   CostPerTerm="10600" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="1" UsageRate="2.816"/>
+            <ReservationCost   CostPerTerm="16000" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="3" UsageRate="2.816"/>
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="3.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="27"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="287"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="37"/>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_RDS_MULTI_AZ_EU" Name="European Union Ireland" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.22"/>
+            <DataTransferCost CostPerGBIn="0.10"/>
+            <DataTransferCost CostPerGBOut="0" MinimumGBTransfer="0" MaximumGBTransfer="1"/>
+            <DataTransferCost CostPerGBOut="0.15" MinimumGBTransfer="0" MaximumGBTransfer="15360"/>
+            <DataTransferCost CostPerGBOut="0.11" MinimumGBTransfer="15360" MaximumGBTransfer="56320"/>
+            <DataTransferCost CostPerGBOut="0.09" MinimumGBTransfer="56320" MaximumGBTransfer="153600"/>
+            <DataTransferCost CostPerGBOut="0.08" MinimumGBTransfer="153600"/>
+            <RequestCost Cost="0.11"   NumberOfRequests="1000000" RequestType="IO"/>
+            <HourlyCost CostPerHour="0.24"   ObjectReserved="Small"/>
+            <HourlyCost CostPerHour="0.96"   ObjectReserved="Large"/>
+            <HourlyCost CostPerHour="0.97"   ObjectReserved="ExtraLarge"/>
+            <HourlyCost CostPerHour="2.96"   ObjectReserved="DoubleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="5.92"   ObjectReserved="QuadrupleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="1.94"   ObjectReserved="ExtraLargeHighMemory"/>
+
+            <ReservationCost   CostPerTerm="455" ObjectReserved="Small" TermYears="1" UsageRate="0.118"/>
+            <ReservationCost   CostPerTerm="700" ObjectReserved="Small" TermYears="3" UsageRate="0.118"/>
+            <ReservationCost   CostPerTerm="1820" ObjectReserved="Large" TermYears="1" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="2800" ObjectReserved="Large" TermYears="3" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="3640" ObjectReserved="ExtraLarge" TermYears="1" UsageRate="0.942"/>
+            <ReservationCost   CostPerTerm="5600" ObjectReserved="ExtraLarge" TermYears="3" UsageRate="0.942"/>
+            <ReservationCost   CostPerTerm="2650" ObjectReserved="ExtraLargeHighMemory" TermYears="1" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="4000" ObjectReserved="ExtraLargeHighMemory" TermYears="3" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="5300" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="1" UsageRate="1.408"/>
+            <ReservationCost   CostPerTerm="8000" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="3" UsageRate="1.408"/>
+            <ReservationCost   CostPerTerm="10600" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="1" UsageRate="2.816"/>
+            <ReservationCost   CostPerTerm="16000" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="3" UsageRate="2.816"/>
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="3.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="27"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="287"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="37"/>
+            </Measurement>
+          </Performance>
+        </Region>
+        <Region ID="AWS_RDS_MULTI_AZ_APAC" Name="APAC Singapore" Location="Location1">
+          <Revenue Supported="false"/>
+          <Cost CostCurrency="USDollars">
+            <StorageCost   CostPerGB="0.22"/>
+            <DataTransferCost CostPerGBIn="0.10"/>
+            <DataTransferCost CostPerGBOut="0" MinimumGBTransfer="0" MaximumGBTransfer="1"/>
+            <DataTransferCost CostPerGBOut="0.19" MinimumGBTransfer="0" MaximumGBTransfer="15360"/>
+            <DataTransferCost CostPerGBOut="0.15" MinimumGBTransfer="15360" MaximumGBTransfer="56320"/>
+            <DataTransferCost CostPerGBOut="0.13" MinimumGBTransfer="56320" MaximumGBTransfer="153600"/>
+            <DataTransferCost CostPerGBOut="0.12" MinimumGBTransfer="153600"/>
+            <RequestCost Cost="0.11"   NumberOfRequests="1000000" RequestType="IO"/>
+            <HourlyCost CostPerHour="0.24"   ObjectReserved="Small"/>
+            <HourlyCost CostPerHour="0.96"   ObjectReserved="Large"/>
+            <HourlyCost CostPerHour="0.97"   ObjectReserved="ExtraLarge"/>
+            <HourlyCost CostPerHour="2.96"   ObjectReserved="DoubleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="5.92"   ObjectReserved="QuadrupleExtraLargeHighMemory"/>
+            <HourlyCost CostPerHour="1.94"   ObjectReserved="ExtraLargeHighMemory"/>
+
+            <ReservationCost   CostPerTerm="455" ObjectReserved="Small" TermYears="1" UsageRate="0.118"/>
+            <ReservationCost   CostPerTerm="700" ObjectReserved="Small" TermYears="3" UsageRate="0.118"/>
+            <ReservationCost   CostPerTerm="1820" ObjectReserved="Large" TermYears="1" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="2800" ObjectReserved="Large" TermYears="3" UsageRate="0.471"/>
+            <ReservationCost   CostPerTerm="3640" ObjectReserved="ExtraLarge" TermYears="1" UsageRate="0.942"/>
+            <ReservationCost   CostPerTerm="5600" ObjectReserved="ExtraLarge" TermYears="3" UsageRate="0.942"/>
+            <ReservationCost   CostPerTerm="2650" ObjectReserved="ExtraLargeHighMemory" TermYears="1" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="4000" ObjectReserved="ExtraLargeHighMemory" TermYears="3" UsageRate="0.704"/>
+            <ReservationCost   CostPerTerm="5300" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="1" UsageRate="1.408"/>
+            <ReservationCost   CostPerTerm="8000" ObjectReserved="DoubleExtraLargeHighMemory" TermYears="3" UsageRate="1.408"/>
+            <ReservationCost   CostPerTerm="10600" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="1" UsageRate="2.816"/>
+            <ReservationCost   CostPerTerm="16000" ObjectReserved="QuadrupleExtraLargeHighMemory" TermYears="3" UsageRate="2.816"/>
+          </Cost>
+          <Performance>
+            <Measurement Operation="Read" Units="ms" Variable="Latency">
+              <Scalar Value="3.5"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="ms" Variable="Latency">
+              <Scalar Value="27"/>
+            </Measurement>
+            <Measurement Operation="Read" Units="items/sec" Variable="Throughput">
+              <Scalar Value="287"/>
+            </Measurement>
+            <Measurement Operation="Write" Units="items/sec" Variable="Throughput">
+              <Scalar Value="37"/>
+            </Measurement>
+          </Performance>
+        </Region>
+      </Regions>
+    </StorageService>
+
+
+  </StorageServices>
+</CloudProvider>

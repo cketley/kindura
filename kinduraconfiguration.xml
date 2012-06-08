@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<KinduraConfiguration>
+  <DuraCloud>
+    <DuraCloudHost>localhost</DuraCloudHost><!-- Host name or address of the DuraCloud instance-->
+    <DuraCloudPort>8080</DuraCloudPort><!-- Hort number of the DuraCloud instance-->
+    <DuraCloudContext>durastore</DuraCloudContext><!-- The context of the DuraCloud instance -->
+    <DuraCloudUsername>root</DuraCloudUsername><!-- The username of the DuraCloud instance -->
+    <DuraCloudPassword>rpw</DuraCloudPassword><!-- The password of the DuraCloud instance -->
+    <TempUploadDirectory>C:/Program Files (x86)/Apache Software Foundation/Tomcat 6.0/webapps/kindura8/uploadtemp/</TempUploadDirectory> <!-- Temporary directory for files to be uploaded -->
+    <TempDownloadDirectory>C:/Program Files (x86)/Apache Software Foundation/Tomcat 6.0/webapps/kindura8/downloadtemp/</TempDownloadDirectory> <!-- Temporary directory for files to be downloaded -->
+    <DisplayDownloadDirectory>downloadtemp/</DisplayDownloadDirectory> <!-- File path displayed to user -->
+    <NumberOfBytes>1024</NumberOfBytes> <!-- Size of download buffer -->
+  </DuraCloud>
+  <Fedora>
+    <FedoraHost>http://localhost:8080/fedora/</FedoraHost><!-- Host name or address of Fedora-->
+    <FedoraUsername>fedoraAdmin</FedoraUsername><!-- The username of Fedora -->
+    <FedoraPassword>fedoraAdmin</FedoraPassword><!-- The password of Fedora -->
+  </Fedora>
+  <MySQL>
+    <MySQLURL>jdbc:mysql://localhost:3306/</MySQLURL><!-- Host address of MySQL -->
+    <MySQLUsername>root</MySQLUsername><!-- The username of MySQL -->
+    <MySQLPassword>kindura</MySQLPassword><!-- The password of MySQL -->
+    <MySQLDatabase>kindura_database</MySQLDatabase><!-- The database of MySQL -->
+  </MySQL>
+  <FindObjectMaxResults>1000</FindObjectMaxResults><!-- The maximum number of results returned by Fedora -->
+  <CostOptimiser>
+    <DroolsPath>C:/</DroolsPath><!-- The path of Drool -->
+	<XMLPath>C:/Program Files (x86)/Apache Software Foundation/Tomcat 6.0/webapps/kindura8/src/org/kindura/</XMLPath><!-- The directory which contains the cost optimiser XML file -->
+  </CostOptimiser>
+</KinduraConfiguration>

@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*
+Rules defining the selection of storage provider(s) and tiers
+Rules defined for use with the DROOLS rule engine
+ */
+-->
+<rule-execution-set>
+
+   <name>Kindura</name>
+   <description>DROOLS rules for choosing storage providers and tiers</description>
+
+   <code>
+package uk.ac.kcl.kindura;
+
+import uk.ac.kcl.kindura.UploadCollection;
+import uk.ac.kcl.kindura.StorageProvider;
+import java.util.Calendar;
+
+// Function to set the appraisal date for a collection
+function setAppraisalDate( UploadCollection collection, int amount ) 
+{
+    // Use a Java Calendar object to handle leap years etc properly
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime( collection.uploadTime() );
+
+    // Add on the specified amount for the appraisal period to the collection upload time
+    calendar.set( Calendar.YEAR, calendar.get( Calendar.YEAR ) + amount );
+    collection.setAppraisalDate( calendar.get( Calendar.DATE ) );
+}
+
+function limitStorage( StorageProviderConstraint constraintType, String value )
+{
+    // Remove potential storage providers from the list
+    // that do not match the constraint
+    for provider: providers
+    {
+        if ( provider.constraints.containsKey( constraintType ) )
+        {
+            if ( provider.constraints.get( constraintType ) == value )
+            {
+                providers.remove( provider );
+            }
+        }
+    }
+}
+
+function addTier( UploadCollection collection, StorageProviderTier tier )
+{
+    collection.addTier( tier );
+}
+
+////////////////////////////////////////////////////////////////
+// Define the appraisal periods for different funding situations
+// First set of rules defines periods for project funding
+rule "Institutional funder appraisal period"
+salience 100
+when
+    collection: UploadCollection( getProject().getFunder() == "Institutional" )
+then
+    setAppraisalDate( collection, 6 );
+end
+
+rule "AHRC funder appraisal period"
+salience 100
+when
+    collection: UploadCollection( getProject().getFunder() == "AHRC" )
+then
+    setAppraisalDate( collection, 3 );
+end
+
+rule "ESRC funder appraisal period"
+salience 100
+when
+    collection: UploadCollection( getProject().getFunder() == "ESRC" )
+then
+    setAppraisalDate( collection, 10 );
+end
+
+
+rule "EPSRC funder appraisal period"
+salience 100
+when
+    collection: UploadCollection( getProject().getFunder() == "EPSRC" )
+then
+    setAppraisalDate( collection, 10 );
+end
+
+
+rule "Combination funder appraisal period"
+salience 100
+when
+    collection: UploadCollection( getProject().getFunder() == "Combination" )
+then
+    setAppraisalDate( collection, 10 );
+end
+
+rule "Unfunded funder appraisal period"
+salience 100
+when
+    collection: UploadCollection( getProject().getFunder() == "Unfunded" )
+then
+    setAppraisalDate( collection, 5 );
+end
+
+rule "Other funder appraisal period"
+salience 100
+when
+    collection: UploadCollection( getProject().getFunder() == "Other" )
+then
+    setAppraisalDate( collection, 3 );
+end
+
+///////////////////////////////////////////////////////////////////////////
+// Now a set of rules for specifying appraisal period on a collection basis
+// These must overrule the project defaults, hence the lower salience
+rule "AHRC accession appraisal period"
+salience 50
+when
+    collection: UploadCollection( getFunder() == "AHRC" )
+then
+    setAppraisalDate( collection, 3 );
+end
+
+rule "ESRC accession appraisal period"
+salience 50
+when
+    collection: UploadCollection( getFunder() == "ESRC" )
+then
+    setAppraisalDate( collection, 10 );
+end
+
+rule "EPSRC accession appraisal period"
+salience 50
+when
+    collection: UploadCollection( getFunder() == "EPSRC" )
+then
+    setAppraisalDate( collection, 10 );
+end
+
+rule "Combination accession appraisal period"
+salience 50
+when
+    collection: UploadCollection( getFunder() == "Combination" )
+then
+    setAppraisalDate( collection, 10 );
+end
+
+rule "Unfunded accession appraisal period"
+salience 50
+when
+    collection: UploadCollection( getFunder() == "Unfunded" )
+then
+    setAppraisalDate( collection, 3 );
+end
+
+rule "Other accession appraisal period"
+salience 50
+when
+    collection: UploadCollection( getFunder() == "Other" )
+then
+    setAppraisalDate( collection, 3 );
+end
+
+///////////////////////////////////////////////////////////////
+// Version checks
+// These define the required number of copies of the data which must be stored
+
+rule "First version"
+salience 100
+when
+    collection: UploadCollection( version == "First version" )
+then
+    collection.setMinCopies() = 4;
+end
+
+rule "Milestone version"
+salience 100
+when
+    collection: UploadCollection( version == "Milestone version" )
+then
+    collection.setMinCopies() = 3;
+end
+
+rule "Publisher submitted version"
+salience 100
+when
+    collection: UploadCollection( version == "Publisher submitted version" )
+then
+    collection.setMinCopies() = 3;
+end
+
+rule "Publisher's proof"
+salience 100
+when
+    collection: UploadCollection( version == "Publisher's proof" )
+then
+    collection.setMinCopies() = 3;
+end
+
+rule "Work in progress"
+salience 100
+when
+    collection: UploadCollection( version == "Work in progress" )
+then
+    collection.setMinCopies() = 2;
+end
+
+rule "Derived data"
+salience 100
+when
+    collection: UploadCollection( version == "Derived data" )
+then
+    collection.setMinCopies() = 2;
+end
+
+rule "Final version"
+salience 100
+when
+    collection: UploadCollection( version == "Final version" )
+then
+    collection.setMinCopies() = 4;
+end
+
+//////////////////////////////////////////////////////////////
+// Data type checks
+// These rules remove potential storage providers from the list
+// in response to the type of data in the collection
+rule "Research type"
+salience 100
+when
+    collection: UploadCollection( type != "Research" )
+then
+    limitStorage( StorageProvider.REGION, "Local" );
+end
+
+////////////////////////////////////////////////////////////
+// Data sensitivity checks
+// These rules specify geograhpical constraints on storage
+rule "Medical sensitivity"
+salience 100
+when
+    collection: UploadCollection( sensitivity == "Medical" )
+then
+    limitStorage( StorageProvider.REGION, "EEC" );
+end
+
+rule "Financial sensitivity"
+salience 100
+when
+    collection: UploadCollection( sensitivity == "Financial" )
+then
+    limitStorage( StorageProvider.REGION, "EEC" );
+end
+
+rule "Employment details sensitivity"
+salience 100
+when
+    collection: UploadCollection( sensitivity == "Employment details" )
+then
+    limitStorage( StorageProvider.REGION, "EEC" );
+end
+
+rule "Other sensitivity"
+salience 100
+when
+    collection: UploadCollection( sensitivity == "Other" )
+then
+    limitStorage( StorageProvider.REGION, "EEC" );
+end
+
+/////////////////////////////////////////////////////////
+// Access frequency rules
+// These choose appropriate storage tiers
+rule "Daily access"
+salience 100
+when
+    collection: UploadCollection( frequency == "Daily" )
+then
+    addTier( collection, StorageProvider.TIER1 )
+end
+
+rule "More than weekly access"
+salience 100
+when
+    collection: UploadCollection( frequency == "Weekly plus" )
+then
+    addTier( collection, StorageProvider.TIER1 )
+    addTier( collection, StorageProvider.TIER2 )
+end
+
+rule "Monthly access"
+salience 100
+when
+    collection: UploadCollection( frequency == "Monthly" )
+then
+    addTier( collection, StorageProvider.TIER3 )
+end
+
+rule "Infrequent access"
+salience 100
+when
+    collection: UploadCollection( frequency == "Infrequent" )
+then
+    addTier( collection, StorageProvider.TIER4 )
+end
+
+/////////////////////////////////////////////////////////
+
+   </code>
+</rule-execution-set>
